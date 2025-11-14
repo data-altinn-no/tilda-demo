@@ -1,0 +1,146 @@
+import React from 'react';
+import { Download, FileText, Database } from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardContent, Button, Badge } from '../ui';
+import { downloadCSV, downloadJSON, flattenBruddByMyndighet } from '../../utils/exportHelpers.js';
+
+/**
+ * Download Tab Component - Provides data export functionality
+ */
+export function DownloadTab({ rap, koord, perMynd, selectedAuthority, onClearSelection }) {
+  const filteredRap = selectedAuthority ? rap.filter(r => r.tilsynsmyndighet === selectedAuthority) : rap;
+  const filteredKoord = selectedAuthority ? koord.filter(k => k.tilsynsmyndighet === selectedAuthority) : koord;
+  const filteredPerMynd = selectedAuthority ? { [selectedAuthority]: perMynd[selectedAuthority] || [] } : perMynd;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Download className="w-5 h-5" />
+            Eksporter data
+          </div>
+          {selectedAuthority && (
+            <div className="flex items-center gap-2">
+              <Badge className="bg-blue-100 text-blue-800">Filtrert: {selectedAuthority}</Badge>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={onClearSelection}
+                className="text-xs px-2 py-1"
+              >
+                Fjern filter
+              </Button>
+            </div>
+          )}
+        </CardTitle>
+        <p className="text-sm text-gray-600 mt-2">
+          Last ned data i forskjellige formater for videre analyse
+          {selectedAuthority && ` - kun data fra ${selectedAuthority}`}
+        </p>
+      </CardHeader>
+      <CardContent>
+        <div className="grid gap-6">
+          {/* Tilsynsrapporter */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <FileText className="w-4 h-4 text-blue-600" />
+              <h3 className="font-medium text-gray-900">Tilsynsrapporter</h3>
+              <span className="text-sm text-gray-500">({filteredRap.length} rapporter)</span>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-3">
+              <Button 
+                variant="outline" 
+                onClick={() => downloadCSV(filteredRap, `tilsynsrapport${selectedAuthority ? `-${selectedAuthority}` : ''}.csv`)}
+                className="justify-start"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Last ned som CSV
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => downloadJSON(filteredRap, `tilsynsrapport${selectedAuthority ? `-${selectedAuthority}` : ''}.json`)}
+                className="justify-start"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Last ned som JSON
+              </Button>
+            </div>
+          </div>
+
+          {/* Tilsynskoordinering */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Database className="w-4 h-4 text-green-600" />
+              <h3 className="font-medium text-gray-900">Tilsynskoordinering</h3>
+              <span className="text-sm text-gray-500">({filteredKoord.length} koordineringer)</span>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-3">
+              <Button 
+                variant="outline" 
+                onClick={() => downloadCSV(filteredKoord, `tilsynskoordinering${selectedAuthority ? `-${selectedAuthority}` : ''}.csv`)}
+                className="justify-start"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Last ned som CSV
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => downloadJSON(filteredKoord, `tilsynskoordinering${selectedAuthority ? `-${selectedAuthority}` : ''}.json`)}
+                className="justify-start"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Last ned som JSON
+              </Button>
+            </div>
+          </div>
+
+          {/* Brudd per myndighet */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <FileText className="w-4 h-4 text-red-600" />
+              <h3 className="font-medium text-gray-900">Brudd per myndighet</h3>
+              <span className="text-sm text-gray-500">({Object.keys(filteredPerMynd).length} myndigheter)</span>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-3">
+              <Button 
+                variant="outline" 
+                onClick={() => downloadCSV(flattenBruddByMyndighet(filteredPerMynd), `brudd-per-myndighet${selectedAuthority ? `-${selectedAuthority}` : ''}.csv`)}
+                className="justify-start"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Last ned som CSV
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => downloadJSON(flattenBruddByMyndighet(filteredPerMynd), `brudd-per-myndighet${selectedAuthority ? `-${selectedAuthority}` : ''}.json`)}
+                className="justify-start"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Last ned som JSON
+              </Button>
+            </div>
+          </div>
+
+          {/* Summary info */}
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <h4 className="font-medium mb-2">Sammendrag</h4>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+              <div>
+                <div className="text-gray-600">Totalt rapporter</div>
+                <div className="font-semibold">{filteredRap.length}</div>
+              </div>
+              <div>
+                <div className="text-gray-600">Totalt koordineringer</div>
+                <div className="font-semibold">{filteredKoord.length}</div>
+              </div>
+              <div>
+                <div className="text-gray-600">Myndigheter</div>
+                <div className="font-semibold">{Object.keys(filteredPerMynd).length}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}

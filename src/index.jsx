@@ -1,276 +1,61 @@
 import React, { useMemo, useState } from "react";
-import { Info, Database, LineChart as LineChartIcon, Building2, RefreshCcw, Download, ListChecks, Circle } from "lucide-react";
+import { Info, Database, LineChart as LineChartIcon, Building2, RefreshCcw, Download, ListChecks, Circle, Mail, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 import { LineChart as ReLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
-// Simple component replacements
-const Card = ({ children, className = "", ...props }) => <div className={`border rounded-lg shadow-sm bg-white p-4 ${className}`} {...props}>{children}</div>;
-const CardHeader = ({ children, className = "", ...props }) => <div className={`mb-4 ${className}`} {...props}>{children}</div>;
-const CardTitle = ({ children, className = "", ...props }) => <h3 className={`text-lg font-semibold ${className}`} {...props}>{children}</h3>;
-const CardContent = ({ children, className = "", ...props }) => <div className={`${className}`} {...props}>{children}</div>;
-const Button = ({ children, className = "", variant = "default", onClick, ...props }) => (
-  <button 
-    className={`px-4 py-2 rounded-md font-medium inline-flex items-center gap-2 ${
-      variant === "outline" ? "border border-gray-300 bg-white hover:bg-gray-50 text-gray-700" : "bg-blue-600 text-white hover:bg-blue-700"
-    } ${className}`} 
-    onClick={onClick} 
-    {...props}
-  >
-    {children}
-  </button>
-);
-const Input = ({ className = "", ...props }) => (
-  <input className={`px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${className}`} {...props} />
-);
-const Badge = ({ children, className = "", variant = "default", ...props }) => (
-  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-    variant === "secondary" ? "bg-gray-100 text-gray-800" : "bg-blue-100 text-blue-800"
-  } ${className}`} {...props}>
-    {children}
-  </span>
-);
+// Import extracted utilities and data functions
+import { CITY_COORDINATES } from './constants.js';
+import { downloadCSV, downloadJSON, flattenBruddByMyndighet } from './utils/exportHelpers.js';
+import { 
+  genTilsynskoordineringFor, 
+  genTilsynsrapportFor, 
+  genMeldingerFor, 
+  genOrganisationDetailsFor 
+} from './data/generators.js';
+import { 
+  isBrudd, 
+  aggregateBrudd, 
+  aggregateBruddByMyndighet 
+} from './data/aggregators.js';
 
-/******************************
- * EXPORT HELPERS (CSV/JSON)
- ******************************/
-function toDisplayString(v) {
-  if (v === null || v === undefined) return "";
-  const t = typeof v;
-  if (t === "string" || t === "number" || t === "boolean") return String(v);
-  try { return JSON.stringify(v); } catch { return String(v); }
-}
-function escCSV(v) {
-  const s = toDisplayString(v);
-  return `"${s.replace(/"/g, '""')}"`;
-}
-function toCSV(rows) {
-  if (!rows || rows.length === 0) return "";
-  const headerSet = new Set();
-  rows.forEach((r) => Object.keys(r || {}).forEach((k) => headerSet.add(k)));
-  const headers = Array.from(headerSet);
-  const headerLine = headers.join(",");
-  const body = rows
-    .map((r) => headers.map((h) => escCSV(r ? r[h] : "")).join(","))
-    .join("\r\n"); // CRLF
-  return `${headerLine}${rows.length ? "\r\n" : ""}${body}`;
-}
-function downloadCSV(rows, filename) {
-  const csv = toCSV(rows);
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = filename; a.click();
-  URL.revokeObjectURL(url);
-}
-function downloadJSON(data, filename){
-  const json = JSON.stringify(data, null, 2);
-  const blob = new Blob([json], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = filename; a.click();
-  URL.revokeObjectURL(url);
-}
-function flattenBruddByMyndighet(map) {
-  const out = [];
-  Object.entries(map).forEach(([mynd, rows])=>{
-    (rows || []).forEach((r)=> out.push({ myndighet: mynd, periode: r.periode, brudd: r.brudd }));
-  });
-  return out;
-}
+// Import extracted UI components
+import { Card, CardHeader, CardTitle, CardContent, Button, Input, Badge } from './components/ui';
+import { MiniLineChart } from './components/charts';
+import { DetailedBox } from './components/layout';
+import { 
+  GeneralInfoTab, 
+  ReportsTab, 
+  CoordinationTab, 
+  TrendsTab, 
+  MessagesTab, 
+  ExperimentTab,
+  DownloadTab 
+} from './components/tabs';
 
-/******************************
- * RNG + DOMAINS
- ******************************/
-function rand(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
-function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
-function pad(n) { return n.toString().padStart(2, "0"); }
 
-const MYNDIGHETER = ["Miljødirektoratet", "Arbeidstilsynet", "Mattilsynet", "DSB", "Sjøfartsdirektoratet", "NSM", "Konkurransetilsynet", "UU-tilsynet", "Justervesenet"];
-const TEMAER = ["Utslipp", "HMS", "Kjemikalier", "Brannvern", "Hygiene", "Avfall", "Støy", "Vannkvalitet", "Stillassikring"];
-const REAKSJONER = ["Pålegg", "Stans", "Gebyr", "Veiledning", "Ingen", "Smekk på fingrene"]; // 'Ingen' = ikke brudd
 
-/******************************
- * DATE HELPERS
- ******************************/
-function randomDateISOYearAround() {
-  const now = new Date();
-  const t = new Date(now.getTime() - Math.random() * 31536000000 + Math.random() * 31536000000);
-  return `${t.getFullYear()}-${pad(t.getMonth() + 1)}-${pad(t.getDate())}`;
-}
-function randomFutureDateISO(monthsAheadMin = 1, monthsAheadMax = 9) {
-  const now = new Date();
-  const months = randInt(monthsAheadMin, monthsAheadMax);
-  const d = new Date(now);
-  d.setMonth(d.getMonth() + months);
-  d.setDate(randInt(1, 28));
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-}
 
-/******************************
- * DUMMY DATA GENERATORS
- ******************************/
-function genTilsynskoordineringFor(orgnr) {
-  const n = randInt(1, 15);
-  return Array.from({ length: n }).map(() => {
-    const start = randomFutureDateISO(1, 9);
-    const startD = new Date(start);
-    const endD = new Date(startD);
-    endD.setDate(startD.getDate() + randInt(0, 10));
-    const slutt = Math.random() > 0.5 ? `${endD.getFullYear()}-${pad(endD.getMonth() + 1)}-${pad(endD.getDate())}` : undefined;
-    return {
-      tilsynsmyndighet: rand(MYNDIGHETER),
-      organisasjonsnummer: orgnr,
-      tilsynstema: rand(TEMAER),
-      startdato: start,
-      sluttdato: slutt,
-      kontrolladresse: `Gate ${randInt(1, 99)}, ${randInt(1000, 9999)} Oslo`,
-      tilsynsaktivitet: Math.random() > 0.5 ? "Tilsyn" : "Kampanje",
-      varighet_timer: randInt(1, 8),
-    };
-  });
-}
-function genTilsynsrapportFor(orgnr) {
-  const n = randInt(1, 15);
-  return Array.from({ length: n }).map(() => ({
-    tilsynsmyndighet: rand(MYNDIGHETER),
-    organisasjonsnummer: orgnr,
-    dato: randomDateISOYearAround(),
-    funn_alvorlighetsgrad: rand(["Ingen", "Lav", "Medium", "Høy"]),
-    reaksjonstype: rand(REAKSJONER),
-    tema: rand(TEMAER),
-  }));
-}
 
-/******************************
- * AGGREGATION (BRUDD)
- ******************************/
-function isBrudd(r) {
-  const hasReaksjon = r?.reaksjonstype && r.reaksjonstype !== "Ingen";
-  const hasAlvor = r?.funn_alvorlighetsgrad && r.funn_alvorlighetsgrad !== "Ingen";
-  return Boolean(hasReaksjon || hasAlvor);
-}
-function aggregateBrudd(rapporter) {
-  const byKey = {};
-  for (const r of rapporter) {
-    const key = (r?.dato || "").slice(0, 7) || "ukjent";
-    byKey[key] = (byKey[key] || 0) + (isBrudd(r) ? 1 : 0);
-  }
-  return Object.entries(byKey)
-    .map(([periode, brudd]) => ({ periode, brudd }))
-    .sort((a, b) => a.periode.localeCompare(b.periode));
-}
-function aggregateBruddByMyndighet(rapporter) {
-  const groups = {};
-  for (const r of rapporter) {
-    const m = r?.tilsynsmyndighet || "Ukjent";
-    if (!groups[m]) groups[m] = [];
-    groups[m].push(r);
-  }
-  const out = {};
-  for (const m of Object.keys(groups)) {
-    out[m] = aggregateBrudd(groups[m]);
-  }
-  return out;
-}
 
-/******************************
- * LISTING HELPERS + PREVIEW BOXES
- ******************************/
-function groupByMyndighet(rows) {
-  const res = {};
-  for (const r of rows) {
-    const m = r?.tilsynsmyndighet || "Ukjent";
-    if (!res[m]) res[m] = [];
-    res[m].push(r);
-  }
-  return res;
-}
-function DetailedBox({ title, rows }){
-  const grouped = useMemo(()=> groupByMyndighet(rows), [rows]);
-  const entries = Object.entries(grouped).sort((a,b)=> (b[1]).length - (a[1]).length);
-  return (
-    <Card className="rounded-2xl">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2"><ListChecks className="w-5 h-5"/>{title}</CardTitle>
-      </CardHeader>
-      <CardContent className="grid gap-3">
-        {entries.length === 0 && <p className="text-sm text-muted-foreground">Ingen treff.</p>}
-        {entries.map(([mynd, items])=> (
-          <div key={mynd} className="rounded-xl border p-3">
-            <div className="flex items-center justify-between mb-2">
-              <div className="font-medium truncate" title={mynd}>{mynd}</div>
-              <Badge variant="secondary">{items.length}</Badge>
-            </div>
-            <ul className="text-sm grid gap-1">
-              {items.slice(0,5).map((r, idx)=>{
-                const isRap = typeof r?.dato === 'string';
-                return (
-                  <li key={idx} className="flex items-start justify-between gap-3">
-                    <div className="flex-1 truncate">
-                      {isRap ? (
-                        <span>
-                          <span className="font-medium">{r.dato}</span>
-                          {r.tema && <> · {r.tema}</>}
-                          {r.reaksjonstype && <> · {r.reaksjonstype}</>}
-                          {r.funn_alvorlighetsgrad && <> · {r.funn_alvorlighetsgrad}</>}
-                        </span>
-                      ) : (
-                        <span>
-                          <span className="font-medium">{r.startdato}</span>
-                          {r.sluttdato && <>→{r.sluttdato}</>}
-                          {r.tilsynstema && <> · {r.tilsynstema}</>}
-                          {r.tilsynsaktivitet && <> · {r.tilsynsaktivitet}</>}
-                          {typeof r.varighet_timer === 'number' && <> · {r.varighet_timer}t</>}
-                        </span>
-                      )}
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        ))}
-      </CardContent>
-    </Card>
-  );
-}
 
-/******************************
- * CHARTS – LINE (BRUDD PER MÅNED)
- ******************************/
-function MiniLineChart({ title, data }) {
-  return (
-    <Card className="rounded-2xl">
-      <CardHeader>
-        <CardTitle className="text-sm flex items-center gap-2"><LineChartIcon className="w-4 h-4" />{title}</CardTitle>
-      </CardHeader>
-      <CardContent className="h-48">
-        <ResponsiveContainer width="100%" height="100%">
-          <ReLineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="periode" tick={{ fontSize: 10 }} />
-            <YAxis tick={{ fontSize: 10 }} />
-            <Tooltip />
-            <Line type="monotone" dataKey="brudd" stroke="#2563eb" strokeWidth={2} dot={false} />
-          </ReLineChart>
-        </ResponsiveContainer>
-        <div className="text-xs text-muted-foreground mt-2 text-center">x: måned (YYYY-MM) · y: brudd</div>
-      </CardContent>
-    </Card>
-  );
-}
+
 
 /******************************
  * MAIN – Grafer + utlisting + statusikon (seed skjult til første oppslag)
  ******************************/
 export default function TildaLookup() {
-  const [orgnr, setOrgnr] = useState("");
+  const [orgnr, setOrgnr] = useState("123456789");
   const [koord, setKoord] = useState([]);
   const [rap, setRap] = useState([]);
   const [generatedFor, setGeneratedFor] = useState("");
   const [bruddCount, setBruddCount] = useState(0);
   const [hasLookedUp, setHasLookedUp] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState("general");
+  const [meldinger, setMeldinger] = useState([]);
+  const [mulighetsrom, setMulighetsrom] = useState(false);
+  const [orgDetails, setOrgDetails] = useState(null);
+  const [selectedAuthority, setSelectedAuthority] = useState(null);
 
   const handleInputChange = (e) => {
     const value = e.target.value;
@@ -292,8 +77,12 @@ export default function TildaLookup() {
     setTimeout(() => {
       const newRap = genTilsynsrapportFor(orgnr);
       const newKoord = genTilsynskoordineringFor(orgnr);
+      const newMeldinger = genMeldingerFor(orgnr);
+      const newOrgDetails = genOrganisationDetailsFor(orgnr);
       setRap(newRap);
       setKoord(newKoord);
+      setMeldinger(newMeldinger);
+      setOrgDetails(newOrgDetails);
       setGeneratedFor(orgnr);
       const totalBrudd = newRap.filter(isBrudd).length;
       setBruddCount(totalBrudd);
@@ -303,22 +92,44 @@ export default function TildaLookup() {
   };
 
   const getStatusColor = () => {
-    if (bruddCount <= 3) return "text-green-500"; // OK
-    if (bruddCount <= 7) return "text-yellow-500"; // Warning
+    if (bruddCount === 0) return "text-green-500"; // Perfect
+    if (bruddCount <= 5) return "text-yellow-500"; // Warning
     return "text-red-500"; // Critical
+  };
+
+  const handleAuthorityClick = (authority) => {
+    setSelectedAuthority(authority);
+    setActiveTab("rapporter");
   };
 
   const hasData = hasLookedUp && (rap.length > 0 || koord.length > 0);
   const perMynd = useMemo(()=> aggregateBruddByMyndighet(rap), [rap]);
 
+  const baseTabs = [
+    { id: "general", label: "Generell informasjon", icon: Info },
+    { id: "rapporter", label: "Tilsynsrapporter", icon: Database },
+    { id: "koordinering", label: "Tilsynskoordinering", icon: ListChecks },
+    { id: "trends", label: "Trender", icon: LineChartIcon },
+    { id: "meldinger", label: "Melding fra annen myndighet", icon: Mail },
+    { id: "eksperiment", label: "Eksperiment", icon: Zap },
+    { id: "download", label: "Eksporter data", icon: Download }
+  ];
+  
+  const mulighetsromTabs = [
+    { id: "okonomi", label: "Økonomisk informasjon", icon: Building2 },
+    { id: "eiendommer", label: "Eiendommer", icon: Building2 },
+    { id: "kjoretoy", label: "Kjøretøy", icon: Building2 }
+  ];
+  
+  const tabs = mulighetsrom ? [...baseTabs, ...mulighetsromTabs] : baseTabs;
+
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="p-6 grid gap-6">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Oppslag – grafer og utlisting</h1>
-          <p className="text-muted-foreground mt-1 max-w-2xl">Skriv orgnr for å generere dummydata. Data og grafer vises først etter første oppslag.</p>
+          <h1 className="text-2xl font-bold">Tilda - Innlogget for Tilsynstilsynet</h1>
         </div>
-        <Button variant="outline" onClick={() => { setRap([]); setKoord([]); setGeneratedFor(""); setBruddCount(0); setHasLookedUp(false); }}>
+        <Button variant="outline" onClick={() => { setRap([]); setKoord([]); setMeldinger([]); setOrgDetails(null); setSelectedAuthority(null); setGeneratedFor(""); setBruddCount(0); setHasLookedUp(false); }}>
           <RefreshCcw className="w-4 h-4 mr-2" />Nullstill
         </Button>
       </div>
@@ -332,6 +143,18 @@ export default function TildaLookup() {
             placeholder="Skriv orgnr (9 siffer)"
             maxLength={9}
           />
+          <div className="flex items-center gap-2">
+            <input 
+              type="checkbox" 
+              id="mulighetsrom" 
+              checked={mulighetsrom} 
+              onChange={(e) => setMulighetsrom(e.target.checked)}
+              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+            />
+            <label htmlFor="mulighetsrom" className="text-sm font-medium text-gray-700">
+              Mulighetsrom
+            </label>
+          </div>
           <div className="flex items-center gap-2">
             <Button 
               onClick={handleLookup} 
@@ -355,54 +178,250 @@ export default function TildaLookup() {
         </CardContent>
       </Card>
 
+      {/* Tab Navigation */}
+      {hasData && (
+        <div className="border-b border-gray-200">
+          <nav className="flex space-x-8">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-2 py-2 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === tab.id
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  {tab.label}
+                </button>
+              );
+            })}
+          </nav>
+        </div>
+      )}
+
+      {/* Tab Content */}
       {hasData ? (
-        <div className="grid md:grid-cols-3 gap-6">
-          {/* Venstre: detaljer per myndighet */}
-          <div className="md:col-span-2 grid gap-6">
-            <DetailedBox title="Tilsynsrapport – per myndighet (detaljer)" rows={rap} />
-            <DetailedBox title="Tilsynskoordinering – per myndighet (detaljer)" rows={koord} />
-          </div>
-          {/* Høyre: grafer + eksport */}
-          <div className="grid gap-6">
-            <Card>
-              <CardHeader><CardTitle>Trender</CardTitle></CardHeader>
-              <CardContent>
-                <MiniLineChart title="Alle myndigheter – brudd per måned" data={aggregateBrudd(rap)} />
-              </CardContent>
-            </Card>
+        <div>
+          {activeTab === "general" && (
+            <GeneralInfoTab 
+              orgDetails={orgDetails}
+              generatedFor={generatedFor}
+              bruddCount={bruddCount}
+              getStatusColor={getStatusColor}
+              rap={rap}
+              koord={koord}
+              perMynd={perMynd}
+              onAuthorityClick={handleAuthorityClick}
+            />
+          )}
 
-            <Card>
-              <CardHeader><CardTitle>Trender per tilsynsmyndighet</CardTitle></CardHeader>
-              <CardContent>
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {Object.entries(perMynd).map(([mynd, data])=> (
-                    <MiniLineChart key={mynd} title={`${mynd} – brudd per måned`} data={data} />
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+          {activeTab === "rapporter" && (
+            <DetailedBox 
+              title="Tilsynsrapport – per myndighet (detaljer)" 
+              rows={rap} 
+              selectedAuthority={selectedAuthority}
+              onClearSelection={() => setSelectedAuthority(null)}
+            />
+          )}
 
-            <Card>
-              <CardHeader><CardTitle><span className="inline-flex items-center gap-2"><Database className="w-5 h-5"/>Eksporter</span></CardTitle></CardHeader>
-              <CardContent className="grid gap-2">
-                <div className="font-medium">JSON</div>
-                <div className="flex flex-wrap gap-2">
-                  <Button variant="default" onClick={()=> downloadJSON(aggregateBrudd(rap), `brudd_alle_myndigheter_${generatedFor||'data'}.json`)}><Download className="w-4 h-4 mr-1"/>Alle myndigheter</Button>
-                  <Button variant="default" onClick={()=> downloadJSON(aggregateBruddByMyndighet(rap), `brudd_per_myndighet_${generatedFor||'data'}.json`)}><Download className="w-4 h-4 mr-1"/>Per myndighet</Button>
+          {activeTab === "koordinering" && (
+            <DetailedBox 
+              title="Tilsynskoordinering – per myndighet (detaljer)" 
+              rows={koord} 
+              selectedAuthority={selectedAuthority}
+              onClearSelection={() => setSelectedAuthority(null)}
+            />
+          )}
+
+          {activeTab === "meldinger" && (
+            <Card className="rounded-2xl">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Mail className="w-5 h-5" />
+                    Meldinger fra andre myndigheter ({selectedAuthority 
+                      ? meldinger.filter(m => m.mottaker === selectedAuthority).length 
+                      : meldinger.length})
+                  </div>
+                  {selectedAuthority && (
+                    <div className="flex items-center gap-2">
+                      <Badge className="bg-blue-100 text-blue-800">Filtrert: {selectedAuthority}</Badge>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => setSelectedAuthority(null)}
+                        className="text-xs px-2 py-1"
+                      >
+                        Fjern filter
+                      </Button>
+                    </div>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="grid gap-4">
+              {meldinger.length === 0 ? (
+                <Card className="text-center py-8">
+                  <CardContent>
+                    <Mail className="w-12 h-12 mx-auto text-gray-400 mb-3" />
+                    <p className="text-gray-600">Ingen meldinger tilgjengelig</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid gap-4">
+                  {(selectedAuthority ? meldinger.filter(m => m.mottaker === selectedAuthority) : meldinger).map((melding) => {
+                    const meldingDate = new Date(melding.datoForMeldingTilAnnenMyndighet);
+                    const formatDate = (date) => {
+                      return date.toLocaleDateString('no-NO', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      });
+                    };
+                    const getMeldingTypeColor = (type) => {
+                      switch(type) {
+                        case 'varsel-om-rapport': return 'bg-blue-100 text-blue-800';
+                        case 'forespørsel-om-informasjon': return 'bg-yellow-100 text-yellow-800';
+                        case 'koordinering-av-tilsyn': return 'bg-green-100 text-green-800';
+                        case 'oppfølging-av-funn': return 'bg-red-100 text-red-800';
+                        default: return 'bg-gray-100 text-gray-800';
+                      }
+                    };
+                    return (
+                      <Card key={melding.identifikator} className="hover:shadow-md transition-shadow">
+                        <CardContent className="pt-4">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex items-center gap-3">
+                              <Mail className="w-4 h-4 text-gray-500" />
+                              <div>
+                                <div className="font-medium text-sm">{melding.identifikator}</div>
+                                <div className="text-xs text-gray-500">{formatDate(meldingDate)}</div>
+                              </div>
+                            </div>
+                            <Badge className={getMeldingTypeColor(melding.meldingsinnholdTilAnnenMyndighet.meldingsType)}>
+                              {melding.meldingsinnholdTilAnnenMyndighet.meldingsType}
+                            </Badge>
+                          </div>
+                          <div className="grid gap-2 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Mottaker:</span>
+                              <span className="font-medium">{melding.mottaker}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Tilda-enhet:</span>
+                              <span className="font-medium">{melding.meldingOmTildaenhet}</span>
+                            </div>
+                          </div>
+                          <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                            <div className="text-xs text-gray-600 mb-1">Meldingsinnhold:</div>
+                            <div className="text-sm">{melding.meldingsinnholdTilAnnenMyndighet.fritekst}</div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
-                <div className="font-medium mt-3">CSV (CRLF)</div>
-                <div className="flex flex-wrap gap-2">
-                  <Button variant="outline" onClick={()=> downloadCSV(aggregateBrudd(rap), `brudd_alle_myndigheter_${generatedFor||'data'}.csv`)}><Download className="w-4 h-4 mr-1"/>Alle myndigheter</Button>
-                  <Button variant="outline" onClick={()=> downloadCSV(flattenBruddByMyndighet(perMynd), `brudd_per_myndighet_${generatedFor||'data'}.csv`)}><Download className="w-4 h-4 mr-1"/>Per myndighet</Button>
-                </div>
+              )}
               </CardContent>
             </Card>
-          </div>
+          )}
+
+          {activeTab === "trends" && (
+            <div className="grid gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <LineChartIcon className="w-5 h-5" />
+                      Trender
+                    </div>
+                    {selectedAuthority && (
+                      <div className="flex items-center gap-2">
+                        <Badge className="bg-blue-100 text-blue-800">Filtrert: {selectedAuthority}</Badge>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => setSelectedAuthority(null)}
+                          className="text-xs px-2 py-1"
+                        >
+                          Fjern filter
+                        </Button>
+                      </div>
+                    )}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {selectedAuthority ? (
+                      // Show only selected authority
+                      perMynd[selectedAuthority] ? (
+                        <MiniLineChart 
+                          key={selectedAuthority} 
+                          title={`${selectedAuthority} – brudd per måned`} 
+                          data={perMynd[selectedAuthority]} 
+                        />
+                      ) : (
+                        <div className="col-span-full text-center py-8">
+                          <LineChartIcon className="w-12 h-12 mx-auto text-gray-400 mb-3" />
+                          <p className="text-gray-600">Ingen data for {selectedAuthority}</p>
+                        </div>
+                      )
+                    ) : (
+                      // Show all authorities
+                      Object.entries(perMynd).map(([mynd, data])=> (
+                        <MiniLineChart key={mynd} title={`${mynd} – brudd per måned`} data={data} />
+                      ))
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader><CardTitle className="flex items-center gap-2"><Download className="w-5 h-5" />Eksporter data</CardTitle></CardHeader>
+                <CardContent className="grid gap-3">
+                  <Button variant="outline" onClick={() => downloadCSV(rap, "tilsynsrapport.csv")}>
+                    <Download className="w-4 h-4 mr-2" />Last ned rapporter (CSV)
+                  </Button>
+                  <Button variant="outline" onClick={() => downloadCSV(koord, "tilsynskoordinering.csv")}>
+                    <Download className="w-4 h-4 mr-2" />Last ned koordinering (CSV)
+                  </Button>
+                  <Button variant="outline" onClick={() => downloadJSON(flattenBruddByMyndighet(perMynd), "brudd-per-myndighet.json")}>
+                    <Download className="w-4 h-4 mr-2" />Last ned brudd (JSON)
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {activeTab === "eksperiment" && (
+            <ExperimentTab 
+              rap={rap}
+              selectedAuthority={selectedAuthority}
+              onClearSelection={() => setSelectedAuthority(null)}
+            />
+          )}
+
+          {activeTab === "download" && (
+            <DownloadTab 
+              rap={rap}
+              koord={koord}
+              perMynd={perMynd}
+              selectedAuthority={selectedAuthority}
+              onClearSelection={() => setSelectedAuthority(null)}
+            />
+          )}
         </div>
       ) : (
-        <Card className="rounded-2xl">
-          <CardHeader><CardTitle className="flex items-center gap-2"><Info className="w-5 h-5" />Ingen data</CardTitle></CardHeader>
-          <CardContent className="text-sm text-muted-foreground">Skriv et orgnr og trykk «Slå opp» for å se genererte data.</CardContent>
+        <Card className="text-center py-12">
+          <CardContent>
+            <Database className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Ingen data tilgjengelig</h3>
+            <p className="text-muted-foreground">Skriv inn et gyldig organisasjonsnummer for å se tilsynsdata.</p>
+          </CardContent>
         </Card>
       )}
     </motion.div>
