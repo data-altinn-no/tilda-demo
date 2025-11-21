@@ -4,53 +4,59 @@
 
 @layer base {
   body {
-    @apply bg-slate-50 text-slate-900 font-sans antialiased overflow-x-hidden;
-    background-image: 
-      radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.1) 0px, transparent 50%),
-      radial-gradient(at 100% 0%, rgba(14, 165, 233, 0.1) 0px, transparent 50%),
-      radial-gradient(at 100% 100%, rgba(56, 189, 248, 0.1) 0px, transparent 50%),
-      radial-gradient(at 0% 100%, rgba(14, 165, 233, 0.1) 0px, transparent 50%);
-    background-attachment: fixed;
+    @apply bg-neutral-50 text-neutral-900 font-sans antialiased overflow-x-hidden;
   }
 }
 
 @layer components {
-  .glass-card {
-    @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-glass;
+  .digdir-card {
+    @apply bg-white border border-neutral-200 rounded-digdir shadow-digdir;
   }
   
-  .glass-input {
-    @apply bg-white/50 backdrop-blur-sm border border-white/30 focus:bg-white/80 
-           transition-all duration-300 focus:ring-2 focus:ring-primary-400/50 focus:border-primary-400/50;
+  .digdir-input {
+    @apply bg-white border border-neutral-400 text-neutral-900 rounded-digdir 
+           focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 
+           hover:border-neutral-600 transition-colors duration-200;
   }
 
-  .glass-button {
-    @apply bg-white/80 hover:bg-white active:bg-white/90 
-           backdrop-blur-sm border border-white/40 shadow-sm 
-           transition-all duration-200 hover:shadow-md active:scale-95;
+  .digdir-button {
+    @apply inline-flex items-center justify-center rounded-digdir font-medium transition-colors duration-200
+           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500;
   }
 
-  .glass-tab-active {
-    @apply bg-white/80 text-primary-700 shadow-sm border-b-2 border-primary-500;
+  .digdir-button-primary {
+    @apply bg-primary-500 text-white hover:bg-primary-600 active:bg-primary-700 shadow-sm;
   }
 
-  .glass-tab-inactive {
-    @apply text-slate-500 hover:text-slate-700 hover:bg-white/40;
+  .digdir-button-secondary {
+    @apply bg-white border-2 border-primary-500 text-primary-500 hover:bg-primary-50 active:bg-primary-100;
+  }
+  
+  .digdir-button-ghost {
+    @apply bg-transparent text-primary-500 hover:bg-primary-50 hover:text-primary-700;
+  }
+
+  .digdir-tab-active {
+    @apply bg-primary-700 text-white border-primary-700 shadow-sm;
+  }
+
+  .digdir-tab-inactive {
+    @apply bg-white border border-neutral-300 text-neutral-700 hover:border-primary-500 hover:text-primary-500;
   }
 }
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  @apply bg-neutral-100;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-slate-300 rounded-full hover:bg-slate-400 transition-colors;
+  @apply bg-neutral-400 rounded-full hover:bg-neutral-500 transition-colors border-2 border-neutral-100;
 }
 
 /* Animation Utilities */
