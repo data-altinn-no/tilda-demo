@@ -58,7 +58,7 @@ export function genTilsynsrapportFor(orgnr) {
       ]),
       reaksjonstype: rand(REACTIONS),
       tema: rand(THEMES),
-      tilsynsadresse: `${rand(STREET_NAMES)} ${randInt(1, 99)}, ${randInt(1000, 9999)} ${city}`,
+      tilsynsadresse: `${rand(STREET_NAMES)} ${randInt(1, 99)}, ${randInt(1000, 9999)} ${city}`      
     };
   });
 }
