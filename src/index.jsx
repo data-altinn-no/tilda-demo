@@ -124,306 +124,392 @@ export default function TildaLookup() {
   const tabs = mulighetsrom ? [...baseTabs, ...mulighetsromTabs] : baseTabs;
 
   return (
-    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="p-6 grid gap-6">
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Tilda - Innlogget for Tilsynstilsynet</h1>
-        </div>
-        <Button variant="outline" onClick={() => { setRap([]); setKoord([]); setMeldinger([]); setOrgDetails(null); setSelectedAuthority(null); setGeneratedFor(""); setBruddCount(0); setHasLookedUp(false); }}>
-          <RefreshCcw className="w-4 h-4 mr-2" />Nullstill
-        </Button>
-      </div>
-
-      <Card className="rounded-2xl">
-        <CardContent className="pt-6 flex flex-col md:flex-row gap-3 items-center">
-          <Input 
-            className={`md:w-64 ${!isValidOrgnr && orgnr.length > 0 ? 'border-red-300 focus:ring-red-500' : ''}`}
-            value={orgnr} 
-            onChange={handleInputChange} 
-            placeholder="Skriv orgnr (9 siffer)"
-            maxLength={9}
-          />
-          <div className="flex items-center gap-2">
-            <input 
-              type="checkbox" 
-              id="mulighetsrom" 
-              checked={mulighetsrom} 
-              onChange={(e) => setMulighetsrom(e.target.checked)}
-              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-            />
-            <label htmlFor="mulighetsrom" className="text-sm font-medium text-gray-700">
-              Mulighetsrom
-            </label>
+    <div className="min-h-screen p-4 lg:p-8 max-w-[95rem] mx-auto animate-in">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }} 
+        animate={{ opacity: 1, y: 0 }} 
+        className="grid gap-8"
+      >
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-neutral-200 pb-6">
+          <div>
+            <h1 className="text-4xl font-bold text-neutral-900 tracking-tight">
+              Tilda
+            </h1>
+            <p className="text-neutral-600 font-medium mt-1 text-lg">Tilsynstilsynet Dashboard</p>
           </div>
-          <div className="flex items-center gap-2">
-            <Button 
-              onClick={handleLookup} 
-              disabled={!isValidOrgnr || isLoading}
-              className={(!isValidOrgnr || isLoading) ? 'opacity-50 cursor-not-allowed' : ''}
-            >
-              {isLoading ? (
-                <>
-                  <div className="spinner w-4 h-4 mr-2"></div>
-                  Henter data...
-                </>
-              ) : (
-                <>
-                  <Building2 className="w-4 h-4 mr-2" />Slå opp
-                </>
+          <Button 
+            variant="outline" 
+            onClick={() => { setRap([]); setKoord([]); setMeldinger([]); setOrgDetails(null); setSelectedAuthority(null); setGeneratedFor(""); setBruddCount(0); setHasLookedUp(false); }}
+            className="digdir-button digdir-button-secondary"
+          >
+            <RefreshCcw className="w-4 h-4 mr-2" />Nullstill
+          </Button>
+        </div>
+
+        {/* Search Card */}
+        <div className="digdir-card p-8 bg-white">
+          <div className="flex flex-col md:flex-row gap-6 items-end justify-between">
+            <div className="flex-1 w-full grid md:grid-cols-2 gap-6">
+              <div className="w-full">
+                <label className="block text-sm font-semibold text-neutral-700 mb-2">Organisasjonsnummer</label>
+                <div className="relative">
+                  <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
+                  <Input 
+                    className={`digdir-input pl-10 h-12 text-lg w-full ${!isValidOrgnr && orgnr.length > 0 ? 'border-danger text-danger' : ''}`}
+                    value={orgnr} 
+                    onChange={handleInputChange} 
+                    placeholder="9 siffer"
+                    maxLength={9}
+                  />
+                </div>
+              </div>
+              
+              <div className="flex items-center h-12 mt-auto">
+                <label className="flex items-center gap-3 p-3 rounded-digdir hover:bg-neutral-50 cursor-pointer transition-colors w-full border border-neutral-200">
+                  <input 
+                    type="checkbox" 
+                    checked={mulighetsrom} 
+                    onChange={(e) => setMulighetsrom(e.target.checked)}
+                    className="w-5 h-5 text-primary-600 border-neutral-300 rounded focus:ring-primary-500"
+                  />
+                  <span className="text-base font-medium text-neutral-700">Vis mulighetsrom</span>
+                </label>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4 w-full md:w-auto mt-4 md:mt-0">
+              {hasLookedUp && generatedFor && (
+                <Badge variant="secondary" className="bg-neutral-100 text-neutral-700 border border-neutral-200 px-3 py-1 text-sm">
+                  Generert for {generatedFor}
+                </Badge>
               )}
-            </Button>
-            {hasLookedUp && (<Circle className={`w-5 h-5 ${getStatusColor()}`} fill="currentColor" />)}
+              
+              <Button 
+                onClick={handleLookup} 
+                disabled={!isValidOrgnr || isLoading}
+                className={`h-12 px-8 text-base digdir-button ${
+                  (!isValidOrgnr || isLoading) 
+                    ? 'bg-neutral-200 text-neutral-500 cursor-not-allowed' 
+                    : 'digdir-button-primary'
+                }`}
+              >
+                {isLoading ? (
+                  <>
+                    <div className="spinner w-5 h-5 mr-2 border-white/30 border-t-white"></div>
+                    Henter data...
+                  </>
+                ) : (
+                  <>Slå opp</>
+                )}
+              </Button>
+              
+              {hasLookedUp && (
+                <div className="w-12 h-12 flex items-center justify-center rounded-full bg-neutral-50 border border-neutral-200">
+                  <Circle className={`w-6 h-6 ${getStatusColor()}`} fill="currentColor" />
+                </div>
+              )}
+            </div>
           </div>
-          {hasLookedUp && generatedFor && (<Badge variant="secondary">Generert for {generatedFor}</Badge>)}
-        </CardContent>
-      </Card>
-
-      {/* Tab Navigation */}
-      {hasData && (
-        <div className="border-b border-gray-200">
-          <nav className="flex space-x-8">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 py-2 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === tab.id
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  {tab.label}
-                </button>
-              );
-            })}
-          </nav>
         </div>
-      )}
 
-      {/* Tab Content */}
-      {hasData ? (
-        <div>
-          {activeTab === "general" && (
-            <GeneralInfoTab 
-              orgDetails={orgDetails}
-              generatedFor={generatedFor}
-              bruddCount={bruddCount}
-              getStatusColor={getStatusColor}
-              rap={rap}
-              koord={koord}
-              perMynd={perMynd}
-              onAuthorityClick={handleAuthorityClick}
-            />
-          )}
+        {/* Tab Navigation */}
+        {hasData && (
+          <div className="flex flex-col gap-2">
+            {/* Primary Tabs */}
+            <div className="glass-card rounded-xl p-2">
+              <nav className="flex flex-wrap items-center gap-1">
+                {baseTabs.map((tab) => {
+                  const Icon = tab.icon;
+                  const isActive = activeTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`flex items-center gap-2 py-2 px-3 rounded-lg font-medium text-sm transition-all duration-200 whitespace-nowrap ${
+                        isActive
+                          ? 'bg-white text-primary-700 shadow-sm ring-1 ring-black/5'
+                          : 'text-slate-600 hover:text-slate-900 hover:bg-white/40'
+                      }`}
+                    >
+                      <Icon className={`w-4 h-4 ${isActive ? 'text-primary-500' : 'text-slate-400'}`} />
+                      {tab.label}
+                    </button>
+                  );
+                })}
+              </nav>
+            </div>
 
-          {activeTab === "rapporter" && (
-            <DetailedBox 
-              title="Tilsynsrapport – per myndighet (detaljer)" 
-              rows={rap} 
-              selectedAuthority={selectedAuthority}
-              onClearSelection={() => setSelectedAuthority(null)}
-            />
-          )}
-
-          {activeTab === "koordinering" && (
-            <DetailedBox 
-              title="Tilsynskoordinering – per myndighet (detaljer)" 
-              rows={koord} 
-              selectedAuthority={selectedAuthority}
-              onClearSelection={() => setSelectedAuthority(null)}
-            />
-          )}
-
-          {activeTab === "meldinger" && (
-            <Card className="rounded-2xl">
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Mail className="w-5 h-5" />
-                    Meldinger fra andre myndigheter ({selectedAuthority 
-                      ? meldinger.filter(m => m.mottaker === selectedAuthority).length 
-                      : meldinger.length})
+            {/* Mulighetsrom Tabs (Secondary) */}
+            {mulighetsrom && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }} 
+                animate={{ opacity: 1, height: 'auto' }}
+                className="glass-card rounded-xl p-2 bg-indigo-50/50 border-indigo-100/50"
+              >
+                <nav className="flex flex-wrap items-center gap-1">
+                  <div className="px-2 text-xs font-semibold text-indigo-400 uppercase tracking-wider mr-2">
+                    Mulighetsrom
                   </div>
+                  {mulighetsromTabs.map((tab) => {
+                    const Icon = tab.icon;
+                    const isActive = activeTab === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`flex items-center gap-2 py-1.5 px-3 rounded-lg font-medium text-sm transition-all duration-200 whitespace-nowrap ${
+                          isActive
+                            ? 'bg-white text-indigo-700 shadow-sm ring-1 ring-indigo-100'
+                            : 'text-indigo-600/70 hover:text-indigo-800 hover:bg-white/40'
+                        }`}
+                      >
+                        <Icon className={`w-4 h-4 ${isActive ? 'text-indigo-500' : 'text-indigo-400'}`} />
+                        {tab.label}
+                      </button>
+                    );
+                  })}
+                </nav>
+              </motion.div>
+            )}
+          </div>
+        )}
+
+        {/* Tab Content */}
+        {hasData ? (
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            {/* Content rendering logic remains mostly the same, just wrapped in motion div */}
+            {activeTab === "general" && (
+              <GeneralInfoTab 
+                orgDetails={orgDetails}
+                generatedFor={generatedFor}
+                bruddCount={bruddCount}
+                getStatusColor={getStatusColor}
+                rap={rap}
+                koord={koord}
+                perMynd={perMynd}
+                onAuthorityClick={handleAuthorityClick}
+              />
+            )}
+
+            {activeTab === "rapporter" && (
+              <DetailedBox 
+                title="Tilsynsrapport – per myndighet (detaljer)" 
+                rows={rap} 
+                selectedAuthority={selectedAuthority}
+                onClearSelection={() => setSelectedAuthority(null)}
+              />
+            )}
+
+            {activeTab === "koordinering" && (
+              <DetailedBox 
+                title="Tilsynskoordinering – per myndighet (detaljer)" 
+                rows={koord} 
+                selectedAuthority={selectedAuthority}
+                onClearSelection={() => setSelectedAuthority(null)}
+              />
+            )}
+
+            {activeTab === "meldinger" && (
+              <Card className="digdir-card border-0 shadow-none bg-transparent">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-bold text-neutral-800 flex items-center gap-2">
+                    <Mail className="w-6 h-6 text-neutral-500" />
+                    Meldinger fra andre myndigheter
+                    <Badge variant="secondary" className="ml-2 bg-neutral-100 text-neutral-700 border-neutral-200">
+                      {selectedAuthority 
+                        ? meldinger.filter(m => m.mottaker === selectedAuthority).length 
+                        : meldinger.length}
+                    </Badge>
+                  </h2>
                   {selectedAuthority && (
                     <div className="flex items-center gap-2">
-                      <Badge className="bg-blue-100 text-blue-800">Filtrert: {selectedAuthority}</Badge>
+                      <Badge className="bg-primary-50 text-primary-800 border border-primary-100 px-3 py-1">Filtrert: {selectedAuthority}</Badge>
                       <Button 
                         variant="outline" 
                         size="sm" 
                         onClick={() => setSelectedAuthority(null)}
-                        className="text-xs px-2 py-1"
+                        className="digdir-button digdir-button-ghost text-xs"
                       >
                         Fjern filter
                       </Button>
                     </div>
                   )}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="grid gap-4">
-              {meldinger.length === 0 ? (
-                <Card className="text-center py-8">
-                  <CardContent>
-                    <Mail className="w-12 h-12 mx-auto text-gray-400 mb-3" />
-                    <p className="text-gray-600">Ingen meldinger tilgjengelig</p>
-                  </CardContent>
-                </Card>
-              ) : (
-                <div className="grid gap-4">
-                  {(selectedAuthority ? meldinger.filter(m => m.mottaker === selectedAuthority) : meldinger).map((melding) => {
-                    const meldingDate = new Date(melding.datoForMeldingTilAnnenMyndighet);
-                    const formatDate = (date) => {
-                      return date.toLocaleDateString('no-NO', {
-                        year: 'numeric',
-                        month: '2-digit',
-                        day: '2-digit',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      });
-                    };
-                    const getMeldingTypeColor = (type) => {
-                      switch(type) {
-                        case 'varsel-om-rapport': return 'bg-blue-100 text-blue-800';
-                        case 'forespørsel-om-informasjon': return 'bg-yellow-100 text-yellow-800';
-                        case 'koordinering-av-tilsyn': return 'bg-green-100 text-green-800';
-                        case 'oppfølging-av-funn': return 'bg-red-100 text-red-800';
-                        default: return 'bg-gray-100 text-gray-800';
-                      }
-                    };
-                    return (
-                      <Card key={melding.identifikator} className="hover:shadow-md transition-shadow">
-                        <CardContent className="pt-4">
-                          <div className="flex items-start justify-between mb-3">
-                            <div className="flex items-center gap-3">
-                              <Mail className="w-4 h-4 text-gray-500" />
+                </div>
+                <CardContent className="p-0 grid gap-4">
+                {meldinger.length === 0 ? (
+                  <div className="text-center py-12 text-neutral-500 bg-white rounded-digdir border border-neutral-200">
+                    <Mail className="w-12 h-12 mx-auto mb-4 opacity-20" />
+                    <p>Ingen meldinger tilgjengelig</p>
+                  </div>
+                ) : (
+                  <div className="grid gap-4">
+                    {(selectedAuthority ? meldinger.filter(m => m.mottaker === selectedAuthority) : meldinger).map((melding) => {
+                      const meldingDate = new Date(melding.datoForMeldingTilAnnenMyndighet);
+                      const formatDate = (date) => {
+                        return date.toLocaleDateString('no-NO', {
+                          year: 'numeric',
+                          month: '2-digit',
+                          day: '2-digit',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        });
+                      };
+                      const getMeldingTypeColor = (type) => {
+                        switch(type) {
+                          case 'varsel-om-rapport': return 'bg-primary-50 text-primary-800 border-primary-100';
+                          case 'forespørsel-om-informasjon': return 'bg-warning-light text-warning-dark border-warning-light';
+                          case 'koordinering-av-tilsyn': return 'bg-success-light text-success-dark border-success-light';
+                          case 'oppfølging-av-funn': return 'bg-danger-light text-danger-dark border-danger-light';
+                          default: return 'bg-neutral-50 text-neutral-700 border-neutral-100';
+                        }
+                      };
+                      return (
+                        <div key={melding.identifikator} className="group bg-white border border-neutral-200 rounded-digdir p-6 transition-all duration-200 hover:shadow-digdir-hover hover:border-primary-300">
+                          <div className="flex items-start justify-between mb-4">
+                            <div className="flex items-center gap-4">
+                              <div className="w-10 h-10 rounded-full bg-neutral-50 flex items-center justify-center text-neutral-500 border border-neutral-100">
+                                <Mail className="w-5 h-5" />
+                              </div>
                               <div>
-                                <div className="font-medium text-sm">{melding.identifikator}</div>
-                                <div className="text-xs text-gray-500">{formatDate(meldingDate)}</div>
+                                <div className="font-bold text-neutral-900">{melding.identifikator}</div>
+                                <div className="text-sm text-neutral-500">{formatDate(meldingDate)}</div>
                               </div>
                             </div>
-                            <Badge className={getMeldingTypeColor(melding.meldingsinnholdTilAnnenMyndighet.meldingsType)}>
+                            <Badge className={`border px-3 py-1 font-medium rounded-full ${getMeldingTypeColor(melding.meldingsinnholdTilAnnenMyndighet.meldingsType)}`}>
                               {melding.meldingsinnholdTilAnnenMyndighet.meldingsType}
                             </Badge>
                           </div>
-                          <div className="grid gap-2 text-sm">
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Mottaker:</span>
-                              <span className="font-medium">{melding.mottaker}</span>
+                          <div className="grid sm:grid-cols-2 gap-4 text-sm mb-6">
+                            <div className="bg-neutral-50 rounded-digdir p-3 border border-neutral-100">
+                              <span className="text-neutral-500 text-xs uppercase tracking-wider font-semibold block mb-1">Mottaker</span>
+                              <span className="font-medium text-neutral-900">{melding.mottaker}</span>
                             </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Tilda-enhet:</span>
-                              <span className="font-medium">{melding.meldingOmTildaenhet}</span>
+                            <div className="bg-neutral-50 rounded-digdir p-3 border border-neutral-100">
+                              <span className="text-neutral-500 text-xs uppercase tracking-wider font-semibold block mb-1">Tilda-enhet</span>
+                              <span className="font-medium text-neutral-900">{melding.meldingOmTildaenhet}</span>
                             </div>
                           </div>
-                          <div className="mt-3 p-3 bg-gray-50 rounded-lg">
-                            <div className="text-xs text-gray-600 mb-1">Meldingsinnhold:</div>
-                            <div className="text-sm">{melding.meldingsinnholdTilAnnenMyndighet.fritekst}</div>
+                          <div className="p-4 bg-white rounded-digdir border-l-4 border-neutral-200 text-neutral-700 text-sm leading-relaxed italic">
+                            "{melding.meldingsinnholdTilAnnenMyndighet.fritekst}"
                           </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
-              )}
-              </CardContent>
-            </Card>
-          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+                </CardContent>
+              </Card>
+            )}
 
-          {activeTab === "trends" && (
-            <div className="grid gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <LineChartIcon className="w-5 h-5" />
+            {activeTab === "trends" && (
+              <div className="grid gap-6">
+                <Card className="digdir-card border-0 shadow-none bg-transparent">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-xl font-bold text-neutral-800 flex items-center gap-2">
+                      <LineChartIcon className="w-6 h-6 text-neutral-500" />
                       Trender
-                    </div>
+                    </h2>
                     {selectedAuthority && (
                       <div className="flex items-center gap-2">
-                        <Badge className="bg-blue-100 text-blue-800">Filtrert: {selectedAuthority}</Badge>
+                        <Badge className="bg-primary-50 text-primary-800 border border-primary-100 px-3 py-1">Filtrert: {selectedAuthority}</Badge>
                         <Button 
                           variant="outline" 
                           size="sm" 
                           onClick={() => setSelectedAuthority(null)}
-                          className="text-xs px-2 py-1"
+                          className="digdir-button digdir-button-ghost text-xs"
                         >
                           Fjern filter
                         </Button>
                       </div>
                     )}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {selectedAuthority ? (
-                      // Show only selected authority
-                      perMynd[selectedAuthority] ? (
-                        <MiniLineChart 
-                          key={selectedAuthority} 
-                          title={`${selectedAuthority} – brudd per måned`} 
-                          data={perMynd[selectedAuthority]} 
-                        />
-                      ) : (
-                        <div className="col-span-full text-center py-8">
-                          <LineChartIcon className="w-12 h-12 mx-auto text-gray-400 mb-3" />
-                          <p className="text-gray-600">Ingen data for {selectedAuthority}</p>
-                        </div>
-                      )
-                    ) : (
-                      // Show all authorities
-                      Object.entries(perMynd).map(([mynd, data])=> (
-                        <MiniLineChart key={mynd} title={`${mynd} – brudd per måned`} data={data} />
-                      ))
-                    )}
                   </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader><CardTitle className="flex items-center gap-2"><Download className="w-5 h-5" />Eksporter data</CardTitle></CardHeader>
-                <CardContent className="grid gap-3">
-                  <Button variant="outline" onClick={() => downloadCSV(rap, "tilsynsrapport.csv")}>
-                    <Download className="w-4 h-4 mr-2" />Last ned rapporter (CSV)
-                  </Button>
-                  <Button variant="outline" onClick={() => downloadCSV(koord, "tilsynskoordinering.csv")}>
-                    <Download className="w-4 h-4 mr-2" />Last ned koordinering (CSV)
-                  </Button>
-                  <Button variant="outline" onClick={() => downloadJSON(flattenBruddByMyndighet(perMynd), "brudd-per-myndighet.json")}>
-                    <Download className="w-4 h-4 mr-2" />Last ned brudd (JSON)
-                  </Button>
-                </CardContent>
-              </Card>
+                  <CardContent className="p-0">
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {selectedAuthority ? (
+                        // Show only selected authority
+                        perMynd[selectedAuthority] ? (
+                          <MiniLineChart 
+                            key={selectedAuthority} 
+                            title={`${selectedAuthority} – brudd per måned`} 
+                            data={perMynd[selectedAuthority]} 
+                          />
+                        ) : (
+                          <div className="col-span-full text-center py-12 text-neutral-400 bg-white border border-neutral-200 rounded-digdir">
+                            <LineChartIcon className="w-12 h-12 mx-auto mb-3 opacity-20" />
+                            <p>Ingen data for {selectedAuthority}</p>
+                          </div>
+                        )
+                      ) : (
+                        // Show all authorities
+                        Object.entries(perMynd).map(([mynd, data])=> (
+                          <MiniLineChart key={mynd} title={`${mynd} – brudd per måned`} data={data} />
+                        ))
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card className="digdir-card p-6">
+                  <CardHeader className="p-0 mb-6">
+                    <CardTitle className="flex items-center gap-2 text-lg font-bold text-neutral-900">
+                      <Download className="w-5 h-5 text-neutral-500" />
+                      Eksporter data
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0 grid sm:grid-cols-3 gap-4">
+                    <Button variant="outline" onClick={() => downloadCSV(rap, "tilsynsrapport.csv")} className="digdir-button bg-white border border-neutral-200 h-auto py-6 flex flex-col gap-3 hover:border-primary-500 hover:bg-primary-50 transition-all group">
+                      <Download className="w-8 h-8 text-neutral-400 group-hover:text-primary-600" />
+                      <span className="font-medium text-neutral-700 group-hover:text-primary-700">Last ned rapporter (CSV)</span>
+                    </Button>
+                    <Button variant="outline" onClick={() => downloadCSV(koord, "tilsynskoordinering.csv")} className="digdir-button bg-white border border-neutral-200 h-auto py-6 flex flex-col gap-3 hover:border-primary-500 hover:bg-primary-50 transition-all group">
+                      <Download className="w-8 h-8 text-neutral-400 group-hover:text-primary-600" />
+                      <span className="font-medium text-neutral-700 group-hover:text-primary-700">Last ned koordinering (CSV)</span>
+                    </Button>
+                    <Button variant="outline" onClick={() => downloadJSON(flattenBruddByMyndighet(perMynd), "brudd-per-myndighet.json")} className="digdir-button bg-white border border-neutral-200 h-auto py-6 flex flex-col gap-3 hover:border-primary-500 hover:bg-primary-50 transition-all group">
+                      <Download className="w-8 h-8 text-neutral-400 group-hover:text-primary-600" />
+                      <span className="font-medium text-neutral-700 group-hover:text-primary-700">Last ned brudd (JSON)</span>
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {activeTab === "eksperiment" && (
+              <ExperimentTab 
+                rap={rap}
+                selectedAuthority={selectedAuthority}
+                onClearSelection={() => setSelectedAuthority(null)}
+              />
+            )}
+
+            {activeTab === "download" && (
+              <DownloadTab 
+                rap={rap}
+                koord={koord}
+                perMynd={perMynd}
+                selectedAuthority={selectedAuthority}
+                onClearSelection={() => setSelectedAuthority(null)}
+              />
+            )}
+          </motion.div>
+        ) : (
+          <div className="glass-card rounded-2xl p-12 text-center max-w-2xl mx-auto mt-8">
+            <div className="w-24 h-24 bg-primary-50 rounded-full flex items-center justify-center mx-auto mb-6 animate-float">
+              <Database className="w-12 h-12 text-primary-300" />
             </div>
-          )}
-
-          {activeTab === "eksperiment" && (
-            <ExperimentTab 
-              rap={rap}
-              selectedAuthority={selectedAuthority}
-              onClearSelection={() => setSelectedAuthority(null)}
-            />
-          )}
-
-          {activeTab === "download" && (
-            <DownloadTab 
-              rap={rap}
-              koord={koord}
-              perMynd={perMynd}
-              selectedAuthority={selectedAuthority}
-              onClearSelection={() => setSelectedAuthority(null)}
-            />
-          )}
-        </div>
-      ) : (
-        <Card className="text-center py-12">
-          <CardContent>
-            <Database className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Ingen data tilgjengelig</h3>
-            <p className="text-muted-foreground">Skriv inn et gyldig organisasjonsnummer for å se tilsynsdata.</p>
-          </CardContent>
-        </Card>
-      )}
-    </motion.div>
+            <h3 className="text-2xl font-bold text-slate-800 mb-3">Ingen data å vise</h3>
+            <p className="text-slate-500 max-w-md mx-auto">
+              Søk etter et organisasjonsnummer i feltet over for å få tilgang til tilsynsdata, rapporter og analyser.
+            </p>
+          </div>
+        )}
+      </motion.div>
+    </div>
   );
 }
