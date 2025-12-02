@@ -332,95 +332,11 @@ export default function TildaLookup() {
             )}
 
             {activeTab === "meldinger" && (
-              <Card className="digdir-card border-0 shadow-none bg-transparent">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold text-neutral-800 flex items-center gap-2">
-                    <Mail className="w-6 h-6 text-neutral-500" />
-                    Meldinger fra andre myndigheter
-                    <Badge variant="secondary" className="ml-2 bg-neutral-100 text-neutral-700 border-neutral-200">
-                      {selectedAuthority 
-                        ? meldinger.filter(m => m.mottaker === selectedAuthority).length 
-                        : meldinger.length}
-                    </Badge>
-                  </h2>
-                  {selectedAuthority && (
-                    <div className="flex items-center gap-2">
-                      <Badge className="bg-primary-50 text-primary-800 border border-primary-100 px-3 py-1">Filtrert: {selectedAuthority}</Badge>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => setSelectedAuthority(null)}
-                        className="digdir-button digdir-button-ghost text-xs"
-                      >
-                        Fjern filter
-                      </Button>
-                    </div>
-                  )}
-                </div>
-                <CardContent className="p-0 grid gap-4">
-                {meldinger.length === 0 ? (
-                  <div className="text-center py-12 text-neutral-500 bg-white rounded-digdir border border-neutral-200">
-                    <Mail className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                    <p>Ingen meldinger tilgjengelig</p>
-                  </div>
-                ) : (
-                  <div className="grid gap-4">
-                    {(selectedAuthority ? meldinger.filter(m => m.mottaker === selectedAuthority) : meldinger).map((melding) => {
-                      const meldingDate = new Date(melding.datoForMeldingTilAnnenMyndighet);
-                      const formatDate = (date) => {
-                        return date.toLocaleDateString('no-NO', {
-                          year: 'numeric',
-                          month: '2-digit',
-                          day: '2-digit',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        });
-                      };
-                      const getMeldingTypeColor = (type) => {
-                        switch(type) {
-                          case 'varsel-om-rapport': return 'bg-primary-50 text-primary-800 border-primary-100';
-                          case 'forespørsel-om-informasjon': return 'bg-warning-light text-warning-dark border-warning-light';
-                          case 'koordinering-av-tilsyn': return 'bg-success-light text-success-dark border-success-light';
-                          case 'oppfølging-av-funn': return 'bg-danger-light text-danger-dark border-danger-light';
-                          default: return 'bg-neutral-50 text-neutral-700 border-neutral-100';
-                        }
-                      };
-                      return (
-                        <div key={melding.identifikator} className="group bg-white border border-neutral-200 rounded-digdir p-6 transition-all duration-200 hover:shadow-digdir-hover hover:border-primary-300">
-                          <div className="flex items-start justify-between mb-4">
-                            <div className="flex items-center gap-4">
-                              <div className="w-10 h-10 rounded-full bg-neutral-50 flex items-center justify-center text-neutral-500 border border-neutral-100">
-                                <Mail className="w-5 h-5" />
-                              </div>
-                              <div>
-                                <div className="font-bold text-neutral-900">{melding.identifikator}</div>
-                                <div className="text-sm text-neutral-500">{formatDate(meldingDate)}</div>
-                              </div>
-                            </div>
-                            <Badge className={`border px-3 py-1 font-medium rounded-full ${getMeldingTypeColor(melding.meldingsinnholdTilAnnenMyndighet.meldingsType)}`}>
-                              {melding.meldingsinnholdTilAnnenMyndighet.meldingsType}
-                            </Badge>
-                          </div>
-                          <div className="grid sm:grid-cols-2 gap-4 text-sm mb-6">
-                            <div className="bg-neutral-50 rounded-digdir p-3 border border-neutral-100">
-                              <span className="text-neutral-500 text-xs uppercase tracking-wider font-semibold block mb-1">Mottaker</span>
-                              <span className="font-medium text-neutral-900">{melding.mottaker}</span>
-                            </div>
-                            <div className="bg-neutral-50 rounded-digdir p-3 border border-neutral-100">
-                              <span className="text-neutral-500 text-xs uppercase tracking-wider font-semibold block mb-1">Tilda-enhet</span>
-                              <span className="font-medium text-neutral-900">{melding.meldingOmTildaenhet}</span>
-                            </div>
-                          </div>
-                          <div className="p-4 bg-white rounded-digdir border-l-4 border-neutral-200 text-neutral-700 text-sm leading-relaxed italic">
-                            "{melding.meldingsinnholdTilAnnenMyndighet.fritekst}"
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-                </CardContent>
-              </Card>
+              <MessagesTab 
+                meldinger={meldinger}
+                selectedAuthority={selectedAuthority}
+                onClearSelection={() => setSelectedAuthority(null)}
+              />
             )}
 
             {activeTab === "trends" && (

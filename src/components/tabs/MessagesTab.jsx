@@ -76,19 +76,18 @@ export function MessagesTab({ meldinger, selectedAuthority, onClearSelection }) 
                       {melding.meldingsinnholdTilAnnenMyndighet.meldingsType}
                     </Badge>
                   </div>
-                  <div className="grid gap-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Mottaker:</span>
-                      <span className="font-medium">{melding.mottaker}</span>
+                  <div className="grid grid-cols-2 gap-3 mb-3">
+                    <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                      <span className="text-gray-500 text-xs uppercase tracking-wider font-semibold block mb-1">Avsender</span>
+                      <span className="font-medium text-gray-900">{melding.mottaker}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Tilda-enhet:</span>
-                      <span className="font-medium">{melding.meldingOmTildaenhet}</span>
+                    <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                      <span className="text-gray-500 text-xs uppercase tracking-wider font-semibold block mb-1">Tilda-enhet</span>
+                      <span className="font-medium text-gray-900">{melding.meldingOmTildaenhet}</span>
                     </div>
                   </div>
-                  <div className="mt-3 p-3 bg-gray-50 rounded-lg">
-                    <div className="text-xs text-gray-600 mb-1">Meldingsinnhold:</div>
-                    <div className="text-sm">{melding.meldingsinnholdTilAnnenMyndighet.fritekst}</div>
+                  <div className="p-4 bg-white rounded-lg border-l-4 border-gray-200 text-gray-700 text-sm leading-relaxed italic">
+                    "{melding.meldingsinnholdTilAnnenMyndighet.fritekst}"
                   </div>
                 </CardContent>
               </Card>
