@@ -10,3 +10,4 @@ export { MessagesTab } from './MessagesTab.jsx';
 export { ExperimentTab } from './ExperimentsTab.jsx';
 export { DownloadTab } from './DownloadTab.jsx';
 export { VehiclesTab } from './VehiclesTab.jsx';
+export { PropertiesTab } from './PropertiesTab.jsx';

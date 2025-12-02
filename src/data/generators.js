@@ -178,3 +178,128 @@ export function genKjoretoyFor(orgnr) {
     };
   });
 }
+
+// Property data constants
+const NORWEGIAN_MUNICIPALITIES = [
+  'Oslo', 'Bergen', 'Trondheim', 'Stavanger', 'Kristiansand', 'Fredrikstad', 
+  'Sandnes', 'Tromsø', 'Sarpsborg', 'Skien', 'Ålesund', 'Sandefjord', 
+  'Haugesund', 'Tønsberg', 'Moss', 'Drammen', 'Lillehammer', 'Bodø'
+];
+
+const NORWEGIAN_BANKS = [
+  'DNB Bank ASA', 'Nordea Bank Abp', 'Handelsbanken', 'Sparebank 1 SR-Bank ASA',
+  'Sparebank 1 Nord-Norge', 'Sparebank 1 SMN', 'Kommunalbanken AS', 
+  'Cultura Sparebank', 'Sparebanken Vest', 'Sparebank 1 Østlandet'
+];
+
+const OWNERSHIP_SHARES = ['1/1', '1/2', '1/3', '2/3', '1/4', '3/4', '1/8', '3/8', '5/8', '7/8'];
+
+// Generate random property data (eiendommer)
+export function genEiendommerFor(orgnr) {
+  const propertyCount = randInt(0, 8); // 0-8 properties
+  
+  return Array.from({ length: propertyCount }).map((_, index) => {
+    const municipality = rand(NORWEGIAN_MUNICIPALITIES);
+    const gaardsnummer = randInt(1, 999).toString();
+    const bruksnummer = randInt(1, 99).toString();
+    const buildingArea = Math.round((30 + Math.random() * 300) * 10) / 10; // 30-330 m²
+    
+    // Generate 1-5 teig areas
+    const teigCount = randInt(1, 5);
+    const teigarealer = Array.from({ length: teigCount }).map(() => 
+      Math.round((200 + Math.random() * 2000) * 100) / 100 // 200-2200 m²
+    );
+    
+    // Property value based on building area and location
+    const baseValue = buildingArea * (municipality === 'Oslo' ? 80000 : municipality === 'Bergen' ? 60000 : 40000);
+    const propertyValue = Math.round(baseValue + (Math.random() * baseValue * 0.5));
+    
+    // Establishment date between 2010 and 2024
+    const establishedDate = randomDateBetween2010AndToday();
+    
+    // Generate 1-3 mortgage documents
+    const mortgageCount = randInt(1, 3);
+    const pantedokumenter = Array.from({ length: mortgageCount }).map(() => {
+      const mortgageAmount = Math.round(propertyValue * (0.3 + Math.random() * 0.5)); // 30-80% of property value
+      const bank = rand(NORWEGIAN_BANKS);
+      
+      const hasAmountText = Math.random() > 0.4; // 60% chance of having amount text
+      
+      return {
+        beloep: [{
+          grunnboksinformasjon: mortgageAmount,
+          valuta: 'NOK',
+          ...(hasAmountText && { beloeptekst: generateNorwegianAmountText(mortgageAmount) })
+        }],
+        pantehaver: bank
+      };
+    });
+    
+    return {
+      grunnboksinformasjon: {
+        kommune: municipality,
+        gaardsnummer: gaardsnummer,
+        bruksnummer: bruksnummer,
+        bygningsareal: buildingArea,
+        teigarealer: teigarealer
+      },
+      rettighetshavereTilEiendomsrett: {
+        datoHjemmelEiendomsrett: establishedDate,
+        vederlag: `${propertyValue.toLocaleString('no-NO')} NOK`,
+        eierandel: rand(OWNERSHIP_SHARES)
+      },
+      pantedokumenter: pantedokumenter,
+      harKulturminne: Math.random() < 0.15 // 15% chance of cultural heritage
+    };
+  });
+}
+
+// Helper function for dates between 2010 and today
+function randomDateBetween2010AndToday() {
+  const start = new Date('2010-01-01');
+  const end = new Date();
+  const randomTime = start.getTime() + Math.random() * (end.getTime() - start.getTime());
+  const randomDate = new Date(randomTime);
+  return `${randomDate.getFullYear()}-${pad(randomDate.getMonth() + 1)}-${pad(randomDate.getDate())}`;
+}
+
+// Helper function to generate Norwegian amount text (simplified)
+function generateNorwegianAmountText(amount) {
+  const millions = Math.floor(amount / 1000000);
+  const thousands = Math.floor((amount % 1000000) / 1000);
+  const hundreds = Math.floor((amount % 1000) / 100);
+  
+  let text = '';
+  
+  if (millions > 0) {
+    const millionWords = ['', 'en', 'to', 'tre', 'fire', 'fem', 'seks', 'syv', 'åtte', 'ni'];
+    text += millionWords[millions] || millions.toString();
+    text += millions === 1 ? ' million' : ' millioner';
+  }
+  
+  if (thousands > 0) {
+    if (text) text += ' ';
+    const thousandWords = ['', '', 'to', 'tre', 'fire', 'fem', 'seks', 'syv', 'åtte', 'ni'];
+    if (thousands < 10) {
+      text += thousandWords[thousands] || thousands.toString();
+    } else {
+      text += thousands.toString();
+    }
+    text += ' tusen';
+  }
+  
+  if (hundreds > 0) {
+    if (text) text += ' ';
+    const hundredWords = ['', 'ett', 'to', 'tre', 'fire', 'fem', 'seks', 'syv', 'åtte', 'ni'];
+    text += hundredWords[hundreds] || hundreds.toString();
+    text += ' hundre';
+  }
+  
+  if (text) {
+    text += ' kroner';
+  } else {
+    text = amount.toLocaleString('no-NO') + ' kroner';
+  }
+  
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}

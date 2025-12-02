@@ -1,0 +1,101 @@
+[
+  {
+    "grunnboksinformasjon": {
+      "kommune": "Oslo",
+      "gaardsnummer": "123",
+      "bruksnummer": "45",
+      "bygningsareal": 150.5,
+      "teigarealer": [1200.0, 800.5, 450.25]
+    },
+    "rettighetshavereTilEiendomsrett": {
+      "datoHjemmelEiendomsrett": "2018-06-15",
+      "vederlag": "3500000 NOK",
+      "eierandel": "1/1"
+    },
+    "pantedokumenter": [
+      {
+        "beloep": [
+          {
+            "grunnboksinformasjon": 2800000,
+            "valuta": "NOK",
+            "beloeptekst": "To millioner åtte hundre tusen kroner"
+          }
+        ],
+        "pantehaver": "DNB Bank ASA"
+      },
+      {
+        "beloep": [
+          {
+            "grunnboksinformasjon": 500000,
+            "valuta": "NOK"
+          }
+        ],
+        "pantehaver": "Sparebank 1 SR-Bank ASA"
+      }
+    ],
+    "harKulturminne": false
+  },
+  {
+    "grunnboksinformasjon": {
+      "kommune": "Bergen",
+      "gaardsnummer": "67",
+      "bruksnummer": "12",
+      "bygningsareal": 89.2,
+      "teigarealer": [650.0, 320.75]
+    },
+    "rettighetshavereTilEiendomsrett": {
+      "datoHjemmelEiendomsrett": "2020-03-22",
+      "vederlag": "2100000 NOK",
+      "eierandel": "1/2"
+    },
+    "pantedokumenter": [
+      {
+        "beloep": [
+          {
+            "grunnboksinformasjon": 1680000,
+            "valuta": "NOK",
+            "beloeptekst": "En million seks hundre og åtti tusen kroner"
+          }
+        ],
+        "pantehaver": "Nordea Bank Abp"
+      }
+    ],
+    "harKulturminne": true
+  },
+  {
+    "grunnboksinformasjon": {
+      "kommune": "Trondheim",
+      "gaardsnummer": "234",
+      "bruksnummer": "78",
+      "bygningsareal": 220.8,
+      "teigarealer": [2100.0, 1500.5, 900.25, 600.0]
+    },
+    "rettighetshavereTilEiendomsrett": {
+      "datoHjemmelEiendomsrett": "2015-11-08",
+      "vederlag": "4200000 NOK",
+      "eierandel": "1/1"
+    },
+    "pantedokumenter": [
+      {
+        "beloep": [
+          {
+            "grunnboksinformasjon": 3360000,
+            "valuta": "NOK",
+            "beloeptekst": "Tre millioner tre hundre og seksti tusen kroner"
+          }
+        ],
+        "pantehaver": "Handelsbanken"
+      },
+      {
+        "beloep": [
+          {
+            "grunnboksinformasjon": 420000,
+            "valuta": "NOK"
+          }
+        ],
+        "pantehaver": "Kommunalbanken AS"
+      }
+    ],
+    "harKulturminne": false
+  }
+]

@@ -11,7 +11,8 @@ import {
   genTilsynsrapportFor, 
   genMeldingerFor, 
   genOrganisationDetailsFor,
-  genKjoretoyFor 
+  genKjoretoyFor,
+  genEiendommerFor 
 } from './data/generators.js';
 import { 
   isBrudd, 
@@ -31,7 +32,8 @@ import {
   MessagesTab, 
   ExperimentTab,
   DownloadTab,
-  VehiclesTab 
+  VehiclesTab,
+  PropertiesTab 
 } from './components/tabs';
 
 
@@ -56,6 +58,7 @@ export default function TildaLookup() {
   const [activeTab, setActiveTab] = useState("general");
   const [meldinger, setMeldinger] = useState([]);
   const [vehicleData, setVehicleData] = useState([]);
+  const [propertyData, setPropertyData] = useState([]);
   const [mulighetsrom, setMulighetsrom] = useState(false);
   const [orgDetails, setOrgDetails] = useState(null);
   const [selectedAuthority, setSelectedAuthority] = useState(null);
@@ -83,11 +86,13 @@ export default function TildaLookup() {
       const newMeldinger = genMeldingerFor(orgnr);
       const newOrgDetails = genOrganisationDetailsFor(orgnr);
       const newVehicleData = genKjoretoyFor(orgnr);
+      const newPropertyData = genEiendommerFor(orgnr);
       setRap(newRap);
       setKoord(newKoord);
       setMeldinger(newMeldinger);
       setOrgDetails(newOrgDetails);
       setVehicleData(newVehicleData);
+      setPropertyData(newPropertyData);
       setGeneratedFor(orgnr);
       const totalBrudd = newRap.filter(isBrudd).length;
       setBruddCount(totalBrudd);
@@ -499,7 +504,16 @@ export default function TildaLookup() {
                 koord={koord}
                 perMynd={perMynd}
                 vehicleData={vehicleData}
+                propertyData={propertyData}
                 mulighetsrom={mulighetsrom}
+                selectedAuthority={selectedAuthority}
+                onClearSelection={() => setSelectedAuthority(null)}
+              />
+            )}
+
+            {activeTab === "eiendommer" && (
+              <PropertiesTab 
+                propertyData={propertyData}
                 selectedAuthority={selectedAuthority}
                 onClearSelection={() => setSelectedAuthority(null)}
               />
