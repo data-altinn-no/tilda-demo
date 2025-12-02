@@ -311,6 +311,10 @@ const NORWEGIAN_NAMES = [
   'Ingrid Larsen', 'Erik Nilsen', 'Marit Eriksen', 'Bjørn Kristiansen', 'Liv Svendsen',
   'Gunnar Haugen', 'Astrid Berg', 'Rune Dahl', 'Solveig Moen', 'Torstein Lund'
 ];
+const REVISOR_COMPANIES = [
+  'PwC Norge', 'Deloitte Norge', 'KPMG Norge', 'EY Norge', 'BDO Norge',
+  'Grant Thornton Norge', 'Mazars Norge', 'RSM Norge', 'Crowe Norge', 'Moore Norge'
+];
 const RESPONSIBILITY_AREAS = [
   'Økonomi og finans', 'Personal og HR', 'Salg og markedsføring', 'Drift og produksjon',
   'IT og digitalisering', 'Kvalitet og HMS', 'Strategi og utvikling', 'Kundeservice',
@@ -324,6 +328,7 @@ export function genRollerFor(orgnr) {
   const usedNames = new Set();
   let hasDagligLeder = false;
   let hasStyreleder = false;
+  let hasRevisor = false;
   
   for (let index = 0; index < roleCount; index++) {
     // Determine role type with constraints
@@ -331,12 +336,13 @@ export function genRollerFor(orgnr) {
     const availableRoles = ROLE_TYPES.filter(role => {
       if (role === 'Daglig leder' && hasDagligLeder) return false;
       if (role === 'Styreleder' && hasStyreleder) return false;
+      if (role === 'Revisor' && hasRevisor) return false;
       return true;
     });
     
     // If no constrained roles available, use remaining roles
     if (availableRoles.length === 0) {
-      roleType = rand(['Styremedlem', 'Revisor', 'Prokura']);
+      roleType = rand(['Styremedlem', 'Prokura']);
     } else {
       roleType = rand(availableRoles);
     }
@@ -344,15 +350,20 @@ export function genRollerFor(orgnr) {
     // Mark unique roles as used
     if (roleType === 'Daglig leder') hasDagligLeder = true;
     if (roleType === 'Styreleder') hasStyreleder = true;
+    if (roleType === 'Revisor') hasRevisor = true;
     
     const isActive = Math.random() > 0.2; // 80% chance of being active
     
-    // Get unique name
+    // Get unique name (use company name for revisor, person name for others)
     let name;
-    do {
-      name = rand(NORWEGIAN_NAMES);
-    } while (usedNames.has(name));
-    usedNames.add(name);
+    if (roleType === 'Revisor') {
+      name = rand(REVISOR_COMPANIES);
+    } else {
+      do {
+        name = rand(NORWEGIAN_NAMES);
+      } while (usedNames.has(name));
+      usedNames.add(name);
+    }
     
     // Generate start date between 2015 and 2024
     const startDate = randomDateBetween2015AndToday();

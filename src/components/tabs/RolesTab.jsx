@@ -107,7 +107,12 @@ export function RolesTab({ roleData, selectedAuthority, onClearSelection }) {
                               {role.navn}
                             </h4>
                             <p className="text-sm text-gray-600">
-                              {role.fodselsdato ? `Født: ${formatDate(role.fodselsdato)}` : 'Fødselsdato ikke oppgitt'}
+                              {role.rolle === 'Revisor' 
+                                ? 'Revisorselskap' 
+                                : role.fodselsdato 
+                                  ? `Født: ${formatDate(role.fodselsdato)}` 
+                                  : 'Fødselsdato ikke oppgitt'
+                              }
                             </p>
                           </div>
                         </div>
@@ -184,7 +189,12 @@ export function RolesTab({ roleData, selectedAuthority, onClearSelection }) {
                               {role.navn}
                             </h4>
                             <p className="text-sm text-gray-500">
-                              {role.fodselsdato ? `Født: ${formatDate(role.fodselsdato)}` : 'Fødselsdato ikke oppgitt'}
+                              {role.rolle === 'Revisor' 
+                                ? 'Revisorselskap' 
+                                : role.fodselsdato 
+                                  ? `Født: ${formatDate(role.fodselsdato)}` 
+                                  : 'Fødselsdato ikke oppgitt'
+                              }
                             </p>
                           </div>
                         </div>

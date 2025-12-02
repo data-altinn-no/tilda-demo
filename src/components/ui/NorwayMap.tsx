@@ -300,7 +300,7 @@ export function NorwayMap({ cityViolations, maxViolations }: NorwayMapProps) {
         </div>
       ) : (
         <>
-          <div className="w-full flex justify-center bg-gray-50 dark:bg-gray-800/30 rounded-lg p-4 overflow-hidden relative">
+          <div className="w-full flex justify-center bg-gray-100 dark:bg-gray-700/20 rounded-lg p-4 overflow-hidden relative">
             {/* Zoom controls overlay */}
             <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
               <button
