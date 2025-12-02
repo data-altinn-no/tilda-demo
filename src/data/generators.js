@@ -223,13 +223,14 @@ export function genEiendommerFor(orgnr) {
       const mortgageAmount = Math.round(propertyValue * (0.3 + Math.random() * 0.5)); // 30-80% of property value
       const bank = rand(NORWEGIAN_BANKS);
       
-      const hasAmountText = Math.random() > 0.4; // 60% chance of having amount text
+      // Always generate textual description without numbers
+      const beloeptekst = generateTextualAmountDescription(mortgageAmount);
       
       return {
         beloep: [{
           grunnboksinformasjon: mortgageAmount,
           valuta: 'NOK',
-          ...(hasAmountText && { beloeptekst: generateNorwegianAmountText(mortgageAmount) })
+          beloeptekst: beloeptekst
         }],
         pantehaver: bank
       };
@@ -302,6 +303,26 @@ function generateNorwegianAmountText(amount) {
   }
   
   return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+// Helper function to generate textual amount descriptions without numbers
+function generateTextualAmountDescription(amount) {
+  const descriptions = [
+    'Betydelig lånebeløp for eiendomsfinansiering',
+    'Standardlån for boligkjøp',
+    'Større finansieringsbeløp for næringseiendom',
+    'Typisk boliglån for privatperson',
+    'Omfattende lånearrangement for eiendomsinvestering',
+    'Vanlig finansiering for boligutvikler',
+    'Substansielt lånebeløp for kommersiell eiendom',
+    'Ordinært boliglån med sikkerhet i fast eiendom',
+    'Betydelig finansiering for eiendomsprosjekt',
+    'Standardisert låneavtale for boligformål',
+    'Større investeringslån for næringseiendom',
+    'Typisk refinansieringsbeløp for eksisterende eiendom'
+  ];
+  
+  return rand(descriptions);
 }
 
 // Role data constants

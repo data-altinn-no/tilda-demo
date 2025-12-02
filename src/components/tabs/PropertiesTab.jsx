@@ -109,7 +109,7 @@ export function PropertiesTab({ propertyData, selectedAuthority, onClearSelectio
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge className="border bg-blue-100 text-blue-800 border-blue-200">
-                      {property.rettighetshavereTilEiendomsrett?.eierandel || 'Ukjent andel'}
+                      Eierandel: {property.rettighetshavereTilEiendomsrett?.eierandel || 'Ukjent andel'}
                     </Badge>
                     {property.harKulturminne && (
                       <Badge className="bg-amber-100 text-amber-800 border-amber-200">
