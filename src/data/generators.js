@@ -303,3 +303,110 @@ function generateNorwegianAmountText(amount) {
   
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
+
+// Role data constants
+const ROLE_TYPES = ['Daglig leder', 'Styreleder', 'Styremedlem', 'Revisor', 'Prokura'];
+const NORWEGIAN_NAMES = [
+  'Ola Nordmann', 'Kari Hansen', 'Lars Andersen', 'Anne Johansen', 'Per Olsen',
+  'Ingrid Larsen', 'Erik Nilsen', 'Marit Eriksen', 'Bjørn Kristiansen', 'Liv Svendsen',
+  'Gunnar Haugen', 'Astrid Berg', 'Rune Dahl', 'Solveig Moen', 'Torstein Lund'
+];
+const RESPONSIBILITY_AREAS = [
+  'Økonomi og finans', 'Personal og HR', 'Salg og markedsføring', 'Drift og produksjon',
+  'IT og digitalisering', 'Kvalitet og HMS', 'Strategi og utvikling', 'Kundeservice',
+  'Innkjøp og logistikk', 'Forskning og utvikling'
+];
+
+// Generate random role data (roller)
+export function genRollerFor(orgnr) {
+  const roleCount = randInt(3, 12); // 3-12 roles
+  const roles = [];
+  const usedNames = new Set();
+  let hasDagligLeder = false;
+  let hasStyreleder = false;
+  
+  for (let index = 0; index < roleCount; index++) {
+    // Determine role type with constraints
+    let roleType;
+    const availableRoles = ROLE_TYPES.filter(role => {
+      if (role === 'Daglig leder' && hasDagligLeder) return false;
+      if (role === 'Styreleder' && hasStyreleder) return false;
+      return true;
+    });
+    
+    // If no constrained roles available, use remaining roles
+    if (availableRoles.length === 0) {
+      roleType = rand(['Styremedlem', 'Revisor', 'Prokura']);
+    } else {
+      roleType = rand(availableRoles);
+    }
+    
+    // Mark unique roles as used
+    if (roleType === 'Daglig leder') hasDagligLeder = true;
+    if (roleType === 'Styreleder') hasStyreleder = true;
+    
+    const isActive = Math.random() > 0.2; // 80% chance of being active
+    
+    // Get unique name
+    let name;
+    do {
+      name = rand(NORWEGIAN_NAMES);
+    } while (usedNames.has(name));
+    usedNames.add(name);
+    
+    // Generate start date between 2015 and 2024
+    const startDate = randomDateBetween2015AndToday();
+    
+    // Generate end date for inactive roles
+    let endDate = null;
+    if (!isActive) {
+      const start = new Date(startDate);
+      const end = new Date();
+      const randomEndTime = start.getTime() + Math.random() * (end.getTime() - start.getTime());
+      const randomEndDate = new Date(randomEndTime);
+      endDate = `${randomEndDate.getFullYear()}-${pad(randomEndDate.getMonth() + 1)}-${pad(randomEndDate.getDate())}`;
+    }
+    
+    // Generate date of birth (between 1950 and 1990)
+    const birthYear = randInt(1950, 1990);
+    const birthMonth = randInt(1, 12);
+    const birthDay = randInt(1, 28); // Use 28 to avoid month-specific day issues
+    const fodselsdato = `${birthYear}-${pad(birthMonth)}-${pad(birthDay)}`;
+    
+    // Generate address
+    const streetNames = ['Storgata', 'Kirkegata', 'Skolegata', 'Parkveien', 'Bjørkevegen'];
+    const address = `${rand(streetNames)} ${randInt(1, 99)}`;
+    const postcode = randInt(1000, 9999);
+    const cities = ['Oslo', 'Bergen', 'Trondheim', 'Stavanger', 'Kristiansand'];
+    const poststed = `${postcode} ${rand(cities)}`;
+    
+    // Generate responsibility areas (1-3 areas)
+    const numAreas = randInt(1, 3);
+    const ansvarsomrader = Array.from({ length: numAreas }).map(() => rand(RESPONSIBILITY_AREAS));
+    
+    const role = {
+      navn: name,
+      rolle: roleType,
+      fodselsdato: fodselsdato,
+      aktiv: isActive,
+      fraOgMed: startDate,
+      tilOgMed: endDate,
+      adresse: address,
+      poststed: poststed,
+      ansvarsomrader: [...new Set(ansvarsomrader)] // Remove duplicates
+    };
+    
+    roles.push(role);
+  }
+  
+  return roles;
+}
+
+// Helper function for dates between 2015 and today
+function randomDateBetween2015AndToday() {
+  const start = new Date('2015-01-01');
+  const end = new Date();
+  const randomTime = start.getTime() + Math.random() * (end.getTime() - start.getTime());
+  const randomDate = new Date(randomTime);
+  return `${randomDate.getFullYear()}-${pad(randomDate.getMonth() + 1)}-${pad(randomDate.getDate())}`;
+}

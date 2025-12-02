@@ -11,3 +11,4 @@ export { ExperimentTab } from './ExperimentsTab.jsx';
 export { DownloadTab } from './DownloadTab.jsx';
 export { VehiclesTab } from './VehiclesTab.jsx';
 export { PropertiesTab } from './PropertiesTab.jsx';
+export { RolesTab } from './RolesTab.jsx';

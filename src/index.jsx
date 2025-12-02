@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Info, Database, LineChart as LineChartIcon, Building2, RefreshCcw, Download, ListChecks, Circle, Mail, Zap, Car } from "lucide-react";
+import { Info, Database, LineChart as LineChartIcon, Building2, RefreshCcw, Download, ListChecks, Circle, Mail, Zap, Car, Users } from "lucide-react";
 import { motion } from "framer-motion";
 import { LineChart as ReLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
@@ -12,7 +12,8 @@ import {
   genMeldingerFor, 
   genOrganisationDetailsFor,
   genKjoretoyFor,
-  genEiendommerFor 
+  genEiendommerFor,
+  genRollerFor 
 } from './data/generators.js';
 import { 
   isBrudd, 
@@ -33,7 +34,8 @@ import {
   ExperimentTab,
   DownloadTab,
   VehiclesTab,
-  PropertiesTab 
+  PropertiesTab,
+  RolesTab 
 } from './components/tabs';
 
 
@@ -59,6 +61,7 @@ export default function TildaLookup() {
   const [meldinger, setMeldinger] = useState([]);
   const [vehicleData, setVehicleData] = useState([]);
   const [propertyData, setPropertyData] = useState([]);
+  const [roleData, setRoleData] = useState([]);
   const [mulighetsrom, setMulighetsrom] = useState(false);
   const [orgDetails, setOrgDetails] = useState(null);
   const [selectedAuthority, setSelectedAuthority] = useState(null);
@@ -87,12 +90,14 @@ export default function TildaLookup() {
       const newOrgDetails = genOrganisationDetailsFor(orgnr);
       const newVehicleData = genKjoretoyFor(orgnr);
       const newPropertyData = genEiendommerFor(orgnr);
+      const newRoleData = genRollerFor(orgnr);
       setRap(newRap);
       setKoord(newKoord);
       setMeldinger(newMeldinger);
       setOrgDetails(newOrgDetails);
       setVehicleData(newVehicleData);
       setPropertyData(newPropertyData);
+      setRoleData(newRoleData);
       setGeneratedFor(orgnr);
       const totalBrudd = newRap.filter(isBrudd).length;
       setBruddCount(totalBrudd);
@@ -128,7 +133,8 @@ export default function TildaLookup() {
   const mulighetsromTabs = [
     { id: "okonomi", label: "Økonomisk informasjon", icon: Building2 },
     { id: "eiendommer", label: "Eiendommer", icon: Building2 },
-    { id: "kjoretoy", label: "Kjøretøy", icon: Car }
+    { id: "kjoretoy", label: "Kjøretøy", icon: Car },
+    { id: "roller", label: "Roller", icon: Users }
   ];
   
   const tabs = mulighetsrom ? [...baseTabs, ...mulighetsromTabs] : baseTabs;
@@ -522,6 +528,14 @@ export default function TildaLookup() {
             {activeTab === "kjoretoy" && (
               <VehiclesTab 
                 vehicleData={vehicleData}
+                selectedAuthority={selectedAuthority}
+                onClearSelection={() => setSelectedAuthority(null)}
+              />
+            )}
+
+            {activeTab === "roller" && (
+              <RolesTab 
+                roleData={roleData}
                 selectedAuthority={selectedAuthority}
                 onClearSelection={() => setSelectedAuthority(null)}
               />

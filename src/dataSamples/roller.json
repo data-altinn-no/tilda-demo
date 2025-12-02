@@ -1,0 +1,79 @@
+[
+  {
+    "navn": "Ola Nordmann",
+    "rolle": "Daglig leder",
+    "fodselsdato": "1975-03-15",
+    "aktiv": true,
+    "fraOgMed": "2020-01-15",
+    "tilOgMed": null,
+    "adresse": "Storgata 25",
+    "poststed": "0184 Oslo",
+    "ansvarsomrader": ["Økonomi og finans", "Strategi og utvikling"]
+  },
+  {
+    "navn": "Kari Hansen",
+    "rolle": "Styreleder",
+    "fodselsdato": "1968-11-22",
+    "aktiv": true,
+    "fraOgMed": "2019-06-01",
+    "tilOgMed": null,
+    "adresse": "Kirkegata 12",
+    "poststed": "5020 Bergen",
+    "ansvarsomrader": ["Strategi og utvikling"]
+  },
+  {
+    "navn": "Lars Andersen",
+    "rolle": "Styremedlem",
+    "fodselsdato": "1982-07-08",
+    "aktiv": true,
+    "fraOgMed": "2021-03-10",
+    "tilOgMed": null,
+    "adresse": "Skolegata 45",
+    "poststed": "7030 Trondheim",
+    "ansvarsomrader": ["IT og digitalisering", "Kvalitet og HMS"]
+  },
+  {
+    "navn": "Anne Johansen",
+    "rolle": "Revisor",
+    "fodselsdato": "1971-12-03",
+    "aktiv": true,
+    "fraOgMed": "2018-09-15",
+    "tilOgMed": null,
+    "adresse": "Parkveien 8",
+    "poststed": "4020 Stavanger",
+    "ansvarsomrader": ["Økonomi og finans"]
+  },
+  {
+    "navn": "Per Olsen",
+    "rolle": "Styremedlem",
+    "fodselsdato": "1965-05-18",
+    "aktiv": false,
+    "fraOgMed": "2017-02-01",
+    "tilOgMed": "2023-08-31",
+    "adresse": "Bjørkevegen 33",
+    "poststed": "4630 Kristiansand",
+    "ansvarsomrader": ["Personal og HR", "Kundeservice"]
+  },
+  {
+    "navn": "Ingrid Larsen",
+    "rolle": "Prokura",
+    "fodselsdato": "1978-09-25",
+    "aktiv": true,
+    "fraOgMed": "2022-01-20",
+    "tilOgMed": null,
+    "adresse": "Storgata 67",
+    "poststed": "0184 Oslo",
+    "ansvarsomrader": ["Salg og markedsføring", "Innkjøp og logistikk"]
+  },
+  {
+    "navn": "Erik Nilsen",
+    "rolle": "Styremedlem",
+    "fodselsdato": "1973-04-12",
+    "aktiv": true,
+    "fraOgMed": "2023-02-15",
+    "tilOgMed": null,
+    "adresse": "Parkveien 22",
+    "poststed": "7030 Trondheim",
+    "ansvarsomrader": ["Drift og produksjon"]
+  }
+]
