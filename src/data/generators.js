@@ -461,9 +461,14 @@ const QUARTILE_POSITIONS = ['Øvre kvartil', 'Median', 'Nedre kvartil'];
 const TREND_DIRECTIONS = ['Meget positiv', 'Positiv', 'Stabil', 'Negativ', 'Meget negativ'];
 
 // Generate random financial data (økonomisk informasjon)
-export function genOkInfoFor(orgnr) {
+export function genOkInfoFor(orgnr, orgDetails = null) {
   const currentYear = new Date().getFullYear();
-  const sector = rand(COMPANY_SECTORS);
+  
+  // Use orgDetails if provided, otherwise use random sector
+  const sector = orgDetails ? 
+    { bransje: orgDetails.naceCodeName, naceKode: orgDetails.naceCode } : 
+    rand(COMPANY_SECTORS);
+  
   const companyNames = [
     'Nordisk Teknologi AS', 'Innovasjon Norge AS', 'Fjord Consulting AS',
     'Bergen Solutions AS', 'Oslo Digital AS', 'Trondheim Tech AS',
@@ -651,7 +656,7 @@ export function genOkInfoFor(orgnr) {
   
   return {
     organisasjonsnummer: orgnr,
-    organisasjonsnavn: rand(companyNames),
+    organisasjonsnavn: orgDetails?.name || rand(companyNames),
     regnskapsaar: regnskapsaar,
     trendanalyse: {
       omsetningsvekst: {

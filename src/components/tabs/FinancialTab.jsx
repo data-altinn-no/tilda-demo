@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent, Badge } from '../ui';
 /**
  * Financial Tab Component - Displays economic information per year
  */
-export function FinancialTab({ financialData }) {
+export function FinancialTab({ financialData, orgDetails }) {
   if (!financialData || !financialData.regnskapsaar || financialData.regnskapsaar.length === 0) {
     return (
       <Card className="rounded-2xl">
@@ -53,14 +53,26 @@ export function FinancialTab({ financialData }) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <BarChart3 className="w-5 h-5" />
-          Økonomisk informasjon - {financialData.organisasjonsnavn}
+          Økonomisk informasjon - {orgDetails?.name || financialData.organisasjonsnavn}
           <Badge className="bg-blue-100 text-blue-800 border-blue-200 ml-2">
             {sortedYears.length} år
           </Badge>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {sortedYears.map((yearData, index) => (
+        {sortedYears.map((yearData, index) => {
+          // Calculate changes from previous year
+          const previousYearData = sortedYears[index + 1];
+          const employeeChange = previousYearData ? 
+            ((yearData.ansatte?.antallAnsatte - previousYearData.ansatte?.antallAnsatte) / previousYearData.ansatte?.antallAnsatte * 100) : null;
+          
+          const operatingResultChange = previousYearData ? 
+            ((yearData.finansielleNokkeltal?.driftsresultat?.beloep - previousYearData.finansielleNokkeltal?.driftsresultat?.beloep) / previousYearData.finansielleNokkeltal?.driftsresultat?.beloep * 100) : null;
+          
+          const equityRatioChange = previousYearData ? 
+            (yearData.finansielleNokkeltal?.egenkapital?.egenkapitalandel - previousYearData.finansielleNokkeltal?.egenkapital?.egenkapitalandel) : null;
+          
+          return (
           <Card key={yearData.aar} className={`transition-all hover:shadow-md ${
             index === 0 ? 'border-blue-300 bg-blue-50' : 'border-gray-200 bg-white hover:border-gray-300'
           }`}>
@@ -121,6 +133,11 @@ export function FinancialTab({ financialData }) {
                     {formatCurrency(yearData.finansielleNokkeltal?.driftsresultat?.beloep)}
                   </div>
                   <div className="text-sm text-gray-600">
+                    {operatingResultChange !== null && (
+                      <div className={`${getChangeColor(operatingResultChange)} mb-1`}>
+                        {getChangeIcon(operatingResultChange)} {formatPercentage(Math.abs(operatingResultChange))}                        
+                      </div>
+                    )}
                     Margin: {formatPercentage(yearData.finansielleNokkeltal?.driftsresultat?.margin)}
                   </div>
                 </div>
@@ -135,6 +152,11 @@ export function FinancialTab({ financialData }) {
                     {yearData.ansatte?.antallAnsatte || 'Ikke oppgitt'}
                   </div>
                   <div className="text-sm text-gray-600">
+                    {employeeChange !== null && (
+                      <div className={`${getChangeColor(employeeChange)} mb-1`}>
+                        {getChangeIcon(employeeChange)} {formatPercentage(Math.abs(employeeChange))}                         
+                      </div>
+                    )}
                     Omsetning/ansatt: {formatCurrency(yearData.ansatte?.produktivitet?.omsetningPerAnsatt)}
                   </div>
                 </div>
@@ -149,6 +171,11 @@ export function FinancialTab({ financialData }) {
                     {formatPercentage(yearData.finansielleNokkeltal?.egenkapital?.egenkapitalandel)}
                   </div>
                   <div className="text-sm text-gray-600">
+                    {equityRatioChange !== null && (
+                      <div className={`${getChangeColor(equityRatioChange)} mb-1`}>
+                        {getChangeIcon(equityRatioChange)} {Math.abs(equityRatioChange).toFixed(1)}%
+                      </div>
+                    )}
                     {formatCurrency(yearData.finansielleNokkeltal?.egenkapital?.beloep)}
                   </div>
                 </div>
@@ -192,7 +219,11 @@ export function FinancialTab({ financialData }) {
                   <div className="space-y-1 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Bransje:</span>
-                      <span className="font-medium">{yearData.bransjesammenligning?.bransje}</span>
+                      <span className="font-medium">{orgDetails?.naceCodeName || yearData.bransjesammenligning?.bransje}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">NACE-kode:</span>
+                      <span className="font-medium">{orgDetails?.naceCode || yearData.bransjesammenligning?.naceKode}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Omsetning:</span>
@@ -229,7 +260,8 @@ export function FinancialTab({ financialData }) {
               </div>
             </CardContent>
           </Card>
-        ))}
+          );
+        })}
 
         {/* Trend Analysis Summary */}
         {financialData.trendanalyse && (
@@ -257,7 +289,7 @@ export function FinancialTab({ financialData }) {
                 </div>
                 <div>
                   <span className="text-green-700 block font-medium">Ansatte</span>
-                  <span className="text-green-900">{financialData.trendanalyse.ansatteutvikling?.vekstrate}% vekst</span>
+                  <span className="text-green-900">{financialData.trendanalyse.ansatteutvikling?.vekstrate}%</span>
                   <div className="text-green-700">{financialData.trendanalyse.ansatteutvikling?.produktivitetsutvikling}</div>
                 </div>
               </div>

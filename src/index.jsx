@@ -94,7 +94,7 @@ export default function TildaLookup() {
       const newVehicleData = genKjoretoyFor(orgnr);
       const newPropertyData = genEiendommerFor(orgnr);
       const newRoleData = genRollerFor(orgnr);
-      const newFinancialData = genOkInfoFor(orgnr);
+      const newFinancialData = genOkInfoFor(orgnr, newOrgDetails);
       setRap(newRap);
       setKoord(newKoord);
       setMeldinger(newMeldinger);
@@ -442,6 +442,7 @@ export default function TildaLookup() {
             {activeTab === "okonomi" && (
               <FinancialTab 
                 financialData={financialData}
+                orgDetails={orgDetails}
               />
             )}
 
