@@ -1,0 +1,42 @@
+[
+  {
+    "id": "123456789-1",
+    "eier": true,
+    "leaser": false,
+    "kjennemerke": "AB12345",
+    "understellsnummer": "WF0XXXGCDX1234567",
+    "forstegangsregistrert": "2010-03-15",
+    "kjoretoygruppe": "Personbil",
+    "kjoretoymerke": "Volvo",
+    "miljoklasse": "Euro 6",
+    "noxutslipp": 0.025,
+    "co2utslipp": 120.5,
+    "drivstoff": "Diesel",
+    "girkassetype": "Automat",
+    "sistEugodkjent": "2015-03-15",
+    "kilometerstand": 85000,
+    "kilometerstandSistAvlest": "2024-11-15",
+    "heftelser": null,
+    "nesteEUKontroll": "2017-03-15"
+  },
+  {
+    "id": "123456789-2",
+    "eier": false,
+    "leaser": true,
+    "kjennemerke": "CD67890",
+    "understellsnummer": "VF1XXXBCDX2345678",
+    "forstegangsregistrert": "2018-08-22",
+    "kjoretoygruppe": "Varebil",
+    "kjoretoymerke": "Toyota",
+    "miljoklasse": null,
+    "noxutslipp": 0,
+    "co2utslipp": 0,
+    "drivstoff": "Elektrisk",
+    "girkassetype": "Automat",
+    "sistEugodkjent": "2023-08-22",
+    "kilometerstand": 45000,
+    "kilometerstandSistAvlest": "2024-10-30",
+    "heftelser": null,
+    "nesteEUKontroll": "2025-08-22"
+  }
+]

@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Info, Database, LineChart as LineChartIcon, Building2, RefreshCcw, Download, ListChecks, Circle, Mail, Zap } from "lucide-react";
+import { Info, Database, LineChart as LineChartIcon, Building2, RefreshCcw, Download, ListChecks, Circle, Mail, Zap, Car } from "lucide-react";
 import { motion } from "framer-motion";
 import { LineChart as ReLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
@@ -10,7 +10,8 @@ import {
   genTilsynskoordineringFor, 
   genTilsynsrapportFor, 
   genMeldingerFor, 
-  genOrganisationDetailsFor 
+  genOrganisationDetailsFor,
+  genKjoretoyFor 
 } from './data/generators.js';
 import { 
   isBrudd, 
@@ -29,7 +30,8 @@ import {
   TrendsTab, 
   MessagesTab, 
   ExperimentTab,
-  DownloadTab 
+  DownloadTab,
+  VehiclesTab 
 } from './components/tabs';
 
 
@@ -53,6 +55,7 @@ export default function TildaLookup() {
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("general");
   const [meldinger, setMeldinger] = useState([]);
+  const [vehicleData, setVehicleData] = useState([]);
   const [mulighetsrom, setMulighetsrom] = useState(false);
   const [orgDetails, setOrgDetails] = useState(null);
   const [selectedAuthority, setSelectedAuthority] = useState(null);
@@ -79,10 +82,12 @@ export default function TildaLookup() {
       const newKoord = genTilsynskoordineringFor(orgnr);
       const newMeldinger = genMeldingerFor(orgnr);
       const newOrgDetails = genOrganisationDetailsFor(orgnr);
+      const newVehicleData = genKjoretoyFor(orgnr);
       setRap(newRap);
       setKoord(newKoord);
       setMeldinger(newMeldinger);
       setOrgDetails(newOrgDetails);
+      setVehicleData(newVehicleData);
       setGeneratedFor(orgnr);
       const totalBrudd = newRap.filter(isBrudd).length;
       setBruddCount(totalBrudd);
@@ -93,7 +98,7 @@ export default function TildaLookup() {
 
   const getStatusColor = () => {
     if (bruddCount === 0) return "text-green-500"; // Perfect
-    if (bruddCount <= 5) return "text-yellow-500"; // Warning
+    if (bruddCount <= 30) return "text-yellow-500"; // Warning
     return "text-red-500"; // Critical
   };
 
@@ -118,7 +123,7 @@ export default function TildaLookup() {
   const mulighetsromTabs = [
     { id: "okonomi", label: "Økonomisk informasjon", icon: Building2 },
     { id: "eiendommer", label: "Eiendommer", icon: Building2 },
-    { id: "kjoretoy", label: "Kjøretøy", icon: Building2 }
+    { id: "kjoretoy", label: "Kjøretøy", icon: Car }
   ];
   
   const tabs = mulighetsrom ? [...baseTabs, ...mulighetsromTabs] : baseTabs;
@@ -493,6 +498,14 @@ export default function TildaLookup() {
                 rap={rap}
                 koord={koord}
                 perMynd={perMynd}
+                selectedAuthority={selectedAuthority}
+                onClearSelection={() => setSelectedAuthority(null)}
+              />
+            )}
+
+            {activeTab === "kjoretoy" && (
+              <VehiclesTab 
+                vehicleData={vehicleData}
                 selectedAuthority={selectedAuthority}
                 onClearSelection={() => setSelectedAuthority(null)}
               />
