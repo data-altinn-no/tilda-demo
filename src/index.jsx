@@ -209,20 +209,13 @@ export default function TildaLookup() {
               <Button 
                 onClick={handleLookup} 
                 disabled={!isValidOrgnr || isLoading}
-                className={`h-12 px-8 text-base digdir-button ${
+                className={`h-12 px-8 text-base digdir-button min-w-[120px] ${
                   (!isValidOrgnr || isLoading) 
                     ? 'bg-neutral-200 text-neutral-500 cursor-not-allowed' 
                     : 'digdir-button-primary'
                 }`}
               >
-                {isLoading ? (
-                  <>
-                    <div className="spinner w-5 h-5 mr-2 border-white/30 border-t-white"></div>
-                    Henter data...
-                  </>
-                ) : (
-                  <>Slå opp</>
-                )}
+                Søk
               </Button>
               
               {hasLookedUp && (
@@ -293,6 +286,16 @@ export default function TildaLookup() {
                 </nav>
               </motion.div>
             )}
+          </div>
+        )}
+
+        {/* Loading Spinner */}
+        {isLoading && (
+          <div className="flex items-center justify-center py-8">
+            <div className="flex items-center gap-3">
+              <div className="spinner w-6 h-6 border-blue-200 border-t-blue-600"></div>
+              <span className="text-gray-600 font-medium">Henter data...</span>
+            </div>
           </div>
         )}
 
