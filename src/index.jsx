@@ -127,10 +127,10 @@ export default function TildaLookup() {
 
   const baseTabs = [
     { id: "general", label: "Generell informasjon", icon: Info },
-    { id: "rapporter", label: "Tilsynsrapporter", icon: Database },
-    { id: "koordinering", label: "Tilsynskoordinering", icon: ListChecks },
+    { id: "rapporter", label: "Rapporter", icon: Database },
+    { id: "koordinering", label: "Koordinering", icon: ListChecks },
     { id: "trends", label: "Trender", icon: LineChartIcon },
-    { id: "meldinger", label: "Melding fra annen myndighet", icon: Mail },
+    { id: "meldinger", label: "Meldinger", icon: Mail },
     { id: "eksperiment", label: "Eksperiment", icon: Zap },
     { id: "download", label: "Eksporter data", icon: Download }
   ];
@@ -432,6 +432,8 @@ export default function TildaLookup() {
                 perMynd={perMynd}
                 vehicleData={vehicleData}
                 propertyData={propertyData}
+                roleData={roleData}
+                meldinger={meldinger}
                 financialData={financialData}
                 mulighetsrom={mulighetsrom}
                 selectedAuthority={selectedAuthority}

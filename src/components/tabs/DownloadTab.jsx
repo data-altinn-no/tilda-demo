@@ -1,15 +1,16 @@
 import React from 'react';
-import { Download, FileText, Database, Car, Building2 } from 'lucide-react';
+import { Download, FileText, Database, Car, Building2, Users, Mail } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, Button, Badge } from '../ui';
 import { downloadCSV, downloadJSON, flattenBruddByMyndighet } from '../../utils/exportHelpers.js';
 
 /**
  * Download Tab Component - Provides data export functionality
  */
-export function DownloadTab({ rap, koord, perMynd, vehicleData, propertyData, mulighetsrom, selectedAuthority, onClearSelection }) {
+export function DownloadTab({ rap, koord, perMynd, vehicleData, propertyData, roleData, meldinger, financialData, mulighetsrom, selectedAuthority, onClearSelection }) {
   const filteredRap = selectedAuthority ? rap.filter(r => r.tilsynsmyndighet === selectedAuthority) : rap;
   const filteredKoord = selectedAuthority ? koord.filter(k => k.tilsynsmyndighet === selectedAuthority) : koord;
   const filteredPerMynd = selectedAuthority ? { [selectedAuthority]: perMynd[selectedAuthority] || [] } : perMynd;
+  const filteredMeldinger = selectedAuthority ? meldinger.filter(m => m.mottaker === selectedAuthority) : meldinger;
 
   return (
     <Card>
@@ -179,10 +180,68 @@ export function DownloadTab({ rap, koord, perMynd, vehicleData, propertyData, mu
             </div>
           )}
 
+          {/* Roller */}
+          {mulighetsrom && roleData && roleData.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Users className="w-4 h-4 text-orange-600" />
+                <h3 className="font-medium text-gray-900">Roller</h3>
+                <span className="text-sm text-gray-500">({roleData.length} roller)</span>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-3">
+                <Button 
+                  variant="outline" 
+                  onClick={() => downloadCSV(roleData, 'roller.csv')}
+                  className="justify-start"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Last ned som CSV
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => downloadJSON(roleData, 'roller.json')}
+                  className="justify-start"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Last ned som JSON
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Meldinger */}
+          {meldinger && meldinger.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Mail className="w-4 h-4 text-cyan-600" />
+                <h3 className="font-medium text-gray-900">Meldinger</h3>
+                <span className="text-sm text-gray-500">({filteredMeldinger.length} meldinger)</span>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-3">
+                <Button 
+                  variant="outline" 
+                  onClick={() => downloadCSV(filteredMeldinger, `meldinger${selectedAuthority ? `-${selectedAuthority}` : ''}.csv`)}
+                  className="justify-start"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Last ned som CSV
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => downloadJSON(filteredMeldinger, `meldinger${selectedAuthority ? `-${selectedAuthority}` : ''}.json`)}
+                  className="justify-start"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Last ned som JSON
+                </Button>
+              </div>
+            </div>
+          )}
+
           {/* Summary info */}
           <div className="bg-gray-50 p-4 rounded-lg">
             <h4 className="font-medium mb-2">Sammendrag</h4>
-            <div className={`grid gap-4 text-sm ${mulighetsrom ? 'grid-cols-2 md:grid-cols-5' : 'grid-cols-2 md:grid-cols-3'}`}>
+            <div className={`grid gap-4 text-sm ${mulighetsrom ? 'grid-cols-2 md:grid-cols-4 lg:grid-cols-7' : 'grid-cols-2 md:grid-cols-4'}`}>
               <div>
                 <div className="text-gray-600">Totalt rapporter</div>
                 <div className="font-semibold">{filteredRap.length}</div>
@@ -195,6 +254,10 @@ export function DownloadTab({ rap, koord, perMynd, vehicleData, propertyData, mu
                 <div className="text-gray-600">Myndigheter</div>
                 <div className="font-semibold">{Object.keys(filteredPerMynd).length}</div>
               </div>
+              <div>
+                <div className="text-gray-600">Meldinger</div>
+                <div className="font-semibold">{filteredMeldinger ? filteredMeldinger.length : 0}</div>
+              </div>
               {mulighetsrom && (
                 <>
                   <div>
@@ -204,6 +267,10 @@ export function DownloadTab({ rap, koord, perMynd, vehicleData, propertyData, mu
                   <div>
                     <div className="text-gray-600">Kjøretøy</div>
                     <div className="font-semibold">{vehicleData ? vehicleData.length : 0}</div>
+                  </div>
+                  <div>
+                    <div className="text-gray-600">Roller</div>
+                    <div className="font-semibold">{roleData ? roleData.length : 0}</div>
                   </div>
                 </>
               )}
