@@ -442,3 +442,261 @@ function randomDateBetween2015AndToday() {
   const randomDate = new Date(randomTime);
   return `${randomDate.getFullYear()}-${pad(randomDate.getMonth() + 1)}-${pad(randomDate.getDate())}`;
 }
+
+// Financial data constants
+const COMPANY_SECTORS = [
+  { bransje: 'Teknologi og IT-tjenester', naceKode: '62.010' },
+  { bransje: 'Konsulentvirksomhet', naceKode: '70.220' },
+  { bransje: 'Bygg og anlegg', naceKode: '41.200' },
+  { bransje: 'Handel og service', naceKode: '47.190' },
+  { bransje: 'Transport og logistikk', naceKode: '49.410' },
+  { bransje: 'Produksjon og industri', naceKode: '25.620' }
+];
+
+const CREDIT_RATINGS = ['AAA', 'AA+', 'AA', 'AA-', 'A+', 'A', 'A-', 'BBB+', 'BBB', 'BBB-', 'BB+', 'BB'];
+const RISK_LEVELS = ['Meget lav', 'Lav', 'Moderat', 'Høy', 'Meget høy'];
+const PAYMENT_ABILITY = ['Utmerket', 'God', 'Tilfredsstillende', 'Svak', 'Dårlig'];
+const FINANCIAL_STABILITY = ['Meget sterk', 'Sterk', 'God', 'Svak', 'Dårlig'];
+const QUARTILE_POSITIONS = ['Øvre kvartil', 'Median', 'Nedre kvartil'];
+const TREND_DIRECTIONS = ['Meget positiv', 'Positiv', 'Stabil', 'Negativ', 'Meget negativ'];
+
+// Generate random financial data (økonomisk informasjon)
+export function genOkInfoFor(orgnr) {
+  const currentYear = new Date().getFullYear();
+  const sector = rand(COMPANY_SECTORS);
+  const companyNames = [
+    'Nordisk Teknologi AS', 'Innovasjon Norge AS', 'Fjord Consulting AS',
+    'Bergen Solutions AS', 'Oslo Digital AS', 'Trondheim Tech AS',
+    'Stavanger Services AS', 'Arctic Innovation AS', 'Nordic Systems AS'
+  ];
+  
+  // Base financial metrics (will be adjusted year by year)
+  const baseRevenue = randInt(10000000, 100000000); // 10M - 100M NOK
+  const baseEmployees = randInt(15, 200);
+  const baseProfitMargin = 8 + Math.random() * 12; // 8-20% profit margin
+  
+  // Generate 5 years of data (current year - 4 to current year)
+  const regnskapsaar = [];
+  
+  for (let i = 4; i >= 0; i--) {
+    const year = currentYear - i;
+    const isLatestYear = i === 0;
+    
+    // Apply growth/decline trends
+    const growthFactor = Math.pow(1 + (Math.random() * 0.3 - 0.1), i); // -10% to +20% annual growth
+    const revenue = Math.round(baseRevenue * growthFactor);
+    const employees = Math.round(baseEmployees * Math.pow(1 + (Math.random() * 0.2 - 0.05), i));
+    
+    // Calculate derived metrics
+    const profitMargin = baseProfitMargin + (Math.random() * 6 - 3); // ±3% variation
+    const operatingResult = Math.round(revenue * (profitMargin / 100));
+    const resultBeforeTax = Math.round(operatingResult * (0.85 + Math.random() * 0.1));
+    const resultAfterTax = Math.round(resultBeforeTax * 0.78); // ~22% tax rate
+    
+    // Balance sheet items
+    const totalCapital = Math.round(revenue * (0.4 + Math.random() * 0.6)); // 40-100% of revenue
+    const equityRatio = 30 + Math.random() * 40; // 30-70%
+    const equity = Math.round(totalCapital * (equityRatio / 100));
+    const totalDebt = totalCapital - equity;
+    const shortTermDebt = Math.round(totalDebt * (0.3 + Math.random() * 0.4));
+    const longTermDebt = totalDebt - shortTermDebt;
+    
+    // Employee costs
+    const avgSalary = 450000 + Math.random() * 350000; // 450k - 800k NOK
+    const totalSalaries = Math.round(employees * avgSalary);
+    const socialCosts = Math.round(totalSalaries * 0.18);
+    const pensionCosts = Math.round(totalSalaries * 0.06);
+    const totalPersonnelCosts = totalSalaries + socialCosts + pensionCosts;
+    
+    // Depreciation
+    const depreciation = Math.round(revenue * (0.03 + Math.random() * 0.04)); // 3-7% of revenue
+    
+    // Working capital
+    const workingCapital = Math.round(revenue * (0.1 + Math.random() * 0.2));
+    
+    // Liquidity ratios
+    const liquidityGrade1 = 1.5 + Math.random() * 2; // 1.5 - 3.5
+    const liquidityGrade2 = liquidityGrade1 * (0.7 + Math.random() * 0.2);
+    
+    // Cash flows
+    const operatingCashFlow = Math.round(operatingResult + depreciation + (Math.random() * revenue * 0.05));
+    const investingCashFlow = -Math.round(depreciation * (0.8 + Math.random() * 1.5));
+    const financingCashFlow = -Math.round(Math.abs(investingCashFlow) * (0.2 + Math.random() * 0.6));
+    
+    // Calculate year-over-year changes
+    const revenueChange = i === 4 ? Math.random() * 20 - 5 : 
+      regnskapsaar.length > 0 ? ((revenue - regnskapsaar[regnskapsaar.length - 1].finansielleNokkeltal.omsetning.beloep) / regnskapsaar[regnskapsaar.length - 1].finansielleNokkeltal.omsetning.beloep * 100) : 0;
+    
+    const operatingChange = i === 4 ? Math.random() * 30 - 10 :
+      regnskapsaar.length > 0 ? ((operatingResult - regnskapsaar[regnskapsaar.length - 1].finansielleNokkeltal.driftsresultat.beloep) / regnskapsaar[regnskapsaar.length - 1].finansielleNokkeltal.driftsresultat.beloep * 100) : 0;
+    
+    regnskapsaar.push({
+      aar: year,
+      regnskapsperiode: {
+        fraOgMed: `${year}-01-01`,
+        tilOgMed: `${year}-12-31`
+      },
+      finansielleNokkeltal: {
+        omsetning: {
+          beloep: revenue,
+          valuta: 'NOK',
+          endringFraForrigeAar: Math.round(revenueChange * 10) / 10
+        },
+        driftsresultat: {
+          beloep: operatingResult,
+          valuta: 'NOK',
+          margin: Math.round(profitMargin * 10) / 10,
+          endringFraForrigeAar: Math.round(operatingChange * 10) / 10
+        },
+        resultatForSkatt: {
+          beloep: resultBeforeTax,
+          valuta: 'NOK',
+          endringFraForrigeAar: Math.round(operatingChange * 0.9 * 10) / 10
+        },
+        resultatEtterSkatt: {
+          beloep: resultAfterTax,
+          valuta: 'NOK',
+          endringFraForrigeAar: Math.round(operatingChange * 0.9 * 10) / 10
+        },
+        totalkapital: {
+          beloep: totalCapital,
+          valuta: 'NOK',
+          endringFraForrigeAar: Math.round((Math.random() * 20 - 5) * 10) / 10
+        },
+        egenkapital: {
+          beloep: equity,
+          valuta: 'NOK',
+          egenkapitalandel: Math.round(equityRatio * 10) / 10,
+          endringFraForrigeAar: Math.round((Math.random() * 25 - 5) * 10) / 10
+        },
+        gjeld: {
+          kortsiktigGjeld: shortTermDebt,
+          langsiktigGjeld: longTermDebt,
+          totalGjeld: totalDebt,
+          gjeldsgrad: Math.round((100 - equityRatio) * 10) / 10
+        },
+        avskrivninger: {
+          beloep: depreciation,
+          valuta: 'NOK',
+          prosentAvOmsetning: Math.round((depreciation / revenue * 100) * 10) / 10
+        },
+        arbeidskapital: {
+          beloep: workingCapital,
+          valuta: 'NOK'
+        }
+      },
+      loennsomhetsnoekkeltal: {
+        bruttomargin: Math.round((profitMargin + 40 + Math.random() * 20) * 10) / 10,
+        driftsmargin: Math.round(profitMargin * 10) / 10,
+        nettemargin: Math.round((profitMargin * 0.78) * 10) / 10,
+        egenkapitalrentabilitet: Math.round((resultAfterTax / equity * 100) * 10) / 10,
+        totalkapitalrentabilitet: Math.round((operatingResult / totalCapital * 100) * 10) / 10,
+        omloepshastighet: Math.round((revenue / totalCapital) * 100) / 100
+      },
+      likviditetsnoekkeltal: {
+        likviditetsgrad1: Math.round(liquidityGrade1 * 100) / 100,
+        likviditetsgrad2: Math.round(liquidityGrade2 * 100) / 100,
+        kontantstroemDrift: operatingCashFlow,
+        kontantstroemInvestering: investingCashFlow,
+        kontantstroemFinansiering: financingCashFlow
+      },
+      ansatte: {
+        antallAnsatte: employees,
+        heltidsansatte: Math.round(employees * (0.85 + Math.random() * 0.1)),
+        deltidsansatte: Math.round(employees * (0.05 + Math.random() * 0.1)),
+        midlertidigAnsatte: Math.round(employees * (0.02 + Math.random() * 0.08)),
+        gjennomsnittligAntallAnsatte: Math.round(employees * (0.95 + Math.random() * 0.1)),
+        loennskostnader: {
+          totalLoenn: totalSalaries,
+          sosialeutgifter: socialCosts,
+          pensjonskostnader: pensionCosts,
+          totalPersonalkostnader: totalPersonnelCosts
+        },
+        gjennomsnittsloenPerAnsatt: Math.round(avgSalary),
+        omsetningPerAnsatt: Math.round(revenue / employees),
+        produktivitet: {
+          omsetningPerAnsatt: Math.round(revenue / employees),
+          driftsresultatPerAnsatt: Math.round(operatingResult / employees)
+        }
+      },
+      bransjesammenligning: {
+        bransje: sector.bransje,
+        naceKode: sector.naceKode,
+        posisjonOmsetning: rand(QUARTILE_POSITIONS),
+        posisjonLoennsomhet: rand(QUARTILE_POSITIONS),
+        posisjonSoliditet: rand(QUARTILE_POSITIONS)
+      },
+      risikovurdering: {
+        kredittvurdering: rand(CREDIT_RATINGS.slice(0, 8)), // Favor better ratings
+        konkursrisiko: rand(RISK_LEVELS.slice(0, 3)), // Favor lower risk
+        betalingsevne: rand(PAYMENT_ABILITY.slice(0, 3)), // Favor better ability
+        finansiellStabilitet: rand(FINANCIAL_STABILITY.slice(0, 3)) // Favor better stability
+      }
+    });
+  }
+  
+  // Calculate trend analysis based on the generated data
+  const revenueGrowthRates = regnskapsaar.slice(1).map((year, index) => 
+    (year.finansielleNokkeltal.omsetning.beloep - regnskapsaar[index].finansielleNokkeltal.omsetning.beloep) / regnskapsaar[index].finansielleNokkeltal.omsetning.beloep * 100
+  );
+  const avgRevenueGrowth = revenueGrowthRates.reduce((sum, rate) => sum + rate, 0) / revenueGrowthRates.length;
+  
+  const employeeGrowthRate = ((regnskapsaar[4].ansatte.antallAnsatte - regnskapsaar[0].ansatte.antallAnsatte) / regnskapsaar[0].ansatte.antallAnsatte * 100);
+  
+  // Generate future projections
+  const latestYear = regnskapsaar[4];
+  const projectedRevenue = Math.round(latestYear.finansielleNokkeltal.omsetning.beloep * (1 + avgRevenueGrowth / 100));
+  const projectedOperatingResult = Math.round(projectedRevenue * (latestYear.loennsomhetsnoekkeltal.driftsmargin / 100));
+  const projectedEmployees = Math.round(latestYear.ansatte.antallAnsatte * (1 + employeeGrowthRate / 100 / 4));
+  
+  return {
+    organisasjonsnummer: orgnr,
+    organisasjonsnavn: rand(companyNames),
+    regnskapsaar: regnskapsaar,
+    trendanalyse: {
+      omsetningsvekst: {
+        treAarsSnitt: Math.round(avgRevenueGrowth * 10) / 10,
+        trend: avgRevenueGrowth > 5 ? 'Positiv' : avgRevenueGrowth > 0 ? 'Stabil' : 'Negativ',
+        volatilitet: Math.max(...revenueGrowthRates) - Math.min(...revenueGrowthRates) > 20 ? 'Høy' : 'Lav'
+      },
+      loennsomhetsutvikling: {
+        driftsmarginsutvikling: regnskapsaar[4].loennsomhetsnoekkeltal.driftsmargin > regnskapsaar[0].loennsomhetsnoekkeltal.driftsmargin ? 'Forbedring' : 'Forverring',
+        egenkapitalrentabilitetsutvikling: regnskapsaar[4].loennsomhetsnoekkeltal.egenkapitalrentabilitet > regnskapsaar[0].loennsomhetsnoekkeltal.egenkapitalrentabilitet ? 'Stabil vekst' : 'Nedgang',
+        trend: rand(TREND_DIRECTIONS.slice(0, 3))
+      },
+      soliditetsutvikling: {
+        egenkapitalandelsutvikling: regnskapsaar[4].finansielleNokkeltal.egenkapital.egenkapitalandel > regnskapsaar[0].finansielleNokkeltal.egenkapital.egenkapitalandel ? 'Forbedring' : 'Forverring',
+        gjeldsgradutvikling: regnskapsaar[4].finansielleNokkeltal.gjeld.gjeldsgrad < regnskapsaar[0].finansielleNokkeltal.gjeld.gjeldsgrad ? 'Reduksjon' : 'Økning',
+        trend: rand(TREND_DIRECTIONS.slice(0, 3))
+      },
+      ansatteutvikling: {
+        vekstrate: Math.round(employeeGrowthRate * 10) / 10,
+        produktivitetsutvikling: rand(['Forbedring', 'Stabil', 'Forverring']),
+        loennskostnadskontroll: rand(['Utmerket', 'God', 'Tilfredsstillende'])
+      }
+    },
+    prognoser: {
+      aar: currentYear + 1,
+      forventetOmsetning: {
+        beloep: projectedRevenue,
+        vekstrate: Math.round(avgRevenueGrowth * 10) / 10,
+        konfidensintervall: {
+          nedre: Math.round(projectedRevenue * 0.9),
+          ovre: Math.round(projectedRevenue * 1.1)
+        }
+      },
+      forventetDriftsresultat: {
+        beloep: projectedOperatingResult,
+        margin: Math.round(latestYear.loennsomhetsnoekkeltal.driftsmargin * 10) / 10,
+        konfidensintervall: {
+          nedre: Math.round(projectedOperatingResult * 0.85),
+          ovre: Math.round(projectedOperatingResult * 1.15)
+        }
+      },
+      forventetAntallAnsatte: {
+        antall: projectedEmployees,
+        vekstrate: Math.round((employeeGrowthRate / 4) * 10) / 10
+      }
+    }
+  };
+}

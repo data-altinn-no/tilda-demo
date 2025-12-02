@@ -1,0 +1,360 @@
+{
+  "organisasjonsnummer": "123456789",
+  "organisasjonsnavn": "Nordisk Teknologi AS",
+  "regnskapsaar": [
+    {
+      "aar": 2023,
+      "regnskapsperiode": {
+        "fraOgMed": "2023-01-01",
+        "tilOgMed": "2023-12-31"
+      },
+      "finansielleNokkeltal": {
+        "omsetning": {
+          "beloep": 45600000,
+          "valuta": "NOK",
+          "endringFraForrigeAar": 8.5
+        },
+        "driftsresultat": {
+          "beloep": 6840000,
+          "valuta": "NOK",
+          "margin": 15.0,
+          "endringFraForrigeAar": 12.3
+        },
+        "resultatForSkatt": {
+          "beloep": 5472000,
+          "valuta": "NOK",
+          "endringFraForrigeAar": 15.2
+        },
+        "resultatEtterSkatt": {
+          "beloep": 4377600,
+          "valuta": "NOK",
+          "endringFraForrigeAar": 15.2
+        },
+        "totalkapital": {
+          "beloep": 28400000,
+          "valuta": "NOK",
+          "endringFraForrigeAar": 6.2
+        },
+        "egenkapital": {
+          "beloep": 18200000,
+          "valuta": "NOK",
+          "egenkapitalandel": 64.1,
+          "endringFraForrigeAar": 9.8
+        },
+        "gjeld": {
+          "kortsiktigGjeld": 4800000,
+          "langsiktigGjeld": 5400000,
+          "totalGjeld": 10200000,
+          "gjeldsgrad": 35.9
+        },
+        "avskrivninger": {
+          "beloep": 2280000,
+          "valuta": "NOK",
+          "prosentAvOmsetning": 5.0
+        },
+        "arbeidskapital": {
+          "beloep": 8600000,
+          "valuta": "NOK"
+        }
+      },
+      "loennsomhetsnoekkeltal": {
+        "bruttomargin": 68.5,
+        "driftsmargin": 15.0,
+        "nettemargin": 9.6,
+        "egenkapitalrentabilitet": 24.0,
+        "totalkapitalrentabilitet": 19.3,
+        "omloepshastighet": 1.6
+      },
+      "likviditetsnoekkeltal": {
+        "likviditetsgrad1": 2.79,
+        "likviditetsgrad2": 2.15,
+        "kontantstroemDrift": 7120000,
+        "kontantstroemInvestering": -3200000,
+        "kontantstroemFinansiering": -1800000
+      },
+      "ansatte": {
+        "antallAnsatte": 85,
+        "heltidsansatte": 78,
+        "deltidsansatte": 7,
+        "midlertidigAnsatte": 5,
+        "gjennomsnittligAntallAnsatte": 82,
+        "loennskostnader": {
+          "totalLoenn": 52700000,
+          "sosialeutgifter": 9486000,
+          "pensjonskostnader": 3162000,
+          "totalPersonalkostnader": 65348000
+        },
+        "gjennomsnittsloenPerAnsatt": 642000,
+        "omsetningPerAnsatt": 537647,
+        "produktivitet": {
+          "omsetningPerAnsatt": 537647,
+          "driftsresultatPerAnsatt": 80471
+        }
+      },
+      "bransjesammenligning": {
+        "bransje": "Teknologi og IT-tjenester",
+        "naceKode": "62.010",
+        "posisjonOmsetning": "Øvre kvartil",
+        "posisjonLoennsomhet": "Median",
+        "posisjonSoliditet": "Øvre kvartil"
+      },
+      "risikovurdering": {
+        "kredittvurdering": "A-",
+        "konkursrisiko": "Lav",
+        "betalingsevne": "God",
+        "finansiellStabilitet": "Sterk"
+      }
+    },
+    {
+      "aar": 2022,
+      "regnskapsperiode": {
+        "fraOgMed": "2022-01-01",
+        "tilOgMed": "2022-12-31"
+      },
+      "finansielleNokkeltal": {
+        "omsetning": {
+          "beloep": 42000000,
+          "valuta": "NOK",
+          "endringFraForrigeAar": 12.8
+        },
+        "driftsresultat": {
+          "beloep": 6090000,
+          "valuta": "NOK",
+          "margin": 14.5,
+          "endringFraForrigeAar": 18.7
+        },
+        "resultatForSkatt": {
+          "beloep": 4752000,
+          "valuta": "NOK",
+          "endringFraForrigeAar": 22.1
+        },
+        "resultatEtterSkatt": {
+          "beloep": 3801600,
+          "valuta": "NOK",
+          "endringFraForrigeAar": 22.1
+        },
+        "totalkapital": {
+          "beloep": 26750000,
+          "valuta": "NOK",
+          "endringFraForrigeAar": 8.9
+        },
+        "egenkapital": {
+          "beloep": 16580000,
+          "valuta": "NOK",
+          "egenkapitalandel": 62.0,
+          "endringFraForrigeAar": 14.2
+        },
+        "gjeld": {
+          "kortsiktigGjeld": 4950000,
+          "langsiktigGjeld": 5220000,
+          "totalGjeld": 10170000,
+          "gjeldsgrad": 38.0
+        },
+        "avskrivninger": {
+          "beloep": 2100000,
+          "valuta": "NOK",
+          "prosentAvOmsetning": 5.0
+        },
+        "arbeidskapital": {
+          "beloep": 7800000,
+          "valuta": "NOK"
+        }
+      },
+      "loennsomhetsnoekkeltal": {
+        "bruttomargin": 66.8,
+        "driftsmargin": 14.5,
+        "nettemargin": 9.0,
+        "egenkapitalrentabilitet": 22.9,
+        "totalkapitalrentabilitet": 17.8,
+        "omloepshastighet": 1.57
+      },
+      "likviditetsnoekkeltal": {
+        "likviditetsgrad1": 2.58,
+        "likviditetsgrad2": 1.95,
+        "kontantstroemDrift": 6300000,
+        "kontantstroemInvestering": -2800000,
+        "kontantstroemFinansiering": -1200000
+      },
+      "ansatte": {
+        "antallAnsatte": 78,
+        "heltidsansatte": 72,
+        "deltidsansatte": 6,
+        "midlertidigAnsatte": 3,
+        "gjennomsnittligAntallAnsatte": 75,
+        "loennskostnader": {
+          "totalLoenn": 46800000,
+          "sosialeutgifter": 8424000,
+          "pensjonskostnader": 2808000,
+          "totalPersonalkostnader": 58032000
+        },
+        "gjennomsnittsloenPerAnsatt": 600000,
+        "omsetningPerAnsatt": 538462,
+        "produktivitet": {
+          "omsetningPerAnsatt": 538462,
+          "driftsresultatPerAnsatt": 78077
+        }
+      },
+      "bransjesammenligning": {
+        "bransje": "Teknologi og IT-tjenester",
+        "naceKode": "62.010",
+        "posisjonOmsetning": "Median",
+        "posisjonLoennsomhet": "Median",
+        "posisjonSoliditet": "Øvre kvartil"
+      },
+      "risikovurdering": {
+        "kredittvurdering": "BBB+",
+        "konkursrisiko": "Lav",
+        "betalingsevne": "God",
+        "finansiellStabilitet": "God"
+      }
+    },
+    {
+      "aar": 2021,
+      "regnskapsperiode": {
+        "fraOgMed": "2021-01-01",
+        "tilOgMed": "2021-12-31"
+      },
+      "finansielleNokkeltal": {
+        "omsetning": {
+          "beloep": 37200000,
+          "valuta": "NOK",
+          "endringFraForrigeAar": 5.7
+        },
+        "driftsresultat": {
+          "beloep": 5130000,
+          "valuta": "NOK",
+          "margin": 13.8,
+          "endringFraForrigeAar": 2.4
+        },
+        "resultatForSkatt": {
+          "beloep": 3891000,
+          "valuta": "NOK",
+          "endringFraForrigeAar": -8.2
+        },
+        "resultatEtterSkatt": {
+          "beloep": 3112800,
+          "valuta": "NOK",
+          "endringFraForrigeAar": -8.2
+        },
+        "totalkapital": {
+          "beloep": 24560000,
+          "valuta": "NOK",
+          "endringFraForrigeAar": 3.2
+        },
+        "egenkapital": {
+          "beloep": 14520000,
+          "valuta": "NOK",
+          "egenkapitalandel": 59.1,
+          "endringFraForrigeAar": 8.9
+        },
+        "gjeld": {
+          "kortsiktigGjeld": 5200000,
+          "langsiktigGjeld": 4840000,
+          "totalGjeld": 10040000,
+          "gjeldsgrad": 40.9
+        },
+        "avskrivninger": {
+          "beloep": 1860000,
+          "valuta": "NOK",
+          "prosentAvOmsetning": 5.0
+        },
+        "arbeidskapital": {
+          "beloep": 6900000,
+          "valuta": "NOK"
+        }
+      },
+      "loennsomhetsnoekkeltal": {
+        "bruttomargin": 65.2,
+        "driftsmargin": 13.8,
+        "nettemargin": 8.4,
+        "egenkapitalrentabilitet": 21.4,
+        "totalkapitalrentabilitet": 15.8,
+        "omloepshastighet": 1.51
+      },
+      "likviditetsnoekkeltal": {
+        "likviditetsgrad1": 2.33,
+        "likviditetsgrad2": 1.78,
+        "kontantstroemDrift": 5400000,
+        "kontantstroemInvestering": -2200000,
+        "kontantstroemFinansiering": -800000
+      },
+      "ansatte": {
+        "antallAnsatte": 68,
+        "heltidsansatte": 63,
+        "deltidsansatte": 5,
+        "midlertidigAnsatte": 2,
+        "gjennomsnittligAntallAnsatte": 65,
+        "loennskostnader": {
+          "totalLoenn": 39000000,
+          "sosialeutgifter": 7020000,
+          "pensjonskostnader": 2340000,
+          "totalPersonalkostnader": 48360000
+        },
+        "gjennomsnittsloenPerAnsatt": 573529,
+        "omsetningPerAnsatt": 547059,
+        "produktivitet": {
+          "omsetningPerAnsatt": 547059,
+          "driftsresultatPerAnsatt": 75441
+        }
+      },
+      "bransjesammenligning": {
+        "bransje": "Teknologi og IT-tjenester",
+        "naceKode": "62.010",
+        "posisjonOmsetning": "Nedre kvartil",
+        "posisjonLoennsomhet": "Median",
+        "posisjonSoliditet": "Median"
+      },
+      "risikovurdering": {
+        "kredittvurdering": "BBB",
+        "konkursrisiko": "Moderat",
+        "betalingsevne": "Tilfredsstillende",
+        "finansiellStabilitet": "God"
+      }
+    }
+  ],
+  "trendanalyse": {
+    "omsetningsvekst": {
+      "treAarsSnitt": 9.0,
+      "trend": "Positiv",
+      "volatilitet": "Lav"
+    },
+    "loennsomhetsutvikling": {
+      "driftsmarginsutvikling": "Forbedring",
+      "egenkapitalrentabilitetsutvikling": "Stabil vekst",
+      "trend": "Positiv"
+    },
+    "soliditetsutvikling": {
+      "egenkapitalandelsutvikling": "Forbedring",
+      "gjeldsgradutvikling": "Reduksjon",
+      "trend": "Positiv"
+    },
+    "ansatteutvikling": {
+      "vekstrate": 11.8,
+      "produktivitetsutvikling": "Stabil",
+      "loennskostnadskontroll": "God"
+    }
+  },
+  "prognoser": {
+    "aar": 2024,
+    "forventetOmsetning": {
+      "beloep": 49800000,
+      "vekstrate": 9.2,
+      "konfidensintervall": {
+        "nedre": 47500000,
+        "ovre": 52100000
+      }
+    },
+    "forventetDriftsresultat": {
+      "beloep": 7470000,
+      "margin": 15.0,
+      "konfidensintervall": {
+        "nedre": 7100000,
+        "ovre": 7840000
+      }
+    },
+    "forventetAntallAnsatte": {
+      "antall": 92,
+      "vekstrate": 8.2
+    }
+  }
+}

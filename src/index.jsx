@@ -13,7 +13,8 @@ import {
   genOrganisationDetailsFor,
   genKjoretoyFor,
   genEiendommerFor,
-  genRollerFor 
+  genRollerFor,
+  genOkInfoFor 
 } from './data/generators.js';
 import { 
   isBrudd, 
@@ -35,7 +36,8 @@ import {
   DownloadTab,
   VehiclesTab,
   PropertiesTab,
-  RolesTab 
+  RolesTab,
+  FinancialTab 
 } from './components/tabs';
 
 
@@ -62,6 +64,7 @@ export default function TildaLookup() {
   const [vehicleData, setVehicleData] = useState([]);
   const [propertyData, setPropertyData] = useState([]);
   const [roleData, setRoleData] = useState([]);
+  const [financialData, setFinancialData] = useState(null);
   const [mulighetsrom, setMulighetsrom] = useState(false);
   const [orgDetails, setOrgDetails] = useState(null);
   const [selectedAuthority, setSelectedAuthority] = useState(null);
@@ -91,6 +94,7 @@ export default function TildaLookup() {
       const newVehicleData = genKjoretoyFor(orgnr);
       const newPropertyData = genEiendommerFor(orgnr);
       const newRoleData = genRollerFor(orgnr);
+      const newFinancialData = genOkInfoFor(orgnr);
       setRap(newRap);
       setKoord(newKoord);
       setMeldinger(newMeldinger);
@@ -98,6 +102,7 @@ export default function TildaLookup() {
       setVehicleData(newVehicleData);
       setPropertyData(newPropertyData);
       setRoleData(newRoleData);
+      setFinancialData(newFinancialData);
       setGeneratedFor(orgnr);
       const totalBrudd = newRap.filter(isBrudd).length;
       setBruddCount(totalBrudd);
@@ -427,9 +432,16 @@ export default function TildaLookup() {
                 perMynd={perMynd}
                 vehicleData={vehicleData}
                 propertyData={propertyData}
+                financialData={financialData}
                 mulighetsrom={mulighetsrom}
                 selectedAuthority={selectedAuthority}
                 onClearSelection={() => setSelectedAuthority(null)}
+              />
+            )}
+
+            {activeTab === "okonomi" && (
+              <FinancialTab 
+                financialData={financialData}
               />
             )}
 
