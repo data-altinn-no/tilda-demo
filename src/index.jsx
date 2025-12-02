@@ -498,6 +498,8 @@ export default function TildaLookup() {
                 rap={rap}
                 koord={koord}
                 perMynd={perMynd}
+                vehicleData={vehicleData}
+                mulighetsrom={mulighetsrom}
                 selectedAuthority={selectedAuthority}
                 onClearSelection={() => setSelectedAuthority(null)}
               />

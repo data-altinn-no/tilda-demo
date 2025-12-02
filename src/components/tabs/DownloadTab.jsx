@@ -1,12 +1,12 @@
 import React from 'react';
-import { Download, FileText, Database } from 'lucide-react';
+import { Download, FileText, Database, Car } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, Button, Badge } from '../ui';
 import { downloadCSV, downloadJSON, flattenBruddByMyndighet } from '../../utils/exportHelpers.js';
 
 /**
  * Download Tab Component - Provides data export functionality
  */
-export function DownloadTab({ rap, koord, perMynd, selectedAuthority, onClearSelection }) {
+export function DownloadTab({ rap, koord, perMynd, vehicleData, mulighetsrom, selectedAuthority, onClearSelection }) {
   const filteredRap = selectedAuthority ? rap.filter(r => r.tilsynsmyndighet === selectedAuthority) : rap;
   const filteredKoord = selectedAuthority ? koord.filter(k => k.tilsynsmyndighet === selectedAuthority) : koord;
   const filteredPerMynd = selectedAuthority ? { [selectedAuthority]: perMynd[selectedAuthority] || [] } : perMynd;
@@ -121,10 +121,39 @@ export function DownloadTab({ rap, koord, perMynd, selectedAuthority, onClearSel
             </div>
           </div>
 
+          {/* Kjøretøy */}
+          {mulighetsrom && vehicleData && vehicleData.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Car className="w-4 h-4 text-purple-600" />
+                <h3 className="font-medium text-gray-900">Kjøretøy</h3>
+                <span className="text-sm text-gray-500">({vehicleData.length} kjøretøy)</span>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-3">
+                <Button 
+                  variant="outline" 
+                  onClick={() => downloadCSV(vehicleData, 'kjoretoy.csv')}
+                  className="justify-start"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Last ned som CSV
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => downloadJSON(vehicleData, 'kjoretoy.json')}
+                  className="justify-start"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Last ned som JSON
+                </Button>
+              </div>
+            </div>
+          )}
+
           {/* Summary info */}
           <div className="bg-gray-50 p-4 rounded-lg">
             <h4 className="font-medium mb-2">Sammendrag</h4>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+            <div className={`grid gap-4 text-sm ${mulighetsrom ? 'grid-cols-2 md:grid-cols-4' : 'grid-cols-2 md:grid-cols-3'}`}>
               <div>
                 <div className="text-gray-600">Totalt rapporter</div>
                 <div className="font-semibold">{filteredRap.length}</div>
@@ -137,6 +166,12 @@ export function DownloadTab({ rap, koord, perMynd, selectedAuthority, onClearSel
                 <div className="text-gray-600">Myndigheter</div>
                 <div className="font-semibold">{Object.keys(filteredPerMynd).length}</div>
               </div>
+              {mulighetsrom && (
+                <div>
+                  <div className="text-gray-600">Kjøretøy</div>
+                  <div className="font-semibold">{vehicleData ? vehicleData.length : 0}</div>
+                </div>
+              )}
             </div>
           </div>
         </div>
