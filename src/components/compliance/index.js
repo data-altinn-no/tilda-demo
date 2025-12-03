@@ -8,5 +8,5 @@ export {
   getScoreColor, 
   getScoreLabel,
   getRecentRoleChanges,
-  getUninsuredVehicles
+  getOverdueEUControlVehicles
 } from './assessmentLogic.js';

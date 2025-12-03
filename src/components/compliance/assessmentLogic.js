@@ -159,24 +159,30 @@ export function calculateComplianceScore({ rap, koord, meldinger, financialData,
   // 6. Vehicle Compliance (Weight: 3%)
   if (vehicleData && vehicleData.length > 0) {
     const now = new Date();
-    const expiredVehicles = vehicleData.filter(v => {
-      if (!v.kjoretoydata?.godkjenning?.gyldigTil) return false;
-      const expiryDate = new Date(v.kjoretoydata.godkjenning.gyldigTil);
-      return expiryDate < now;
+    
+    // Check for overdue EU control (nesteEUKontroll is in the past)
+    // Only check non-trailer vehicles (trailers don't have EU control)
+    const overdueEUControl = vehicleData.filter(v => {
+      if (!v.nesteEUKontroll) return false; // Trailers don't have this field
+      const nextControlDate = new Date(v.nesteEUKontroll);
+      return nextControlDate < now;
     }).length;
 
-    const uninsuredVehicles = vehicleData.filter(v => 
-      !v.kjoretoydata?.forsikring || v.kjoretoydata.forsikring.status !== 'Aktiv'
-    ).length;
-
-    if (expiredVehicles > 0 || uninsuredVehicles > 0) {
-      const vehiclePenalty = expiredVehicles * 0.1 + uninsuredVehicles * 0.15;
+    if (overdueEUControl > 0) {
+      const vehiclePenalty = Math.min(0.5, overdueEUControl * 0.15);
       score -= vehiclePenalty;
       factors.push({
         category: 'Kjøretøy compliance',
         impact: -vehiclePenalty,
-        description: `${expiredVehicles} utløpte godkjenninger, ${uninsuredVehicles} uforsikrede`,
-        severity: uninsuredVehicles > 0 ? 'high' : 'medium'
+        description: `${overdueEUControl} kjøretøy med forfalt EU-kontroll`,
+        severity: overdueEUControl > 2 ? 'high' : 'medium'
+      });
+    } else {
+      factors.push({
+        category: 'Kjøretøy compliance',
+        impact: 0,
+        description: 'Alle kjøretøy har gyldig EU-kontroll',
+        severity: 'good'
       });
     }
   }
@@ -251,11 +257,14 @@ export function getRecentRoleChanges(roleData) {
 }
 
 /**
- * Calculate uninsured vehicles count
+ * Calculate vehicles with overdue EU control
  */
-export function getUninsuredVehicles(vehicleData) {
+export function getOverdueEUControlVehicles(vehicleData) {
   if (!vehicleData || vehicleData.length === 0) return 0;
-  return vehicleData.filter(v => 
-    !v.kjoretoydata?.forsikring || v.kjoretoydata.forsikring.status !== 'Aktiv'
-  ).length;
+  const now = new Date();
+  return vehicleData.filter(v => {
+    if (!v.nesteEUKontroll) return false; // Trailers don't have EU control
+    const nextControlDate = new Date(v.nesteEUKontroll);
+    return nextControlDate < now;
+  }).length;
 }

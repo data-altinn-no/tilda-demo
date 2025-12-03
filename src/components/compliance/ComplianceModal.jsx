@@ -7,7 +7,7 @@ import {
   getScoreColor, 
   getScoreLabel,
   getRecentRoleChanges,
-  getUninsuredVehicles
+  getOverdueEUControlVehicles
 } from './assessmentLogic';
 
 /**
@@ -163,9 +163,9 @@ export function ComplianceModal({
                   <CardContent className="p-4">
                     <div className="text-center">
                       <div className="text-2xl font-bold text-indigo-600">
-                        {getUninsuredVehicles(vehicleData)}
+                        {getOverdueEUControlVehicles(vehicleData)}
                       </div>
-                      <div className="text-sm text-gray-600">Uforsikrede kjøretøy</div>
+                      <div className="text-sm text-gray-600">Forfalt EU-kontroll</div>
                     </div>
                   </CardContent>
                 </Card>
