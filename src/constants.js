@@ -20,7 +20,7 @@ export const AUTHORITIES = [
 export const THEMES = [
   "Utslipp", 
   "HMS", 
-  "Kjæmikalier", 
+  "Kjemikalier", 
   "Brannvern", 
   "Hygiene", 
   "Avfall", 
