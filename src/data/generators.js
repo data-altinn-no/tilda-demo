@@ -97,6 +97,7 @@ export function genOrganisationDetailsFor(orgnr) {
 
 // Vehicle brands and groups for random generation
 const VEHICLE_BRANDS = ['Volvo', 'Toyota', 'Volkswagen', 'BMW', 'Mercedes-Benz', 'Audi', 'Ford', 'Nissan', 'Peugeot', 'Skoda'];
+const TRAILER_BRANDS = ['Gaupen', 'Tysse', 'Ifor Williams', 'Tredal'];
 const VEHICLE_GROUPS = ['Personbil', 'Varebil', 'Lastebil', 'Motorsykkel', 'Tilhenger'];
 const FUEL_TYPES = ['Bensin', 'Diesel', 'Elektrisk', 'Hybrid', 'Hydrogen'];
 const GEARBOX_TYPES = ['Manuell', 'Automat'];
@@ -129,7 +130,9 @@ export function genKjoretoyFor(orgnr) {
   
   return Array.from({ length: vehicleCount }).map((_, index) => {
     const isOwner = Math.random() > 0.3;
-    const fuelType = rand(FUEL_TYPES);
+    const vehicleGroup = rand(VEHICLE_GROUPS);
+    const isTrailer = vehicleGroup === 'Tilhenger';
+    const fuelType = isTrailer ? null : rand(FUEL_TYPES);
     const isElectric = fuelType === 'Elektrisk';
     
     // First registration: between 1990 and today
@@ -156,25 +159,47 @@ export function genKjoretoyFor(orgnr) {
       nextEUControl = `${nextEUDate.getFullYear()}-${pad(nextEUDate.getMonth() + 1)}-${pad(nextEUDate.getDate())}`;
     }
     
-    return {
+    // Base vehicle data
+    const baseData = {
       id: `${orgnr}-${index + 1}`,
       eier: isOwner,
       leaser: !isOwner,
       kjennemerke: generateLicensePlate(),
       understellsnummer: generateVIN(),
       forstegangsregistrert: firstRegistered,
-      kjoretoygruppe: rand(VEHICLE_GROUPS),
+      kjoretoygruppe: vehicleGroup,
+      sistEugodkjent: lastEUControl,
+      heftelser: null,
+      nesteEUKontroll: nextEUControl
+    };
+    
+    // Trailer-specific data (no miljøklasse, girkasse, drivstoff, kilometerstand, EU-kontroll)
+    if (isTrailer) {
+      return {
+        id: `${orgnr}-${index + 1}`,
+        eier: isOwner,
+        leaser: !isOwner,
+        kjennemerke: generateLicensePlate(),
+        understellsnummer: generateVIN(),
+        forstegangsregistrert: firstRegistered,
+        kjoretoygruppe: vehicleGroup,
+        kjoretoymerke: rand(TRAILER_BRANDS),
+        tillattTotalvekt: randInt(500, 3500), // 500-3500 kg
+        heftelser: null,
+      };
+    }
+    
+    // Regular vehicle data
+    return {
+      ...baseData,
       kjoretoymerke: rand(VEHICLE_BRANDS),
       miljoklasse: isElectric ? null : rand(ENVIRONMENT_CLASSES),
       noxutslipp: isElectric ? 0 : Math.round(Math.random() * 0.1 * 1000) / 1000,
       co2utslipp: isElectric ? 0 : Math.round((80 + Math.random() * 120) * 10) / 10,
       drivstoff: fuelType,
       girkassetype: rand(GEARBOX_TYPES),
-      sistEugodkjent: lastEUControl,
       kilometerstand: randInt(5000, 250000),
       kilometerstandSistAvlest: randomDateISOYearAround(),
-      heftelser: null,
-      nesteEUKontroll: nextEUControl
     };
   });
 }
