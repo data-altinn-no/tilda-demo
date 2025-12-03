@@ -39,6 +39,7 @@ import {
   RolesTab,
   FinancialTab 
 } from './components/tabs';
+import { ComplianceModal } from './components/ComplianceModal';
 
 
 
@@ -66,6 +67,7 @@ export default function TildaLookup() {
   const [roleData, setRoleData] = useState([]);
   const [financialData, setFinancialData] = useState(null);
   const [mulighetsrom, setMulighetsrom] = useState(false);
+  const [showComplianceModal, setShowComplianceModal] = useState(false);
   const [orgDetails, setOrgDetails] = useState(null);
   const [selectedAuthority, setSelectedAuthority] = useState(null);
 
@@ -217,6 +219,15 @@ export default function TildaLookup() {
               >
                 Søk
               </Button>
+
+              {hasData && mulighetsrom && (
+                <Button 
+                  onClick={() => setShowComplianceModal(true)}
+                  className="h-12 px-8 text-base digdir-button min-w-[120px] bg-green-600 hover:bg-green-700 text-white transition-colors"
+                >
+                  Vurder
+                </Button>
+              )}
               
               {hasLookedUp && (
                 <div className="w-12 h-12 flex items-center justify-center rounded-full bg-neutral-50 border border-neutral-200">
@@ -487,6 +498,20 @@ export default function TildaLookup() {
           </div>
         )}
       </motion.div>
+
+      {/* Compliance Assessment Modal */}
+      <ComplianceModal
+        isOpen={showComplianceModal}
+        onClose={() => setShowComplianceModal(false)}
+        orgDetails={orgDetails}
+        rap={rap}
+        koord={koord}
+        meldinger={meldinger}
+        financialData={financialData}
+        vehicleData={vehicleData}
+        propertyData={propertyData}
+        roleData={roleData}
+      />
     </div>
   );
 }
