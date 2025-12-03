@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, AlertTriangle, CheckCircle, XCircle, Info, TrendingUp, TrendingDown } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, Button, Badge } from './ui';
+import { isBrudd } from '../data/aggregators';
 
 /**
  * Compliance Assessment Modal - Evaluates organization compliance
@@ -25,12 +26,13 @@ export function ComplianceModal({
     let factors = [];
 
     // 1. Supervision Reports Analysis (Weight: 40%)
-    const totalBrudd = rap.filter(r => r.brudd && r.brudd.length > 0).length;
-    const criticalBrudd = rap.filter(r => 
-      r.brudd && r.brudd.some(b => 
-        b.alvorlighetsgrad === 'Kritisk' || 
-        b.alvorlighetsgrad === 'Høy'
-      )
+    const bruddReports = rap.filter(r => isBrudd(r));
+    const totalBrudd = bruddReports.length;
+    const criticalBrudd = bruddReports.filter(r => 
+      r.funn_alvorlighetsgrad === 'Kritisk' || 
+      r.funn_alvorlighetsgrad === 'Høy' ||
+      r.reaksjonstype === 'Pålegg' ||
+      r.reaksjonstype === 'Tvangsmulkt'
     ).length;
 
     if (totalBrudd > 0) {
@@ -124,18 +126,107 @@ export function ComplianceModal({
     }
 
     // 5. Role Management (Weight: 5%)
-    const missingRoles = roleData.filter(r => 
-      !r.person || r.person.trim() === ''
-    ).length;
+    if (roleData && roleData.length > 0) {
+      const now = new Date();
+      const sixMonthsAgo = new Date(now.getTime() - 6 * 30 * 24 * 60 * 60 * 1000);
+      const oneYearAgo = new Date(now.getTime() - 12 * 30 * 24 * 60 * 60 * 1000);
+      
+      // Count recent role changes (roles that started within last 6 months)
+      const recentRoleChanges = roleData.filter(r => {
+        if (!r.gyldigFra) return false;
+        const startDate = new Date(r.gyldigFra);
+        return startDate >= sixMonthsAgo;
+      }).length;
+      
+      // Count inactive/expired roles
+      const inactiveRoles = roleData.filter(r => {
+        if (!r.gyldigTil) return false;
+        const expiryDate = new Date(r.gyldigTil);
+        return expiryDate < now;
+      }).length;
+      
+      // Count very frequent changes (more than 30% of roles changed in 6 months)
+      const roleChangeRate = roleData.length > 0 ? (recentRoleChanges / roleData.length) : 0;
+      
+      if (roleChangeRate > 0.3 || inactiveRoles > 2) {
+        const rolePenalty = Math.min(0.4, roleChangeRate * 0.5 + inactiveRoles * 0.1);
+        score -= rolePenalty;
+        factors.push({
+          category: 'Rolleforvaltning',
+          impact: -rolePenalty,
+          description: `${recentRoleChanges} nylige rolleendringer (${(roleChangeRate * 100).toFixed(0)}%), ${inactiveRoles} inaktive roller`,
+          severity: roleChangeRate > 0.5 ? 'medium' : 'low'
+        });
+      } else if (recentRoleChanges > 0) {
+        factors.push({
+          category: 'Rolleforvaltning',
+          impact: 0,
+          description: `${recentRoleChanges} rolleendringer siste 6 mnd - normal aktivitet`,
+          severity: 'good'
+        });
+      } else {
+        factors.push({
+          category: 'Rolleforvaltning',
+          impact: 0,
+          description: 'Stabil rollestruktur - ingen nylige endringer',
+          severity: 'good'
+        });
+      }
+    }
 
-    if (missingRoles > 0) {
-      score -= 0.2;
-      factors.push({
-        category: 'Rolleforvaltning',
-        impact: -0.2,
-        description: `${missingRoles} manglende rolleinnehavere`,
-        severity: 'low'
+    // 6. Vehicle Compliance (Weight: 3%)
+    if (vehicleData && vehicleData.length > 0) {
+      const expiredVehicles = vehicleData.filter(v => {
+        if (!v.kjoretoydata?.godkjenning?.gyldigTil) return false;
+        const expiryDate = new Date(v.kjoretoydata.godkjenning.gyldigTil);
+        const now = new Date();
+        return expiryDate < now;
+      }).length;
+
+      const uninsuredVehicles = vehicleData.filter(v => 
+        !v.kjoretoydata?.forsikring || v.kjoretoydata.forsikring.status !== 'Aktiv'
+      ).length;
+
+      if (expiredVehicles > 0 || uninsuredVehicles > 0) {
+        const vehiclePenalty = expiredVehicles * 0.1 + uninsuredVehicles * 0.15;
+        score -= vehiclePenalty;
+        factors.push({
+          category: 'Kjøretøy compliance',
+          impact: -vehiclePenalty,
+          description: `${expiredVehicles} utløpte godkjenninger, ${uninsuredVehicles} uforsikrede`,
+          severity: uninsuredVehicles > 0 ? 'high' : 'medium'
+        });
+      }
+    }
+
+    // 7. Property Compliance (Weight: 2%)
+    if (propertyData && propertyData.length > 0) {
+      let propertyIssues = 0;
+      let totalMortgageValue = 0;
+      let totalPropertyValue = 0;
+
+      propertyData.forEach(p => {
+        totalPropertyValue += p.takst || 0;
+        if (p.pantedokumenter) {
+          p.pantedokumenter.forEach(pant => {
+            if (pant.beloep && pant.beloep[0]) {
+              totalMortgageValue += pant.beloep[0].grunnboksinformasjon || 0;
+            }
+          });
+        }
       });
+
+      const mortgageRatio = totalPropertyValue > 0 ? totalMortgageValue / totalPropertyValue : 0;
+      
+      if (mortgageRatio > 0.9) {
+        score -= 0.3;
+        factors.push({
+          category: 'Eiendomsrisiko',
+          impact: -0.3,
+          description: `Høy belåningsgrad: ${(mortgageRatio * 100).toFixed(1)}%`,
+          severity: 'medium'
+        });
+      }
     }
 
     return {
@@ -176,7 +267,7 @@ export function ComplianceModal({
       <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Compliance-vurdering</h2>
+            <h2 className="text-2xl font-bold text-gray-900">Risiko-vurdering</h2>
             <p className="text-gray-600 mt-1">{orgDetails?.name || 'Organisasjon'}</p>
           </div>
           <Button 
@@ -189,14 +280,14 @@ export function ComplianceModal({
           </Button>
         </div>
 
-        <div className="overflow-y-auto max-h-[calc(90vh-120px)]">
+        <div className="overflow-y-auto max-h-[calc(90vh-180px)]">
           <div className="p-6 space-y-6">
             {/* Overall Score */}
             <Card className={`border-2 ${getScoreColor(assessment.score)}`}>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold">Samlet compliance-score</h3>
+                    <h3 className="text-lg font-semibold">Samlet risikovurdering</h3>
                     <p className="text-sm opacity-80 mt-1">{getScoreLabel(assessment.score)}</p>
                   </div>
                   <div className="text-right">
@@ -237,12 +328,12 @@ export function ComplianceModal({
             </Card>
 
             {/* Key Statistics */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
               <Card>
                 <CardContent className="p-4">
                   <div className="text-center">
                     <div className="text-2xl font-bold text-blue-600">
-                      {rap.filter(r => r.brudd && r.brudd.length > 0).length}
+                      {rap.filter(r => isBrudd(r)).length}
                     </div>
                     <div className="text-sm text-gray-600">Tilsynsbrudd</div>
                   </div>
@@ -270,6 +361,43 @@ export function ComplianceModal({
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Additional Mulighetsrom Statistics */}
+              {roleData && roleData.length > 0 && (
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-orange-600">
+                        {(() => {
+                          const now = new Date();
+                          const sixMonthsAgo = new Date(now.getTime() - 6 * 30 * 24 * 60 * 60 * 1000);
+                          return roleData.filter(r => {
+                            if (!r.gyldigFra) return false;
+                            const startDate = new Date(r.gyldigFra);
+                            return startDate >= sixMonthsAgo;
+                          }).length;
+                        })()}
+                      </div>
+                      <div className="text-sm text-gray-600">Rolleendringer (6 mnd)</div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {vehicleData && vehicleData.length > 0 && (
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-indigo-600">
+                        {vehicleData.filter(v => 
+                          !v.kjoretoydata?.forsikring || v.kjoretoydata.forsikring.status !== 'Aktiv'
+                        ).length}
+                      </div>
+                      <div className="text-sm text-gray-600">Uforsikrede kjøretøy</div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
 
             {/* Recommendations */}
@@ -283,14 +411,14 @@ export function ComplianceModal({
                     <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
                       <h4 className="font-medium text-red-800">Kritiske tiltak</h4>
                       <p className="text-sm text-red-700 mt-1">
-                        Umiddelbar oppfølging av brudd og forbedring av compliance-rutiner anbefales.
+                        Anbefaler umiddelbar oppfølging og tilsynsplanlegging.
                       </p>
                     </div>
                   )}
                   
                   {assessment.score >= 3 && assessment.score < 4 && (
                     <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                      <h4 className="font-medium text-yellow-800">Forbedringsområder</h4>
+                      <h4 className="font-medium text-yellow-800">Moderat</h4>
                       <p className="text-sm text-yellow-700 mt-1">
                         Fokuser på systematisk oppfølging av identifiserte risikoområder.
                       </p>
@@ -299,7 +427,7 @@ export function ComplianceModal({
 
                   {assessment.score >= 4 && (
                     <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                      <h4 className="font-medium text-green-800">God compliance</h4>
+                      <h4 className="font-medium text-green-800">God</h4>
                       <p className="text-sm text-green-700 mt-1">
                         Fortsett med eksisterende rutiner og oppretthold høy standard.
                       </p>
