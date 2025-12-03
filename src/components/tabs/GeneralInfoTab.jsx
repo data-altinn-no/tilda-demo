@@ -1,8 +1,23 @@
 import React from 'react';
-import { Info, Circle } from 'lucide-react';
+import { Info, Circle, HelpCircle } from 'lucide-react';
 import { LineChart as ReLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui';
 import { aggregateBrudd } from '../../data/aggregators.js';
+
+/**
+ * Tooltip component for displaying help text on hover
+ */
+function InfoTooltip({ text }) {
+  return (
+    <div className="relative inline-block ml-1 group">
+      <HelpCircle className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-help" />
+      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 w-48 text-center z-10">
+        {text}
+        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
+      </div>
+    </div>
+  );
+}
 
 /**
  * General Info Tab Component - Displays organization details and overview statistics
@@ -60,18 +75,27 @@ export function GeneralInfoTab({
         {/* Statistics Row */}
         <div className="grid md:grid-cols-3 gap-4">
           <div className="bg-gray-50 p-4 rounded-lg">
-            <div className="text-sm text-gray-600">Brudd</div>
+            <div className="text-sm text-gray-600 flex items-center">
+              Brudd
+              <InfoTooltip text="Antall registrerte avvik eller regelbrudd fra tilsyn. Inkluderer alle funn med alvorlighetsgrad eller reaksjonstype." />
+            </div>
             <div className={`text-2xl font-bold ${getStatusColor()}`}>{bruddCount}</div>
             <div className="text-sm text-gray-600 mt-1">
               Status: {bruddCount === 0 ? 'Perfect' : bruddCount <= 10 ? 'Warning' : 'Critical'}
             </div>
           </div>
           <div className="bg-gray-50 p-4 rounded-lg">
-            <div className="text-sm text-gray-600">Antall tilsynsrapporter</div>
+            <div className="text-sm text-gray-600 flex items-center">
+              Antall tilsynsrapporter
+              <InfoTooltip text="Totalt antall gjennomførte tilsyn og kontroller registrert for denne organisasjonen fra alle tilsynsmyndigheter." />
+            </div>
             <div className="text-xl font-semibold">{rap.length}</div>
           </div>
           <div className="bg-gray-50 p-4 rounded-lg">
-            <div className="text-sm text-gray-600">Fremtidige tilsyn</div>
+            <div className="text-sm text-gray-600 flex items-center">
+              Fremtidige tilsyn
+              <InfoTooltip text="Planlagte og koordinerte tilsyn som er registrert for fremtiden. Viser kommende tilsynsaktiviteter fra ulike myndigheter." />
+            </div>
             <div className="text-xl font-semibold">{koord.length}</div>
           </div>
         </div>

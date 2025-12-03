@@ -101,7 +101,30 @@ const TRAILER_BRANDS = ['Gaupen', 'Tysse', 'Ifor Williams', 'Tredal'];
 const VEHICLE_GROUPS = ['Personbil', 'Varebil', 'Lastebil', 'Motorsykkel', 'Tilhenger'];
 const FUEL_TYPES = ['Bensin', 'Diesel', 'Elektrisk', 'Hybrid', 'Hydrogen'];
 const GEARBOX_TYPES = ['Manuell', 'Automat'];
-const ENVIRONMENT_CLASSES = ['Euro 4', 'Euro 5', 'Euro 6', 'Euro 6d', 'Euro 6d-TEMP'];
+
+// Environment classes mapped to fuel types
+// Euro 6d and Euro 6d-TEMP are diesel-specific standards
+// Euro 4, 5, 6 apply to both petrol and diesel
+const ENVIRONMENT_CLASSES_DIESEL = ['Euro 4', 'Euro 5', 'Euro 6', 'Euro 6d', 'Euro 6d-TEMP'];
+const ENVIRONMENT_CLASSES_PETROL = ['Euro 4', 'Euro 5', 'Euro 6'];
+const ENVIRONMENT_CLASSES_HYBRID = ['Euro 6', 'Euro 6d-TEMP']; // Hybrids typically meet newer standards
+
+// Get appropriate environment class based on fuel type
+function getEnvironmentClass(fuelType) {
+  switch (fuelType) {
+    case 'Diesel':
+      return rand(ENVIRONMENT_CLASSES_DIESEL);
+    case 'Bensin':
+      return rand(ENVIRONMENT_CLASSES_PETROL);
+    case 'Hybrid':
+      return rand(ENVIRONMENT_CLASSES_HYBRID);
+    case 'Elektrisk':
+    case 'Hydrogen':
+      return null; // Zero emission vehicles don't have Euro classification
+    default:
+      return null;
+  }
+}
 
 // Generate random VIN (simplified)
 function generateVIN() {
@@ -148,12 +171,14 @@ export function genKjoretoyFor(orgnr) {
     const nextEUDate = new Date(lastEUDate);
     nextEUDate.setFullYear(lastEUDate.getFullYear() + 2);
     
-    // Force at least 1-2 vehicles to have overdue EU control if we have vehicles
+    // ~20% chance of overdue EU control on average, with some statistical variance
+    // Use a random threshold that varies slightly to allow for anomalies
     let nextEUControl;
-    if (vehicleCount > 0 && (index === 0 || (index === 1 && Math.random() > 0.5))) {
+    const overdueChance = 0.15 + Math.random() * 0.1; // 15-25% chance, averaging ~20%
+    if (Math.random() < overdueChance) {
       // Make this vehicle overdue by setting next control to past date
       const overdueDate = new Date();
-      overdueDate.setFullYear(overdueDate.getFullYear() - randInt(1, 3)); // 1-3 years overdue
+      overdueDate.setMonth(overdueDate.getMonth() - randInt(1, 24)); // 1-24 months overdue
       nextEUControl = `${overdueDate.getFullYear()}-${pad(overdueDate.getMonth() + 1)}-${pad(overdueDate.getDate())}`;
     } else {
       nextEUControl = `${nextEUDate.getFullYear()}-${pad(nextEUDate.getMonth() + 1)}-${pad(nextEUDate.getDate())}`;
@@ -184,20 +209,40 @@ export function genKjoretoyFor(orgnr) {
         forstegangsregistrert: firstRegistered,
         kjoretoygruppe: vehicleGroup,
         kjoretoymerke: rand(TRAILER_BRANDS),
+        egenvekt: randInt(50, 450), // 50-450 kg for trailers
         tillattTotalvekt: randInt(500, 3500), // 500-3500 kg
         heftelser: null,
       };
     }
     
+    // Get vehicle weight based on type
+    const getVehicleWeight = (group) => {
+      switch (group) {
+        case 'Personbil':
+          return randInt(1300, 2600); // 1300-2600 kg for cars
+        case 'Varebil':
+          return randInt(1800, 3500); // 1800-3500 kg for vans
+        case 'Lastebil':
+          return randInt(5000, 18000); // 5000-18000 kg for trucks
+        case 'Motorsykkel':
+          return randInt(150, 400); // 150-400 kg for motorcycles
+        default:
+          return randInt(1300, 2600);
+      }
+    };
+    
     // Regular vehicle data
+    const isZeroEmission = fuelType === 'Elektrisk' || fuelType === 'Hydrogen';
+    const gearboxType = isZeroEmission ? 'Automat' : rand(GEARBOX_TYPES);
     return {
       ...baseData,
       kjoretoymerke: rand(VEHICLE_BRANDS),
-      miljoklasse: isElectric ? null : rand(ENVIRONMENT_CLASSES),
-      noxutslipp: isElectric ? 0 : Math.round(Math.random() * 0.1 * 1000) / 1000,
-      co2utslipp: isElectric ? 0 : Math.round((80 + Math.random() * 120) * 10) / 10,
+      egenvekt: getVehicleWeight(vehicleGroup),
+      miljoklasse: getEnvironmentClass(fuelType),
+      noxutslipp: isZeroEmission ? 0 : Math.round(Math.random() * 0.1 * 1000) / 1000,
+      co2utslipp: isZeroEmission ? 0 : Math.round((80 + Math.random() * 120) * 10) / 10,
       drivstoff: fuelType,
-      girkassetype: rand(GEARBOX_TYPES),
+      girkassetype: gearboxType,
       kilometerstand: randInt(5000, 250000),
       kilometerstandSistAvlest: randomDateISOYearAround(),
     };
@@ -217,7 +262,7 @@ const NORWEGIAN_BANKS = [
   'Cultura Sparebank', 'Sparebanken Vest', 'Sparebank 1 Østlandet'
 ];
 
-const OWNERSHIP_SHARES = ['1/1', '1/2', '1/3', '2/3', '1/4', '3/4', '1/8', '3/8', '5/8', '7/8'];
+const OWNERSHIP_SHARES = ['1/1','1/1','1/1','1/1','1/1','1/1','1/1','1/1','1/1','1/1', '1/2','1/2','1/2','1/2','1/2','1/2','1/2','1/2', '1/3', '2/3', '1/4', '3/4', '1/8', '3/8', '5/8', '7/8'];
 
 // Generate random property data (eiendommer)
 export function genEiendommerFor(orgnr) {

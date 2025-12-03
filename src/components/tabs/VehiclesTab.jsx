@@ -153,12 +153,18 @@ export function VehiclesTab({ vehicleData, selectedAuthority, onClearSelection }
                   </div>
                 </div>
 
-                {(vehicle.co2utslipp || vehicle.miljoklasse) && (
+                {(vehicle.co2utslipp || vehicle.miljoklasse || vehicle.egenvekt || vehicle.tillattTotalvekt) && (
                   <div className="mt-3 pt-3 border-t border-gray-200 flex items-center gap-4 text-xs text-gray-600">
+                    {vehicle.egenvekt && (
+                      <span>Egenvekt: {formatNumber(vehicle.egenvekt)} kg</span>
+                    )}
+                    {vehicle.tillattTotalvekt && (
+                      <span>Tillatt totalvekt: {formatNumber(vehicle.tillattTotalvekt)} kg</span>
+                    )}
                     {vehicle.miljoklasse && (
                       <span>Miljøklasse: {vehicle.miljoklasse}</span>
                     )}
-                    {vehicle.co2utslipp && (
+                    {vehicle.co2utslipp > 0 && (
                       <span>CO2: {vehicle.co2utslipp} g/km</span>
                     )}
                     {vehicle.girkassetype && (

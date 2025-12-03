@@ -1,6 +1,21 @@
 import React from 'react';
-import { TrendingUp, Users, Building2, DollarSign, BarChart3, PieChart } from 'lucide-react';
+import { TrendingUp, Users, Building2, DollarSign, BarChart3, PieChart, HelpCircle } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, Badge } from '../ui';
+
+/**
+ * Tooltip component for displaying help text on hover
+ */
+function InfoTooltip({ text }) {
+  return (
+    <div className="relative inline-block ml-1 group">
+      <HelpCircle className="w-3.5 h-3.5 text-gray-400 hover:text-gray-600 cursor-help" />
+      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 w-56 text-center z-10">
+        {text}
+        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
+      </div>
+    </div>
+  );
+}
 
 /**
  * Financial Tab Component - Displays economic information per year
@@ -111,6 +126,7 @@ export function FinancialTab({ financialData, orgDetails }) {
                   <div className="flex items-center gap-2 mb-2">
                     <DollarSign className="w-4 h-4 text-gray-500" />
                     <span className="text-sm font-medium text-gray-700">Omsetning</span>
+                    <InfoTooltip text="Total inntekt fra salg av varer og tjenester. Viser hvor mye penger bedriften har tjent før utgifter trekkes fra." />
                   </div>
                   <div className="text-lg font-bold text-gray-900">
                     {formatCurrency(yearData.finansielleNokkeltal?.omsetning?.beloep)}
@@ -128,6 +144,7 @@ export function FinancialTab({ financialData, orgDetails }) {
                   <div className="flex items-center gap-2 mb-2">
                     <TrendingUp className="w-4 h-4 text-gray-500" />
                     <span className="text-sm font-medium text-gray-700">Driftsresultat</span>
+                    <InfoTooltip text="Overskudd fra den daglige driften, før renter og skatt. Positivt tall betyr at bedriften tjener penger på kjernevirksomheten." />
                   </div>
                   <div className="text-lg font-bold text-gray-900">
                     {formatCurrency(yearData.finansielleNokkeltal?.driftsresultat?.beloep)}
@@ -147,6 +164,7 @@ export function FinancialTab({ financialData, orgDetails }) {
                   <div className="flex items-center gap-2 mb-2">
                     <Users className="w-4 h-4 text-gray-500" />
                     <span className="text-sm font-medium text-gray-700">Ansatte</span>
+                    <InfoTooltip text="Antall personer som jobber i bedriften. Endringer kan indikere vekst eller nedbemanning." />
                   </div>
                   <div className="text-lg font-bold text-gray-900">
                     {yearData.ansatte?.antallAnsatte || 'Ikke oppgitt'}
@@ -166,6 +184,7 @@ export function FinancialTab({ financialData, orgDetails }) {
                   <div className="flex items-center gap-2 mb-2">
                     <PieChart className="w-4 h-4 text-gray-500" />
                     <span className="text-sm font-medium text-gray-700">Egenkapitalandel</span>
+                    <InfoTooltip text="Hvor mye av bedriftens verdier som er eid av eierne selv (ikke lånt). Høyere prosent betyr sterkere økonomi og mindre gjeld." />
                   </div>
                   <div className="text-lg font-bold text-gray-900">
                     {formatPercentage(yearData.finansielleNokkeltal?.egenkapital?.egenkapitalandel)}
@@ -186,27 +205,45 @@ export function FinancialTab({ financialData, orgDetails }) {
                 <h4 className="font-semibold text-gray-700 mb-3">Lønnsomhetsnøkkeltall</h4>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 text-sm">
                   <div>
-                    <span className="text-gray-600 block">Bruttomargin</span>
+                    <span className="text-gray-600 flex items-center">
+                      Bruttomargin
+                      <InfoTooltip text="Hvor mye som er igjen av hver krone i omsetning etter varekostnader. Høyere er bedre." />
+                    </span>
                     <span className="font-medium">{formatPercentage(yearData.loennsomhetsnoekkeltal?.bruttomargin)}</span>
                   </div>
                   <div>
-                    <span className="text-gray-600 block">Driftsmargin</span>
+                    <span className="text-gray-600 flex items-center">
+                      Driftsmargin
+                      <InfoTooltip text="Andel av omsetningen som blir til overskudd fra driften. Viser hvor effektivt bedriften drives." />
+                    </span>
                     <span className="font-medium">{formatPercentage(yearData.loennsomhetsnoekkeltal?.driftsmargin)}</span>
                   </div>
                   <div>
-                    <span className="text-gray-600 block">Nettemargin</span>
+                    <span className="text-gray-600 flex items-center">
+                      Nettemargin
+                      <InfoTooltip text="Endelig fortjeneste per krone omsatt, etter alle kostnader inkl. skatt. Det som faktisk blir igjen." />
+                    </span>
                     <span className="font-medium">{formatPercentage(yearData.loennsomhetsnoekkeltal?.nettemargin)}</span>
                   </div>
                   <div>
-                    <span className="text-gray-600 block">EK-rentabilitet</span>
+                    <span className="text-gray-600 flex items-center">
+                      EK-rentabilitet
+                      <InfoTooltip text="Avkastning på eiernes investerte penger. Viser hvor god jobb bedriften gjør med eiernes kapital." />
+                    </span>
                     <span className="font-medium">{formatPercentage(yearData.loennsomhetsnoekkeltal?.egenkapitalrentabilitet)}</span>
                   </div>
                   <div>
-                    <span className="text-gray-600 block">TK-rentabilitet</span>
+                    <span className="text-gray-600 flex items-center">
+                      TK-rentabilitet
+                      <InfoTooltip text="Avkastning på all kapital i bedriften (både egen og lånt). Måler total effektivitet." />
+                    </span>
                     <span className="font-medium">{formatPercentage(yearData.loennsomhetsnoekkeltal?.totalkapitalrentabilitet)}</span>
                   </div>
                   <div>
-                    <span className="text-gray-600 block">Omløpshastighet</span>
+                    <span className="text-gray-600 flex items-center">
+                      Omløpshastighet
+                      <InfoTooltip text="Hvor mange ganger kapitalen 'brukes' i løpet av året. Høyere tall betyr mer effektiv bruk av ressurser." />
+                    </span>
                     <span className="font-medium">{yearData.loennsomhetsnoekkeltal?.omloepshastighet?.toFixed(2) || 'N/A'}</span>
                   </div>
                 </div>
