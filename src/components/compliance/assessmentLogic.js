@@ -1,0 +1,261 @@
+import { isBrudd } from '../../data/aggregators';
+
+/**
+ * Calculate compliance/risk score based on various organizational factors
+ * @returns {Object} Assessment result with score and factors
+ */
+export function calculateComplianceScore({ rap, koord, meldinger, financialData, vehicleData, propertyData, roleData }) {
+  let score = 5; // Start with perfect score
+  let factors = [];
+
+  // 1. Supervision Reports Analysis (Weight: 40%)
+  const bruddReports = rap.filter(r => isBrudd(r));
+  const totalBrudd = bruddReports.length;
+  const criticalBrudd = bruddReports.filter(r => 
+    r.funn_alvorlighetsgrad === 'Kritisk' || 
+    r.funn_alvorlighetsgrad === 'Høy' ||
+    r.reaksjonstype === 'Pålegg' ||
+    r.reaksjonstype === 'Tvangsmulkt'
+  ).length;
+
+  if (totalBrudd > 0) {
+    const bruddPenalty = Math.min(2, totalBrudd * 0.3 + criticalBrudd * 0.5);
+    score -= bruddPenalty;
+    factors.push({
+      category: 'Tilsynsbrudd',
+      impact: -bruddPenalty,
+      description: `${totalBrudd} brudd funnet, ${criticalBrudd} kritiske`,
+      severity: criticalBrudd > 0 ? 'critical' : totalBrudd > 3 ? 'high' : 'medium'
+    });
+  } else {
+    factors.push({
+      category: 'Tilsynsbrudd',
+      impact: 0,
+      description: 'Ingen brudd registrert',
+      severity: 'good'
+    });
+  }
+
+  // 2. Financial Health (Weight: 25%)
+  if (financialData && financialData.regnskapsaar) {
+    const latestYear = financialData.regnskapsaar[0];
+    const egenkapitalandel = latestYear.finansielleNokkeltal?.egenkapital?.egenkapitalandel;
+    const driftsresultat = latestYear.finansielleNokkeltal?.driftsresultat?.beloep;
+
+    if (egenkapitalandel < 20) {
+      score -= 0.8;
+      factors.push({
+        category: 'Finansiell stabilitet',
+        impact: -0.8,
+        description: `Lav egenkapitalandel: ${egenkapitalandel}%`,
+        severity: 'high'
+      });
+    } else if (egenkapitalandel < 40) {
+      score -= 0.3;
+      factors.push({
+        category: 'Finansiell stabilitet',
+        impact: -0.3,
+        description: `Moderat egenkapitalandel: ${egenkapitalandel}%`,
+        severity: 'medium'
+      });
+    } else {
+      factors.push({
+        category: 'Finansiell stabilitet',
+        impact: 0,
+        description: `God egenkapitalandel: ${egenkapitalandel}%`,
+        severity: 'good'
+      });
+    }
+
+    if (driftsresultat < 0) {
+      score -= 0.5;
+      factors.push({
+        category: 'Lønnsomhet',
+        impact: -0.5,
+        description: 'Negativt driftsresultat',
+        severity: 'high'
+      });
+    }
+  }
+
+  // 3. Coordination Issues (Weight: 20%)
+  const koordineringIssues = koord.filter(k => 
+    k.status === 'Avbrutt' || k.status === 'Forsinket'
+  ).length;
+
+  if (koordineringIssues > 2) {
+    score -= 0.6;
+    factors.push({
+      category: 'Tilsynskoordinering',
+      impact: -0.6,
+      description: `${koordineringIssues} problematiske koordineringer`,
+      severity: 'medium'
+    });
+  }
+
+  // 4. Messages from Authorities (Weight: 10%)
+  const criticalMessages = meldinger.filter(m => 
+    m.meldingsinnholdTilAnnenMyndighet?.meldingsType === 'oppfølging-av-funn'
+  ).length;
+
+  if (criticalMessages > 0) {
+    score -= 0.4;
+    factors.push({
+      category: 'Myndighetsoppfølging',
+      impact: -0.4,
+      description: `${criticalMessages} oppfølgingsmeldinger`,
+      severity: 'medium'
+    });
+  }
+
+  // 5. Role Management (Weight: 5%)
+  if (roleData && roleData.length > 0) {
+    const now = new Date();
+    const sixMonthsAgo = new Date(now.getTime() - 6 * 30 * 24 * 60 * 60 * 1000);
+    
+    // Count recent role changes (roles that started within last 6 months)
+    const recentRoleChanges = roleData.filter(r => {
+      if (!r.gyldigFra) return false;
+      const startDate = new Date(r.gyldigFra);
+      return startDate >= sixMonthsAgo;
+    }).length;
+    
+    // Count inactive/expired roles
+    const inactiveRoles = roleData.filter(r => {
+      if (!r.gyldigTil) return false;
+      const expiryDate = new Date(r.gyldigTil);
+      return expiryDate < now;
+    }).length;
+    
+    // Count very frequent changes (more than 30% of roles changed in 6 months)
+    const roleChangeRate = roleData.length > 0 ? (recentRoleChanges / roleData.length) : 0;
+    
+    if (roleChangeRate > 0.3 || inactiveRoles > 2) {
+      const rolePenalty = Math.min(0.4, roleChangeRate * 0.5 + inactiveRoles * 0.1);
+      score -= rolePenalty;
+      factors.push({
+        category: 'Rolleforvaltning',
+        impact: -rolePenalty,
+        description: `${recentRoleChanges} nylige rolleendringer (${(roleChangeRate * 100).toFixed(0)}%), ${inactiveRoles} inaktive roller`,
+        severity: roleChangeRate > 0.5 ? 'medium' : 'low'
+      });
+    } else if (recentRoleChanges > 0) {
+      factors.push({
+        category: 'Rolleforvaltning',
+        impact: 0,
+        description: `${recentRoleChanges} rolleendringer siste 6 mnd - normal aktivitet`,
+        severity: 'good'
+      });
+    } else {
+      factors.push({
+        category: 'Rolleforvaltning',
+        impact: 0,
+        description: 'Stabil rollestruktur - ingen nylige endringer',
+        severity: 'good'
+      });
+    }
+  }
+
+  // 6. Vehicle Compliance (Weight: 3%)
+  if (vehicleData && vehicleData.length > 0) {
+    const now = new Date();
+    const expiredVehicles = vehicleData.filter(v => {
+      if (!v.kjoretoydata?.godkjenning?.gyldigTil) return false;
+      const expiryDate = new Date(v.kjoretoydata.godkjenning.gyldigTil);
+      return expiryDate < now;
+    }).length;
+
+    const uninsuredVehicles = vehicleData.filter(v => 
+      !v.kjoretoydata?.forsikring || v.kjoretoydata.forsikring.status !== 'Aktiv'
+    ).length;
+
+    if (expiredVehicles > 0 || uninsuredVehicles > 0) {
+      const vehiclePenalty = expiredVehicles * 0.1 + uninsuredVehicles * 0.15;
+      score -= vehiclePenalty;
+      factors.push({
+        category: 'Kjøretøy compliance',
+        impact: -vehiclePenalty,
+        description: `${expiredVehicles} utløpte godkjenninger, ${uninsuredVehicles} uforsikrede`,
+        severity: uninsuredVehicles > 0 ? 'high' : 'medium'
+      });
+    }
+  }
+
+  // 7. Property Compliance (Weight: 2%)
+  if (propertyData && propertyData.length > 0) {
+    let totalMortgageValue = 0;
+    let totalPropertyValue = 0;
+
+    propertyData.forEach(p => {
+      totalPropertyValue += p.takst || 0;
+      if (p.pantedokumenter) {
+        p.pantedokumenter.forEach(pant => {
+          if (pant.beloep && pant.beloep[0]) {
+            totalMortgageValue += pant.beloep[0].grunnboksinformasjon || 0;
+          }
+        });
+      }
+    });
+
+    const mortgageRatio = totalPropertyValue > 0 ? totalMortgageValue / totalPropertyValue : 0;
+    
+    if (mortgageRatio > 0.9) {
+      score -= 0.3;
+      factors.push({
+        category: 'Eiendomsrisiko',
+        impact: -0.3,
+        description: `Høy belåningsgrad: ${(mortgageRatio * 100).toFixed(1)}%`,
+        severity: 'medium'
+      });
+    }
+  }
+
+  return {
+    score: Math.max(1, Math.min(5, Math.round(score * 10) / 10)),
+    factors: factors
+  };
+}
+
+/**
+ * Get color classes based on score
+ */
+export function getScoreColor(score) {
+  if (score >= 4.5) return 'text-green-600 bg-green-50 border-green-200';
+  if (score >= 3.5) return 'text-yellow-600 bg-yellow-50 border-yellow-200';
+  if (score >= 2.5) return 'text-orange-600 bg-orange-50 border-orange-200';
+  return 'text-red-600 bg-red-50 border-red-200';
+}
+
+/**
+ * Get label based on score
+ */
+export function getScoreLabel(score) {
+  if (score >= 4.5) return 'Lav risiko';
+  if (score >= 3.5) return 'Moderat risiko';
+  if (score >= 2.5) return 'Forhøyet risiko';
+  return 'Høy risiko';
+}
+
+/**
+ * Calculate recent role changes count
+ */
+export function getRecentRoleChanges(roleData) {
+  if (!roleData || roleData.length === 0) return 0;
+  const now = new Date();
+  const sixMonthsAgo = new Date(now.getTime() - 6 * 30 * 24 * 60 * 60 * 1000);
+  return roleData.filter(r => {
+    if (!r.gyldigFra) return false;
+    const startDate = new Date(r.gyldigFra);
+    return startDate >= sixMonthsAgo;
+  }).length;
+}
+
+/**
+ * Calculate uninsured vehicles count
+ */
+export function getUninsuredVehicles(vehicleData) {
+  if (!vehicleData || vehicleData.length === 0) return 0;
+  return vehicleData.filter(v => 
+    !v.kjoretoydata?.forsikring || v.kjoretoydata.forsikring.status !== 'Aktiv'
+  ).length;
+}

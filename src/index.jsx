@@ -39,7 +39,7 @@ import {
   RolesTab,
   FinancialTab 
 } from './components/tabs';
-import { ComplianceModal } from './components/ComplianceModal';
+import { ComplianceModal } from './components/compliance';
 
 
 
