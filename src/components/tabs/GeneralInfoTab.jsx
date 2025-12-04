@@ -1,8 +1,65 @@
 import React from 'react';
-import { Info, Circle, HelpCircle, ExternalLink } from 'lucide-react';
+import { Info, Circle, HelpCircle, ExternalLink, TrendingUp, Building2, ArrowUpRight } from 'lucide-react';
 import { LineChart as ReLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui';
 import { aggregateBrudd } from '../../data/aggregators.js';
+
+/**
+ * Check if organization qualifies as a "Gaselle" (high-growth company)
+ * Criteria:
+ * - Delivered approved financial statements (has regnskapsaar data)
+ * - At least doubled revenue over the period
+ * - Revenue over 1 million NOK
+ * - Positive total operating result
+ * - Revenue growth every year
+ * - Is an AS (aksjeselskap)
+ */
+function isGazelleOrganisation(financialData, orgDetails) {
+  if (!financialData?.regnskapsaar || financialData.regnskapsaar.length < 2) return false;
+  if (!orgDetails) return false;
+
+  // Must be AS (aksjeselskap)
+  const isAS = orgDetails.organisationForm === 'Aksjeselskap' || orgDetails.organisationForm === 'AS';
+  if (!isAS) return false;
+  
+  const years = financialData.regnskapsaar;
+  const firstYear = years[0];
+  const lastYear = years[years.length - 1];
+  
+  // Get revenues
+  const firstRevenue = firstYear?.finansielleNokkeltal?.omsetning?.beloep || 0;
+  const lastRevenue = lastYear?.finansielleNokkeltal?.omsetning?.beloep || 0;
+  
+  // Revenue over 1 million NOK
+  if (lastRevenue < 1000000) return false;
+  
+  // At least doubled revenue
+  if (lastRevenue < firstRevenue * 2) return false;
+  
+  // Check revenue growth every year and positive operating result
+  let totalOperatingResult = 0;
+  let previousRevenue = 0;
+  
+  for (let i = 0; i < years.length; i++) {
+    const year = years[i];
+    const revenue = year?.finansielleNokkeltal?.omsetning?.beloep || 0;
+    const operatingResult = year?.finansielleNokkeltal?.driftsresultat?.beloep || 0;
+    
+    totalOperatingResult += operatingResult;
+    
+    // Check revenue growth (skip first year)
+    if (i > 0 && revenue <= previousRevenue) {
+      return false; // Revenue did not grow this year
+    }
+    
+    previousRevenue = revenue;
+  }
+  
+  // Positive total operating result
+  if (totalOperatingResult <= 0) return false;
+  
+  return true;
+}
 
 /**
  * Authority information with descriptions and website links
@@ -121,8 +178,17 @@ export function GeneralInfoTab({
   perMynd, 
   onAuthorityClick,
   fromDate,
-  toDate
+  toDate,
+  financialData,
+  relatedCompanies,
+  onRelatedCompanyClick
 }) {
+  // Check if organization is a gazelle
+  const isGazelle = React.useMemo(() => 
+    isGazelleOrganisation(financialData, orgDetails), 
+    [financialData, orgDetails]
+  );
+
   // Filter rap data based on date range
   const filteredRap = React.useMemo(() => {
     if (!fromDate && !toDate) return rap;
@@ -174,17 +240,42 @@ export function GeneralInfoTab({
             </div>
           </div>
         )}
+
+        {/* Gazelle Indicator */}
+        {isGazelle && (
+          <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 p-4 rounded-lg flex items-center gap-3">
+            <div className="bg-amber-100 p-2 rounded-full">
+              <TrendingUp className="w-6 h-6 text-amber-600" />
+            </div>
+            <div>
+              <div className="font-semibold text-amber-800 flex items-center gap-2">
+                Gasellebedrift
+                <InfoTooltip text="En gasellebedrift har levert godkjente regnskaper, minst doblet omsetningen, har omsetning over 1 million NOK, positivt samlet driftsresultat, omsetningsvekst hvert år, og er et aksjeselskap." />
+              </div>
+              <div className="text-sm text-amber-700">
+                Denne organisasjonen kvalifiserer som en høyvekstbedrift
+              </div>
+            </div>
+          </div>
+        )}
         
         {/* Statistics Row */}
         <div className="grid md:grid-cols-3 gap-4">
           <div className="bg-gray-50 p-4 rounded-lg">
             <div className="text-sm text-gray-600 flex items-center">
               Brudd
-              <InfoTooltip text="Antall registrerte avvik eller regelbrudd fra tilsyn. Inkluderer alle funn med alvorlighetsgrad eller reaksjonstype." />
+              <InfoTooltip text="Antall registrerte avvik eller regelbrudd fra tilsyn. Inkluderer alle funn med alvorlighetsgrad eller reaksjonstype. Status baseres på andel tilsyn med brudd." />
             </div>
             <div className={`text-2xl font-bold ${getStatusColor()}`}>{bruddCount}</div>
             <div className="text-sm text-gray-600 mt-1">
-              Status: {bruddCount === 0 ? 'Perfect' : bruddCount <= 10 ? 'Warning' : 'Critical'}
+              {rap.length > 0 ? (
+                <>
+                  {Math.round((bruddCount / rap.length) * 100)}% av tilsyn
+                  {bruddCount === 0 ? ' - Utmerket' : (bruddCount / rap.length) < 0.2 ? ' - Bra' : (bruddCount / rap.length) < 0.5 ? ' - Moderat' : ' - Kritisk'}
+                </>
+              ) : (
+                'Ingen data'
+              )}
             </div>
           </div>
           <div className="bg-gray-50 p-4 rounded-lg">
@@ -202,6 +293,33 @@ export function GeneralInfoTab({
             <div className="text-xl font-semibold">{koord.length}</div>
           </div>
         </div>
+        
+        {/* Related Companies */}
+        {relatedCompanies && relatedCompanies.companies && relatedCompanies.companies.length > 0 && (
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="text-sm text-gray-600 mb-2 flex items-center gap-2">
+              <Building2 className="w-4 h-4" />
+              {relatedCompanies.type === 'parent' ? 'Morselskap' : `Datterselskaper (${relatedCompanies.companies.length})`}
+            </div>
+            <ul className="text-sm space-y-2">
+              {relatedCompanies.companies.map((company) => (
+                <li key={company.organisasjonsnummer} className="flex items-center justify-between bg-white p-3 rounded border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors">
+                  <div>
+                    <div className="font-medium text-gray-900">{company.name}</div>
+                    <div className="text-xs text-gray-500">Org.nr: {company.organisasjonsnummer}</div>
+                  </div>
+                  <button
+                    onClick={() => onRelatedCompanyClick(company.organisasjonsnummer, company.name)}
+                    className="flex items-center gap-1 text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors"
+                  >
+                    Søk
+                    <ArrowUpRight className="w-4 h-4" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
         
         {/* Authorities Involved */}
         <div className="bg-gray-50 p-4 rounded-lg">

@@ -79,12 +79,12 @@ export function genMeldingerFor(orgnr) {
 }
 
 // Generate organization details
-export function genOrganisationDetailsFor(orgnr) {
+export function genOrganisationDetailsFor(orgnr, presetName = null) {
   const selectedNace = rand(NACE_CODES);
   const city = rand(CITIES);
   
   return {
-    name: rand(COMPANY_NAMES),
+    name: presetName || rand(COMPANY_NAMES),
     address: `${rand(STREET_NAMES)} ${randInt(1, 99)}`,
     zipcode: `${randInt(1000, 9999)}`,
     city: city,
@@ -93,6 +93,61 @@ export function genOrganisationDetailsFor(orgnr) {
     organisationForm: rand(ORGANIZATION_FORMS),
     organisasjonsnummer: orgnr,
   };
+}
+
+// Subsidiary/holding company name suffixes
+const SUBSIDIARY_SUFFIXES = ['Holding', 'Invest', 'Eiendom', 'Drift', 'Produksjon', 'Service', 'Logistikk', 'Teknologi', 'Konsult', 'Finans'];
+const SUBSIDIARY_PREFIXES = ['Nordic', 'Norsk', 'Skandinavisk', 'Bergen', 'Oslo', 'Trondheim', 'Vest', 'Øst', 'Nord', 'Sør'];
+
+// Generate related companies (either parent or subsidiaries)
+export function genRelatedCompaniesFor(orgnr, orgName) {
+  // 50% chance of having a parent company, 50% chance of having subsidiaries
+  const hasParent = Math.random() < 0.5;
+  
+  if (hasParent) {
+    // Generate one parent company - always starts with 9
+    const parentOrgnr = '9' + String(randInt(10000000, 99999999));
+    const baseName = orgName ? orgName.replace(/ AS$| ASA$/, '') : rand(COMPANY_NAMES).replace(/ AS$| ASA$/, '');
+    const parentName = `${baseName} ${rand(SUBSIDIARY_SUFFIXES)} AS`;
+    
+    return {
+      type: 'parent',
+      companies: [{
+        organisasjonsnummer: parentOrgnr,
+        name: parentName,
+        relationship: 'Morselskap'
+      }]
+    };
+  } else {
+    // Generate 0-5 subsidiaries
+    const count = randInt(0, 5);
+    const subsidiaries = [];
+    const usedOrgnrs = new Set([orgnr]);
+    
+    for (let i = 0; i < count; i++) {
+      let subOrgnr;
+      do {
+        // Subsidiaries start with 8 or 9
+        const prefix = rand(['8', '9']);
+        subOrgnr = prefix + String(randInt(10000000, 99999999));
+      } while (usedOrgnrs.has(subOrgnr));
+      usedOrgnrs.add(subOrgnr);
+      
+      const baseName = orgName ? orgName.replace(/ AS$| ASA$/, '') : rand(COMPANY_NAMES).replace(/ AS$| ASA$/, '');
+      const subName = `${baseName} ${rand(SUBSIDIARY_SUFFIXES)} AS`;
+      
+      subsidiaries.push({
+        organisasjonsnummer: subOrgnr,
+        name: subName,
+        relationship: 'Datterselskap'
+      });
+    }
+    
+    return {
+      type: 'subsidiaries',
+      companies: subsidiaries
+    };
+  }
 }
 
 // Vehicle brands and groups for random generation
@@ -555,22 +610,44 @@ export function genOkInfoFor(orgnr, orgDetails = null) {
     'Stavanger Services AS', 'Arctic Innovation AS', 'Nordic Systems AS'
   ];
   
+  // ~30% chance of being a gazelle organization (only if AS/Aksjeselskap)
+  const isAS = orgDetails?.organisationForm === 'Aksjeselskap' || orgDetails?.organisationForm === 'AS';
+  const isGazelleCandidate = isAS && Math.random() < 0.30;
+  
   // Base financial metrics (will be adjusted year by year)
-  const baseRevenue = randInt(10000000, 100000000); // 10M - 100M NOK
+  // For gazelle: start with lower revenue that will double over 5 years
+  const baseRevenue = isGazelleCandidate 
+    ? randInt(2000000, 20000000) // 2M - 20M starting (will double to 4M-40M+)
+    : randInt(10000000, 100000000); // 10M - 100M NOK
   const baseEmployees = randInt(15, 200);
-  const baseProfitMargin = 8 + Math.random() * 12; // 8-20% profit margin
+  // For gazelle: ensure positive profit margin
+  const baseProfitMargin = isGazelleCandidate 
+    ? 10 + Math.random() * 15 // 10-25% for gazelle (always positive)
+    : 8 + Math.random() * 12; // 8-20% profit margin
   
   // Generate 5 years of data (current year - 4 to current year)
   const regnskapsaar = [];
+  
+  // For gazelle: calculate annual growth rate needed to at least double over 5 years
+  // To double in 5 years: (1 + r)^5 >= 2, so r >= 0.1487 (~15% per year)
+  const gazelleAnnualGrowth = 0.15 + Math.random() * 0.10; // 15-25% annual growth for gazelle
   
   for (let i = 4; i >= 0; i--) {
     const year = currentYear - i;
     const isLatestYear = i === 0;
     
     // Apply growth/decline trends
-    const growthFactor = Math.pow(1 + (Math.random() * 0.3 - 0.1), i); // -10% to +20% annual growth
+    let growthFactor;
+    if (isGazelleCandidate) {
+      // Gazelle: consistent positive growth each year (compound from year 0)
+      const yearsFromStart = 4 - i;
+      growthFactor = Math.pow(1 + gazelleAnnualGrowth, yearsFromStart);
+    } else {
+      // Normal: random growth/decline
+      growthFactor = Math.pow(1 + (Math.random() * 0.3 - 0.1), 4 - i); // -10% to +20% annual growth
+    }
     const revenue = Math.round(baseRevenue * growthFactor);
-    const employees = Math.round(baseEmployees * Math.pow(1 + (Math.random() * 0.2 - 0.05), i));
+    const employees = Math.round(baseEmployees * Math.pow(1 + (Math.random() * 0.2 - 0.05), 4 - i));
     
     // Calculate derived metrics
     const profitMargin = baseProfitMargin + (Math.random() * 6 - 3); // ±3% variation

@@ -119,7 +119,11 @@ export const NACE_CODES = [
 
 // Organization forms
 export const ORGANIZATION_FORMS = [
-  "Aksjeselskap", 
+  "Aksjeselskap",   
+  "Aksjeselskap",   
+  "Aksjeselskap",   
+  "Aksjeselskap",   
+  "Aksjeselskap",
   "Allmennaksjeselskap", 
   "Enkeltpersonforetak", 
   "Ansvarlig selskap",

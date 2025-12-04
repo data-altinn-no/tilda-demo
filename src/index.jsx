@@ -14,7 +14,8 @@ import {
   genKjoretoyFor,
   genEiendommerFor,
   genRollerFor,
-  genOkInfoFor 
+  genOkInfoFor,
+  genRelatedCompaniesFor
 } from './data/generators.js';
 import { 
   isBrudd, 
@@ -63,6 +64,8 @@ export default function TildaLookup() {
   const [propertyData, setPropertyData] = useState([]);
   const [roleData, setRoleData] = useState([]);
   const [financialData, setFinancialData] = useState(null);
+  const [relatedCompanies, setRelatedCompanies] = useState(null);
+  const [presetCompanyName, setPresetCompanyName] = useState(null);
   const [mulighetsrom, setMulighetsrom] = useState(false);
   const [showComplianceModal, setShowComplianceModal] = useState(false);
   const [showInfoModal, setShowInfoModal] = useState(true); // Show on first visit
@@ -92,6 +95,20 @@ export default function TildaLookup() {
     
     setIsLoading(true);
     
+    // Clear all existing data immediately
+    setRap([]);
+    setKoord([]);
+    setMeldinger([]);
+    setOrgDetails(null);
+    setVehicleData([]);
+    setPropertyData([]);
+    setRoleData([]);
+    setFinancialData(null);
+    setRelatedCompanies(null);
+    setGeneratedFor('');
+    setBruddCount(0);
+    setSelectedAuthority(null);
+    
     // Capture the date range at the time of search
     setSearchFromDate(fromDate);
     setSearchToDate(toDate);
@@ -99,15 +116,20 @@ export default function TildaLookup() {
     // Simulate API call with 1-2 second delay
     const delay = Math.random() * 1000 + 1000; // 1-2 seconds
     
+    // Capture preset name before async operation
+    const nameToUse = presetCompanyName;
+    setPresetCompanyName(null); // Clear it immediately
+    
     setTimeout(() => {
       const newRap = genTilsynsrapportFor(orgnr, fromDate, toDate);
       const newKoord = genTilsynskoordineringFor(orgnr);
       const newMeldinger = genMeldingerFor(orgnr);
-      const newOrgDetails = genOrganisationDetailsFor(orgnr);
+      const newOrgDetails = genOrganisationDetailsFor(orgnr, nameToUse);
       const newVehicleData = genKjoretoyFor(orgnr);
       const newPropertyData = genEiendommerFor(orgnr);
       const newRoleData = genRollerFor(orgnr);
       const newFinancialData = genOkInfoFor(orgnr, newOrgDetails);
+      const newRelatedCompanies = genRelatedCompaniesFor(orgnr, newOrgDetails.name);
       setRap(newRap);
       setKoord(newKoord);
       setMeldinger(newMeldinger);
@@ -116,6 +138,7 @@ export default function TildaLookup() {
       setPropertyData(newPropertyData);
       setRoleData(newRoleData);
       setFinancialData(newFinancialData);
+      setRelatedCompanies(newRelatedCompanies);
       setGeneratedFor(orgnr);
       const totalBrudd = newRap.filter(isBrudd).length;
       setBruddCount(totalBrudd);
@@ -125,14 +148,32 @@ export default function TildaLookup() {
   };
 
   const getStatusColor = () => {
-    if (bruddCount === 0) return "text-green-500"; // Perfect
-    if (bruddCount <= 30) return "text-yellow-500"; // Warning
-    return "text-red-500"; // Critical
+    if (bruddCount === 0) return "text-green-500"; // Perfect - no violations
+    if (rap.length === 0) return "text-gray-500"; // No data
+    
+    // Calculate brudd ratio (violations per tilsyn)
+    const bruddRatio = bruddCount / rap.length;
+    
+    // Green: less than 20% of tilsyn have brudd
+    // Yellow: 20-50% of tilsyn have brudd  
+    // Red: more than 50% of tilsyn have brudd
+    if (bruddRatio < 0.2) return "text-green-500";
+    if (bruddRatio < 0.5) return "text-yellow-500";
+    return "text-red-500";
   };
 
   const handleAuthorityClick = (authority) => {
     setSelectedAuthority(authority);
     setActiveTab("tilsyn");
+  };
+
+  const handleRelatedCompanyClick = (companyOrgnr, companyName) => {
+    setOrgnr(companyOrgnr);
+    setPresetCompanyName(companyName);
+    // Trigger search after a brief delay to allow state update
+    setTimeout(() => {
+      document.getElementById('search-button')?.click();
+    }, 100);
   };
 
   const hasData = hasLookedUp && (rap.length > 0 || koord.length > 0);
@@ -244,6 +285,7 @@ export default function TildaLookup() {
               )}
               
               <Button 
+                id="search-button"
                 onClick={handleLookup} 
                 disabled={!isValidOrgnr || isLoading}
                 className={`h-12 px-8 text-base digdir-button min-w-[120px] ${
@@ -366,6 +408,9 @@ export default function TildaLookup() {
                 onAuthorityClick={handleAuthorityClick}
                 fromDate={searchFromDate}
                 toDate={searchToDate}
+                financialData={financialData}
+                relatedCompanies={relatedCompanies}
+                onRelatedCompanyClick={handleRelatedCompanyClick}
               />
             )}
 
