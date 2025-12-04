@@ -380,8 +380,8 @@ export default function TildaLookup() {
           </div>
         )}
 
-        {/* Authority Filter Row - hidden on general tab */}
-        {hasData && Object.keys(perMynd).length > 0 && activeTab !== 'general' && (
+        {/* Authority Filter Row - only show on tilsyn, meldinger, eksperiment, download tabs */}
+        {hasData && Object.keys(perMynd).length > 0 && ['tilsyn', 'meldinger', 'eksperiment', 'download'].includes(activeTab) && (
           <div className="glass-card rounded-xl p-2 -mt-4">
             <div className="flex items-center gap-1.5 flex-wrap">
               {Object.keys(perMynd).map((authority) => {
