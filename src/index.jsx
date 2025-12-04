@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Info, Database, LineChart as LineChartIcon, Building2, RefreshCcw, Download, ListChecks, Circle, Mail, Zap, Car, Users } from "lucide-react";
+import { Info, Database, LineChart as LineChartIcon, Building2, RefreshCcw, Download, ListChecks, Circle, Mail, Zap, Car, Users, Calendar } from "lucide-react";
 import { motion } from "framer-motion";
 import { LineChart as ReLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
@@ -24,13 +24,10 @@ import {
 
 // Import extracted UI components
 import { Card, CardHeader, CardTitle, CardContent, Button, Input, Badge } from './components/ui';
-import { MiniLineChart } from './components/charts';
 import { DetailedBox } from './components/layout';
 import { 
   GeneralInfoTab, 
-  ReportsTab, 
-  CoordinationTab, 
-  TrendsTab, 
+  TilsynTab,
   MessagesTab, 
   ExperimentTab,
   DownloadTab,
@@ -71,6 +68,15 @@ export default function TildaLookup() {
   const [showInfoModal, setShowInfoModal] = useState(true); // Show on first visit
   const [orgDetails, setOrgDetails] = useState(null);
   const [selectedAuthority, setSelectedAuthority] = useState(null);
+  
+  // Date range for search - default to last 10 years
+  const today = new Date().toISOString().split('T')[0];
+  const tenYearsAgo = new Date(new Date().setFullYear(new Date().getFullYear() - 10)).toISOString().split('T')[0];
+  const [fromDate, setFromDate] = useState(tenYearsAgo);
+  const [toDate, setToDate] = useState(today);
+  // Store the dates used for the current search (set when Søk is clicked)
+  const [searchFromDate, setSearchFromDate] = useState(null);
+  const [searchToDate, setSearchToDate] = useState(null);
 
   const handleInputChange = (e) => {
     const value = e.target.value;
@@ -86,11 +92,15 @@ export default function TildaLookup() {
     
     setIsLoading(true);
     
+    // Capture the date range at the time of search
+    setSearchFromDate(fromDate);
+    setSearchToDate(toDate);
+    
     // Simulate API call with 1-2 second delay
     const delay = Math.random() * 1000 + 1000; // 1-2 seconds
     
     setTimeout(() => {
-      const newRap = genTilsynsrapportFor(orgnr);
+      const newRap = genTilsynsrapportFor(orgnr, fromDate, toDate);
       const newKoord = genTilsynskoordineringFor(orgnr);
       const newMeldinger = genMeldingerFor(orgnr);
       const newOrgDetails = genOrganisationDetailsFor(orgnr);
@@ -122,7 +132,7 @@ export default function TildaLookup() {
 
   const handleAuthorityClick = (authority) => {
     setSelectedAuthority(authority);
-    setActiveTab("rapporter");
+    setActiveTab("tilsyn");
   };
 
   const hasData = hasLookedUp && (rap.length > 0 || koord.length > 0);
@@ -130,9 +140,7 @@ export default function TildaLookup() {
 
   const baseTabs = [
     { id: "general", label: "Generell informasjon", icon: Info },
-    { id: "rapporter", label: "Rapporter", icon: Database },
-    { id: "koordinering", label: "Koordinering", icon: ListChecks },
-    { id: "trends", label: "Trender", icon: LineChartIcon },
+    { id: "tilsyn", label: "Tilsyn", icon: ListChecks },
     { id: "meldinger", label: "Meldinger", icon: Mail },
     { id: "eksperiment", label: "Eksperiment", icon: Zap },
     { id: "download", label: "Eksporter data", icon: Download }
@@ -174,7 +182,7 @@ export default function TildaLookup() {
         {/* Search Card */}
         <div className="digdir-card p-8 bg-white">
           <div className="flex flex-col md:flex-row gap-6 items-end justify-between">
-            <div className="flex-1 w-full grid md:grid-cols-2 gap-6">
+            <div className="flex-1 w-full grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="w-full">
                 <label className="block text-sm font-semibold text-neutral-700 mb-2">Organisasjonsnummer</label>
                 <div className="relative">
@@ -185,6 +193,32 @@ export default function TildaLookup() {
                     onChange={handleInputChange} 
                     placeholder="9 siffer"
                     maxLength={9}
+                  />
+                </div>
+              </div>
+              
+              <div className="w-full">
+                <label className="block text-sm font-semibold text-neutral-700 mb-2">Fra dato</label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
+                  <Input 
+                    type="date"
+                    className="digdir-input pl-10 h-12 w-full"
+                    value={fromDate}
+                    onChange={(e) => setFromDate(e.target.value)}
+                  />
+                </div>
+              </div>
+              
+              <div className="w-full">
+                <label className="block text-sm font-semibold text-neutral-700 mb-2">Til dato</label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
+                  <Input 
+                    type="date"
+                    className="digdir-input pl-10 h-12 w-full"
+                    value={toDate}
+                    onChange={(e) => setToDate(e.target.value)}
                   />
                 </div>
               </div>
@@ -330,22 +364,16 @@ export default function TildaLookup() {
                 koord={koord}
                 perMynd={perMynd}
                 onAuthorityClick={handleAuthorityClick}
+                fromDate={searchFromDate}
+                toDate={searchToDate}
               />
             )}
 
-            {activeTab === "rapporter" && (
-              <DetailedBox 
-                title="Tilsynsrapport – per myndighet (detaljer)" 
-                rows={rap} 
-                selectedAuthority={selectedAuthority}
-                onClearSelection={() => setSelectedAuthority(null)}
-              />
-            )}
-
-            {activeTab === "koordinering" && (
-              <DetailedBox 
-                title="Tilsynskoordinering – per myndighet (detaljer)" 
-                rows={koord} 
+            {activeTab === "tilsyn" && (
+              <TilsynTab
+                rap={rap}
+                koord={koord}
+                perMynd={perMynd}
                 selectedAuthority={selectedAuthority}
                 onClearSelection={() => setSelectedAuthority(null)}
               />
@@ -357,79 +385,6 @@ export default function TildaLookup() {
                 selectedAuthority={selectedAuthority}
                 onClearSelection={() => setSelectedAuthority(null)}
               />
-            )}
-
-            {activeTab === "trends" && (
-              <div className="grid gap-6">
-                <Card className="digdir-card border-0 shadow-none bg-transparent">
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-bold text-neutral-800 flex items-center gap-2">
-                      <LineChartIcon className="w-6 h-6 text-neutral-500" />
-                      Trender
-                    </h2>
-                    {selectedAuthority && (
-                      <div className="flex items-center gap-2">
-                        <Badge className="bg-primary-50 text-primary-800 border border-primary-100 px-3 py-1">Filtrert: {selectedAuthority}</Badge>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => setSelectedAuthority(null)}
-                          className="digdir-button digdir-button-ghost text-xs"
-                        >
-                          Fjern filter
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                  <CardContent className="p-0">
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {selectedAuthority ? (
-                        // Show only selected authority
-                        perMynd[selectedAuthority] ? (
-                          <MiniLineChart 
-                            key={selectedAuthority} 
-                            title={`${selectedAuthority} – brudd per måned`} 
-                            data={perMynd[selectedAuthority]} 
-                          />
-                        ) : (
-                          <div className="col-span-full text-center py-12 text-neutral-400 bg-white border border-neutral-200 rounded-digdir">
-                            <LineChartIcon className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                            <p>Ingen data for {selectedAuthority}</p>
-                          </div>
-                        )
-                      ) : (
-                        // Show all authorities
-                        Object.entries(perMynd).map(([mynd, data])=> (
-                          <MiniLineChart key={mynd} title={`${mynd} – brudd per måned`} data={data} />
-                        ))
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                <Card className="digdir-card p-6">
-                  <CardHeader className="p-0 mb-6">
-                    <CardTitle className="flex items-center gap-2 text-lg font-bold text-neutral-900">
-                      <Download className="w-5 h-5 text-neutral-500" />
-                      Eksporter data
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-0 grid sm:grid-cols-3 gap-4">
-                    <Button variant="outline" onClick={() => downloadCSV(rap, "tilsynsrapport.csv")} className="digdir-button bg-white border border-neutral-200 h-auto py-6 flex flex-col gap-3 hover:border-primary-500 hover:bg-primary-50 transition-all group">
-                      <Download className="w-8 h-8 text-neutral-400 group-hover:text-primary-600" />
-                      <span className="font-medium text-neutral-700 group-hover:text-primary-700">Last ned rapporter (CSV)</span>
-                    </Button>
-                    <Button variant="outline" onClick={() => downloadCSV(koord, "tilsynskoordinering.csv")} className="digdir-button bg-white border border-neutral-200 h-auto py-6 flex flex-col gap-3 hover:border-primary-500 hover:bg-primary-50 transition-all group">
-                      <Download className="w-8 h-8 text-neutral-400 group-hover:text-primary-600" />
-                      <span className="font-medium text-neutral-700 group-hover:text-primary-700">Last ned koordinering (CSV)</span>
-                    </Button>
-                    <Button variant="outline" onClick={() => downloadJSON(flattenBruddByMyndighet(perMynd), "brudd-per-myndighet.json")} className="digdir-button bg-white border border-neutral-200 h-auto py-6 flex flex-col gap-3 hover:border-primary-500 hover:bg-primary-50 transition-all group">
-                      <Download className="w-8 h-8 text-neutral-400 group-hover:text-primary-600" />
-                      <span className="font-medium text-neutral-700 group-hover:text-primary-700">Last ned brudd (JSON)</span>
-                    </Button>
-                  </CardContent>
-                </Card>
-              </div>
             )}
 
             {activeTab === "eksperiment" && (

@@ -11,6 +11,15 @@ export function randomDateISOYearAround() {
   return `${t.getFullYear()}-${pad(t.getMonth() + 1)}-${pad(t.getDate())}`;
 }
 
+// Generate random date within a specified date range
+export function randomDateInRange(fromDate, toDate) {
+  const from = fromDate ? new Date(fromDate) : new Date(new Date().setFullYear(new Date().getFullYear() - 10));
+  const to = toDate ? new Date(toDate) : new Date();
+  const randomTime = from.getTime() + Math.random() * (to.getTime() - from.getTime());
+  const t = new Date(randomTime);
+  return `${t.getFullYear()}-${pad(t.getMonth() + 1)}-${pad(t.getDate())}`;
+}
+
 // Generate random future date within specified months ahead
 export function randomFutureDateISO(monthsAheadMin = 1, monthsAheadMax = 9) {
   const now = new Date();

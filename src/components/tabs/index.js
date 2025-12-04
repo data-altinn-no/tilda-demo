@@ -3,6 +3,7 @@
  */
 
 export { GeneralInfoTab } from './GeneralInfoTab.jsx';
+export { TilsynTab } from './TilsynTab.jsx';
 export { ReportsTab } from './ReportsTab.jsx';
 export { CoordinationTab } from './CoordinationTab.jsx';
 export { TrendsTab } from './TrendsTab.jsx';

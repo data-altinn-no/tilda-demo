@@ -119,8 +119,22 @@ export function GeneralInfoTab({
   rap, 
   koord, 
   perMynd, 
-  onAuthorityClick 
+  onAuthorityClick,
+  fromDate,
+  toDate
 }) {
+  // Filter rap data based on date range
+  const filteredRap = React.useMemo(() => {
+    if (!fromDate && !toDate) return rap;
+    return rap.filter(r => {
+      const reportDate = r?.dato;
+      if (!reportDate) return false;
+      if (fromDate && reportDate < fromDate) return false;
+      if (toDate && reportDate > toDate) return false;
+      return true;
+    });
+  }, [rap, fromDate, toDate]);
+
   return (
     <Card>
       <CardHeader>
@@ -175,7 +189,7 @@ export function GeneralInfoTab({
           </div>
           <div className="bg-gray-50 p-4 rounded-lg">
             <div className="text-sm text-gray-600 flex items-center">
-              Antall tilsynsrapporter
+              Utførte tilsyn
               <InfoTooltip text="Totalt antall gjennomførte tilsyn og kontroller registrert for denne organisasjonen fra alle tilsynsmyndigheter." />
             </div>
             <div className="text-xl font-semibold">{rap.length}</div>
@@ -219,10 +233,17 @@ export function GeneralInfoTab({
         
         {/* Overall Trend Chart */}
         <div className="mt-6">
-          <div className="text-sm text-gray-600 mb-3">Trend - alle myndigheter</div>
+          <div className="text-sm text-gray-600 mb-3">
+            Trend - alle myndigheter
+            {fromDate && toDate && (
+              <span className="text-xs text-gray-400 ml-2">
+                ({fromDate} til {toDate})
+              </span>
+            )}
+          </div>
           <div className="h-48">
             <ResponsiveContainer width="100%" height="100%">
-              <ReLineChart data={aggregateBrudd(rap)}>
+              <ReLineChart data={aggregateBrudd(filteredRap)}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="periode" tick={{ fontSize: 10 }} />
                 <YAxis tick={{ fontSize: 10 }} />

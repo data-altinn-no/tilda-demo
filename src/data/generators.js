@@ -10,7 +10,7 @@ import {
   MESSAGE_TYPES 
 } from '../constants.js';
 import { rand, randInt, pad } from '../utils/randomHelpers.js';
-import { randomDateISOYearAround, randomFutureDateISO } from '../utils/dateHelpers.js';
+import { randomDateISOYearAround, randomFutureDateISO, randomDateInRange } from '../utils/dateHelpers.js';
 
 /**
  * Data generation functions for creating dummy supervision data
@@ -41,7 +41,7 @@ export function genTilsynskoordineringFor(orgnr) {
 }
 
 // Generate supervision reports
-export function genTilsynsrapportFor(orgnr) {
+export function genTilsynsrapportFor(orgnr, fromDate = null, toDate = null) {
   const n = randInt(1, 100);
   
   return Array.from({ length: n }).map(() => {
@@ -49,7 +49,7 @@ export function genTilsynsrapportFor(orgnr) {
     return {
       tilsynsmyndighet: rand(AUTHORITIES),
       organisasjonsnummer: orgnr,
-      dato: randomDateISOYearAround(),
+      dato: randomDateInRange(fromDate, toDate),
       funn_alvorlighetsgrad: rand([
         "Ingen", "Ingen", "Ingen", "Ingen", "Ingen", "Ingen", "Ingen", "Ingen", "Ingen", "Ingen", "Ingen", "Ingen",
         "Lav", "Lav", "Lav", "Lav","Lav", "Lav",
@@ -396,7 +396,7 @@ function generateTextualAmountDescription(amount) {
 }
 
 // Role data constants
-const ROLE_TYPES = ['Daglig leder', 'Styreleder', 'Styremedlem', 'Revisor', 'Prokura'];
+const ROLE_TYPES = ['Daglig leder', 'Styreleder', 'Styremedlem', 'Revisor', 'Regnskapsfører', 'Prokura'];
 const NORWEGIAN_NAMES = [
   'Ola Nordmann', 'Kari Hansen', 'Lars Andersen', 'Anne Johansen', 'Per Olsen',
   'Ingrid Larsen', 'Erik Nilsen', 'Marit Eriksen', 'Bjørn Kristiansen', 'Liv Svendsen',
@@ -405,6 +405,11 @@ const NORWEGIAN_NAMES = [
 const REVISOR_COMPANIES = [
   'PwC Norge', 'Deloitte Norge', 'KPMG Norge', 'EY Norge', 'BDO Norge',
   'Grant Thornton Norge', 'Mazars Norge', 'RSM Norge', 'Crowe Norge', 'Moore Norge'
+];
+const REGNSKAPSFORER_COMPANIES = [
+  'Azets Insight AS', 'Accountor AS', 'Visma Regnskap AS', 'Sparebank 1 Regnskapshuset',
+  'Sticos AS', 'Økonor AS', 'Amesto AccountHouse AS', 'Regnskap Norge Partner AS',
+  'Duett Regnskap AS', 'Conta AS'
 ];
 const RESPONSIBILITY_AREAS = [
   'Økonomi og finans', 'Personal og HR', 'Salg og markedsføring', 'Drift og produksjon',
@@ -420,6 +425,7 @@ export function genRollerFor(orgnr) {
   let hasDagligLeder = false;
   let hasStyreleder = false;
   let hasRevisor = false;
+  let hasRegnskapsforer = false;
   
   for (let index = 0; index < roleCount; index++) {
     // Determine role type with constraints
@@ -428,6 +434,7 @@ export function genRollerFor(orgnr) {
       if (role === 'Daglig leder' && hasDagligLeder) return false;
       if (role === 'Styreleder' && hasStyreleder) return false;
       if (role === 'Revisor' && hasRevisor) return false;
+      if (role === 'Regnskapsfører' && hasRegnskapsforer) return false;
       return true;
     });
     
@@ -442,13 +449,16 @@ export function genRollerFor(orgnr) {
     if (roleType === 'Daglig leder') hasDagligLeder = true;
     if (roleType === 'Styreleder') hasStyreleder = true;
     if (roleType === 'Revisor') hasRevisor = true;
+    if (roleType === 'Regnskapsfører') hasRegnskapsforer = true;
     
     const isActive = Math.random() > 0.2; // 80% chance of being active
     
-    // Get unique name (use company name for revisor, person name for others)
+    // Get unique name (use company name for revisor/regnskapsfører, person name for others)
     let name;
     if (roleType === 'Revisor') {
       name = rand(REVISOR_COMPANIES);
+    } else if (roleType === 'Regnskapsfører') {
+      name = rand(REGNSKAPSFORER_COMPANIES);
     } else {
       do {
         name = rand(NORWEGIAN_NAMES);
