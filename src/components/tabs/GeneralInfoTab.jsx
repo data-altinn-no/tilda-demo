@@ -1,8 +1,60 @@
 import React from 'react';
 import { Info, Circle, HelpCircle, ExternalLink, TrendingUp, Building2, ArrowUpRight } from 'lucide-react';
-import { LineChart as ReLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { ComposedChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Bar, Legend } from 'recharts';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui';
 import { aggregateBrudd } from '../../data/aggregators.js';
+
+// Colors for different authorities in the stacked bar chart
+const AUTHORITY_COLORS = [
+  '#2563eb', '#dc2626', '#16a34a', '#ca8a04', '#9333ea', 
+  '#0891b2', '#c026d3', '#ea580c', '#4f46e5', '#059669',
+  '#d97706', '#7c3aed', '#0d9488', '#e11d48'
+];
+
+/**
+ * Aggregate tilsyn data by month and authority for combined chart
+ * Includes both tilsyn counts per authority and brudd counts
+ */
+function aggregateTilsynByMonthAndAuthority(rap) {
+  if (!rap || rap.length === 0) return { data: [], authorities: [] };
+  
+  const byMonthAndAuth = {};
+  const bruddByMonth = {};
+  const allAuthorities = new Set();
+  
+  rap.forEach(r => {
+    if (!r.dato) return;
+    const month = r.dato.substring(0, 7); // YYYY-MM
+    const auth = r.tilsynsmyndighet || 'Ukjent';
+    allAuthorities.add(auth);
+    
+    if (!byMonthAndAuth[month]) {
+      byMonthAndAuth[month] = {};
+      bruddByMonth[month] = 0;
+    }
+    byMonthAndAuth[month][auth] = (byMonthAndAuth[month][auth] || 0) + 1;
+    
+    // Count brudd (violations)
+    const hasBrudd = r.funn_alvorlighetsgrad && r.funn_alvorlighetsgrad !== 'Ingen';
+    if (hasBrudd) {
+      bruddByMonth[month] = (bruddByMonth[month] || 0) + 1;
+    }
+  });
+  
+  const authorities = Array.from(allAuthorities).sort();
+  
+  const data = Object.keys(byMonthAndAuth)
+    .sort()
+    .map(month => {
+      const entry = { periode: month, brudd: bruddByMonth[month] || 0 };
+      authorities.forEach(auth => {
+        entry[auth] = byMonthAndAuth[month][auth] || 0;
+      });
+      return entry;
+    });
+  
+  return { data, authorities };
+}
 
 /**
  * Check if organization qualifies as a "Gaselle" (high-growth company)
@@ -201,6 +253,12 @@ export function GeneralInfoTab({
     });
   }, [rap, fromDate, toDate]);
 
+  // Aggregate tilsyn by month and authority for stacked bar chart
+  const { data: tilsynByMonthData, authorities: tilsynAuthorities } = React.useMemo(() => 
+    aggregateTilsynByMonthAndAuthority(filteredRap), 
+    [filteredRap]
+  );
+
   return (
     <Card>
       <CardHeader>
@@ -349,28 +407,53 @@ export function GeneralInfoTab({
           </ul>
         </div>
         
-        {/* Overall Trend Chart */}
+        {/* Combined Chart - Tilsyn by Authority (Bars) + Brudd Trend (Line) */}
         <div className="mt-6">
           <div className="text-sm text-gray-600 mb-3">
-            Trend - alle myndigheter
+            Tilsyn og brudd per måned
             {fromDate && toDate && (
               <span className="text-xs text-gray-400 ml-2">
                 ({fromDate} til {toDate})
               </span>
             )}
           </div>
-          <div className="h-48">
+          <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <ReLineChart data={aggregateBrudd(filteredRap)}>
+              <ComposedChart data={tilsynByMonthData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="periode" tick={{ fontSize: 10 }} />
-                <YAxis tick={{ fontSize: 10 }} />
-                <Tooltip />
-                <Line type="monotone" dataKey="brudd" stroke="#2563eb" strokeWidth={3} dot={{ fill: '#2563eb', strokeWidth: 2, r: 4 }} />
-              </ReLineChart>
+                <YAxis yAxisId="left" tick={{ fontSize: 10 }} label={{ value: 'Tilsyn', angle: -90, position: 'insideLeft', fontSize: 10 }} />
+                <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10 }} label={{ value: 'Brudd', angle: 90, position: 'insideRight', fontSize: 10 }} />
+                <Tooltip 
+                  contentStyle={{ fontSize: 12 }}
+                  formatter={(value, name) => [value, name]}
+                />
+                <Legend wrapperStyle={{ fontSize: 10 }} />
+                {tilsynAuthorities.map((auth, index) => (
+                  <Bar 
+                    key={auth} 
+                    dataKey={auth} 
+                    stackId="tilsyn" 
+                    yAxisId="left"
+                    fill={AUTHORITY_COLORS[index % AUTHORITY_COLORS.length]}
+                    name={auth}
+                  />
+                ))}
+                <Line 
+                  type="monotone" 
+                  dataKey="brudd" 
+                  yAxisId="right"
+                  stroke="#000000" 
+                  strokeWidth={3} 
+                  dot={{ fill: '#000000', strokeWidth: 2, r: 4 }}
+                  name="Brudd"
+                />
+              </ComposedChart>
             </ResponsiveContainer>
           </div>
-          <div className="text-xs text-gray-500 mt-2 text-center">Brudd per måned </div>
+          <div className="text-xs text-gray-500 mt-2 text-center">
+            Søyler: Antall tilsyn per myndighet | Linje: Antall brudd
+          </div>
         </div>
       </CardContent>
     </Card>
