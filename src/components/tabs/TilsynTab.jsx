@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { ClipboardCheck, LineChart as LineChartIcon, Calendar, CheckCircle2, ListChecks, Bell, BellOff, User, FileText, Clock, CheckCircle } from 'lucide-react';
+import { ClipboardCheck, LineChart as LineChartIcon, Calendar, CheckCircle2, ListChecks, Bell, BellOff, User, FileText, Clock, CheckCircle, AlertTriangle } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, Button, Badge } from '../ui';
 import { MiniLineChart } from '../charts';
 import { groupByMyndighet } from '../../data/aggregators';
@@ -108,22 +108,33 @@ export function TilsynTab({
                   }`}
                 >
                   {/* Authority header */}
-                  <div className="flex items-center justify-between mb-4">
-                    <div className={`font-semibold text-lg ${isSelected ? 'text-blue-700' : 'text-neutral-800'}`}>
-                      {mynd}
-                      {isSelected && <span className="ml-2 text-xs font-normal">(Valgt)</span>}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary" className="bg-green-100 text-green-700">
-                        <CheckCircle2 className="w-3 h-3 mr-1" />
-                        {rapporter.length} utført
-                      </Badge>
-                      <Badge variant="secondary" className="bg-blue-100 text-blue-700">
-                        <Calendar className="w-3 h-3 mr-1" />
-                        {koordineringer.length} planlagt
-                      </Badge>
-                    </div>
-                  </div>
+                  {(() => {
+                    const totalBrudd = rapporter.filter(r => r.funn_alvorlighetsgrad && r.funn_alvorlighetsgrad !== 'Ingen').length;
+                    return (
+                      <div className="flex items-center justify-between mb-4">
+                        <div className={`font-semibold text-lg ${isSelected ? 'text-blue-700' : 'text-neutral-800'}`}>
+                          {mynd}
+                          {isSelected && <span className="ml-2 text-xs font-normal">(Valgt)</span>}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="secondary" className="bg-green-100 text-green-700">
+                            <CheckCircle2 className="w-3 h-3 mr-1" />
+                            {rapporter.length} utført
+                          </Badge>
+                          {totalBrudd > 0 && (
+                            <Badge variant="secondary" className="bg-red-100 text-red-700">
+                              <AlertTriangle className="w-3 h-3 mr-1" />
+                              {totalBrudd} brudd
+                            </Badge>
+                          )}
+                          <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                            <Calendar className="w-3 h-3 mr-1" />
+                            {koordineringer.length} planlagt
+                          </Badge>
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   <div className="grid md:grid-cols-2 gap-4">
                     {/* Utførte tilsyn */}
@@ -136,10 +147,20 @@ export function TilsynTab({
                         <p className="text-sm text-neutral-400 italic">Ingen utførte tilsyn</p>
                       ) : (
                         <ul className="text-sm space-y-3">
-                          {rapporter.slice(0, expandedRap[mynd] ? undefined : 3).map((r, idx) => (
-                            <li key={idx} className="border-l-2 border-green-200 pl-3 py-1">
+                          {rapporter.slice(0, expandedRap[mynd] ? undefined : 3).map((r, idx) => {
+                            const hasBrudd = r.funn_alvorlighetsgrad && r.funn_alvorlighetsgrad !== 'Ingen';
+                            return (
+                            <li key={idx} className={`border-l-2 ${hasBrudd ? 'border-red-300' : 'border-green-200'} pl-3 py-1`}>
                               <div className="flex items-center justify-between mb-1">
-                                <span className="font-medium">{r.dato}</span>
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium">{r.dato}</span>
+                                  {hasBrudd && (
+                                    <span className="flex items-center gap-1 text-xs px-1.5 py-0.5 rounded bg-red-100 text-red-700">
+                                      <AlertTriangle className="w-3 h-3" />
+                                      Brudd ({r.funn_alvorlighetsgrad})
+                                    </span>
+                                  )}
+                                </div>
                                 <div className="flex items-center gap-1">
                                   {r.varpisel && (
                                     <span className={`flex items-center gap-1 text-xs px-1.5 py-0.5 rounded ${
@@ -193,7 +214,8 @@ export function TilsynTab({
                                 </a>
                               )}
                             </li>
-                          ))}
+                          );
+                          })}
                           {rapporter.length > 3 && (
                             <li>
                               <button 
