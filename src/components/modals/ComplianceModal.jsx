@@ -45,9 +45,9 @@ export function ComplianceModal({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 overflow-y-auto">
       <div className="flex min-h-full items-start justify-center pt-4 p-4">
-        <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[85vh] overflow-hidden shadow-xl">
+        <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-xl flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">Risiko-vurdering</h2>
             <p className="text-gray-600 mt-1">{orgDetails?.name || 'Organisasjon'}</p>
@@ -63,7 +63,7 @@ export function ComplianceModal({
         </div>
 
         {/* Scrollable Content */}
-        <div className="overflow-y-auto max-h-[calc(90vh-180px)]">
+        <div className="overflow-y-auto flex-1">
           <div className="p-6 space-y-6">
             {/* Overall Score */}
             <Card className={`border-2 ${getScoreColor(assessment.score)}`}>
@@ -213,7 +213,7 @@ export function ComplianceModal({
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-gray-200 bg-gray-50">
+        <div className="p-6 border-t border-gray-200 bg-gray-50 flex-shrink-0">
           <div className="flex justify-end">
             <Button onClick={onClose} className="px-6">
               Lukk vurdering
