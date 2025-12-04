@@ -40,12 +40,24 @@ export function genTilsynskoordineringFor(orgnr) {
   });
 }
 
+// Contact person names for tilsyn
+const FIRST_NAMES = ['Erik', 'Anne', 'Lars', 'Kari', 'Ole', 'Ingrid', 'Per', 'Marit', 'Bjørn', 'Hilde', 'Tor', 'Silje', 'Geir', 'Lise', 'Arne'];
+const LAST_NAMES = ['Hansen', 'Johansen', 'Olsen', 'Larsen', 'Andersen', 'Pedersen', 'Nilsen', 'Kristiansen', 'Jensen', 'Karlsen', 'Johnsen', 'Pettersen', 'Eriksen', 'Berg', 'Haugen'];
+const EMAIL_DOMAINS = ['tilsynet.no', 'kontroll.no', 'myndighet.no', 'stat.no', 'forvaltning.no'];
+
 // Generate supervision reports
 export function genTilsynsrapportFor(orgnr, fromDate = null, toDate = null) {
   const n = randInt(1, 100);
   
-  return Array.from({ length: n }).map(() => {
+  return Array.from({ length: n }).map((_, idx) => {
     const city = rand(CITIES);
+    const firstName = rand(FIRST_NAMES);
+    const lastName = rand(LAST_NAMES);
+    const useEmail = Math.random() > 0.3; // 70% email, 30% phone
+    const contactInfo = useEmail 
+      ? `${firstName.toLowerCase()}.${lastName.toLowerCase()}@${rand(EMAIL_DOMAINS)}`
+      : `+47 ${randInt(400, 499)} ${randInt(10, 99)} ${randInt(100, 999)}`;
+    
     return {
       tilsynsmyndighet: rand(AUTHORITIES),
       organisasjonsnummer: orgnr,
@@ -58,7 +70,14 @@ export function genTilsynsrapportFor(orgnr, fromDate = null, toDate = null) {
       ]),
       reaksjonstype: rand(REACTIONS),
       tema: rand(THEMES),
-      tilsynsadresse: `${rand(STREET_NAMES)} ${randInt(1, 99)}, ${randInt(1000, 9999)} ${city}`      
+      tilsynsadresse: `${rand(STREET_NAMES)} ${randInt(1, 99)}, ${randInt(1000, 9999)} ${city}`,
+      varpisel: rand(['Varslet', 'Varslet', 'Varslet', 'Uanmeldt']), // 75% varslet, 25% uanmeldt
+      kontaktperson: {
+        navn: `${firstName} ${lastName}`,
+        kontaktinfo: contactInfo
+      },
+      status: rand(['Gjennomført', 'Gjennomført', 'Gjennomført', 'Gjennomført', 'Under oppfølging']), // 80% gjennomført
+      rapportUrl: `https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf`
     };
   });
 }
@@ -66,6 +85,7 @@ export function genTilsynsrapportFor(orgnr, fromDate = null, toDate = null) {
 // Generate messages from other authorities
 export function genMeldingerFor(orgnr) {
   const n = randInt(2, 30);
+  
   return Array.from({ length: n }).map((_, idx) => ({
     identifikator: `MSG-${orgnr}-${String(idx + 1).padStart(3, '0')}`,
     mottaker: rand(AUTHORITIES),

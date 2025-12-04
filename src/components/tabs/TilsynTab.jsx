@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { ClipboardCheck, LineChart as LineChartIcon, Calendar, CheckCircle2, ListChecks } from 'lucide-react';
+import { ClipboardCheck, LineChart as LineChartIcon, Calendar, CheckCircle2, ListChecks, Bell, BellOff, User, FileText, Clock, CheckCircle } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, Button, Badge } from '../ui';
 import { MiniLineChart } from '../charts';
 import { groupByMyndighet } from '../../data/aggregators';
@@ -135,19 +135,62 @@ export function TilsynTab({
                       {rapporter.length === 0 ? (
                         <p className="text-sm text-neutral-400 italic">Ingen utførte tilsyn</p>
                       ) : (
-                        <ul className="text-sm space-y-2">
+                        <ul className="text-sm space-y-3">
                           {rapporter.slice(0, expandedRap[mynd] ? undefined : 3).map((r, idx) => (
-                            <li key={idx} className="border-l-2 border-green-200 pl-2">
-                              <span className="font-medium">{r.dato}</span>
-                              {r.tema && <span className="text-neutral-600"> · {r.tema}</span>}
+                            <li key={idx} className="border-l-2 border-green-200 pl-3 py-1">
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="font-medium">{r.dato}</span>
+                                <div className="flex items-center gap-1">
+                                  {r.varpisel && (
+                                    <span className={`flex items-center gap-1 text-xs px-1.5 py-0.5 rounded ${
+                                      r.varpisel === 'Varslet' 
+                                        ? 'bg-blue-100 text-blue-700' 
+                                        : 'bg-orange-100 text-orange-700'
+                                    }`}>
+                                      {r.varpisel === 'Varslet' ? <Bell className="w-3 h-3" /> : <BellOff className="w-3 h-3" />}
+                                      {r.varpisel}
+                                    </span>
+                                  )}
+                                  {r.status && (
+                                    <span className={`flex items-center gap-1 text-xs px-1.5 py-0.5 rounded ${
+                                      r.status === 'Gjennomført' 
+                                        ? 'bg-green-100 text-green-700' 
+                                        : 'bg-yellow-100 text-yellow-700'
+                                    }`}>
+                                      {r.status === 'Gjennomført' ? <CheckCircle className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
+                                      {r.status}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              {r.tema && <div className="text-neutral-600 text-xs mb-1">{r.tema}</div>}
                               {r.reaksjonstype && (
-                                <span className={`ml-1 text-xs px-1.5 py-0.5 rounded ${
+                                <span className={`text-xs px-1.5 py-0.5 rounded ${
                                   r.reaksjonstype === 'Pålegg' || r.reaksjonstype === 'Tvangsmulkt' 
                                     ? 'bg-red-100 text-red-700' 
                                     : 'bg-neutral-100 text-neutral-600'
                                 }`}>
                                   {r.reaksjonstype}
                                 </span>
+                              )}
+                              {r.kontaktperson && (
+                                <div className="flex items-center gap-1 text-xs text-neutral-500 mt-1">
+                                  <User className="w-3 h-3" />
+                                  <span>{r.kontaktperson.navn}</span>
+                                  <span className="text-neutral-400">·</span>
+                                  <span className="text-blue-600">{r.kontaktperson.kontaktinfo}</span>
+                                </div>
+                              )}
+                              {r.rapportUrl && (
+                                <a 
+                                  href={r.rapportUrl} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 hover:underline mt-1"
+                                >
+                                  <FileText className="w-3 h-3" />
+                                  Se tilsynsrapport (PDF)
+                                </a>
                               )}
                             </li>
                           ))}
