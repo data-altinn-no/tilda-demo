@@ -379,34 +379,6 @@ export function GeneralInfoTab({
           </div>
         )}
         
-        {/* Authorities Involved */}
-        <div className="bg-gray-50 p-4 rounded-lg">
-          <div className="text-sm text-gray-600 mb-2">Tilsynsmyndigheter med treff ({Object.keys(perMynd).length})</div>
-          <ul className="text-sm space-y-1">
-            {Object.keys(perMynd).map((authority) => {
-              const authorityBrudd = perMynd[authority].reduce((sum, item) => sum + item.brudd, 0);
-              const getAuthorityColor = () => {
-                if (authorityBrudd === 0) return "text-green-500";
-                if (authorityBrudd <= 5) return "text-yellow-500";
-                return "text-red-500";
-              };
-              
-              return (
-                <li key={authority} className="flex items-center gap-2">
-                  <Circle className={`w-1.5 h-1.5 fill-current ${getAuthorityColor()}`} />
-                  <button 
-                    onClick={() => onAuthorityClick(authority)}
-                    className="truncate text-left hover:text-blue-600 hover:underline cursor-pointer transition-colors"
-                  >
-                    {authority} ({authorityBrudd})
-                  </button>
-                  <AuthorityTooltip authority={authority} />
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-        
         {/* Combined Chart - Tilsyn by Authority (Bars) + Brudd Trend (Line) */}
         <div className="mt-6">
           <div className="text-sm text-gray-600 mb-3">

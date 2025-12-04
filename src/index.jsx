@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Info, Database, LineChart as LineChartIcon, Building2, RefreshCcw, Download, ListChecks, Circle, Mail, Zap, Car, Users, Calendar } from "lucide-react";
+import { Info, Database, LineChart as LineChartIcon, Building2, RefreshCcw, Download, ListChecks, Circle, Mail, Zap, Car, Users, Calendar, X } from "lucide-react";
 import { motion } from "framer-motion";
 import { LineChart as ReLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
@@ -70,7 +70,7 @@ export default function TildaLookup() {
   const [showComplianceModal, setShowComplianceModal] = useState(false);
   const [showInfoModal, setShowInfoModal] = useState(true); // Show on first visit
   const [orgDetails, setOrgDetails] = useState(null);
-  const [selectedAuthority, setSelectedAuthority] = useState(null);
+  const [selectedAuthorities, setSelectedAuthorities] = useState([]);
   
   // Date range for search - default to last 10 years
   const today = new Date().toISOString().split('T')[0];
@@ -107,7 +107,7 @@ export default function TildaLookup() {
     setRelatedCompanies(null);
     setGeneratedFor('');
     setBruddCount(0);
-    setSelectedAuthority(null);
+    setSelectedAuthorities([]);
     
     // Capture the date range at the time of search
     setSearchFromDate(fromDate);
@@ -163,8 +163,11 @@ export default function TildaLookup() {
   };
 
   const handleAuthorityClick = (authority) => {
-    setSelectedAuthority(authority);
-    setActiveTab("tilsyn");
+    setSelectedAuthorities(prev => 
+      prev.includes(authority) 
+        ? prev.filter(a => a !== authority) 
+        : [...prev, authority]
+    );
   };
 
   const handleRelatedCompanyClick = (companyOrgnr, companyName) => {
@@ -213,7 +216,7 @@ export default function TildaLookup() {
           </div>
           <Button 
             variant="outline" 
-            onClick={() => { setRap([]); setKoord([]); setMeldinger([]); setOrgDetails(null); setSelectedAuthority(null); setGeneratedFor(""); setBruddCount(0); setHasLookedUp(false); }}
+            onClick={() => { setRap([]); setKoord([]); setMeldinger([]); setOrgDetails(null); setSelectedAuthorities([]); setGeneratedFor(""); setBruddCount(0); setHasLookedUp(false); }}
             className="digdir-button digdir-button-secondary"
           >
             <RefreshCcw className="w-4 h-4 mr-2" />Nullstill
@@ -377,6 +380,47 @@ export default function TildaLookup() {
           </div>
         )}
 
+        {/* Authority Filter Row - hidden on general tab */}
+        {hasData && Object.keys(perMynd).length > 0 && activeTab !== 'general' && (
+          <div className="glass-card rounded-xl p-2 -mt-4">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {Object.keys(perMynd).map((authority) => {
+                const isActive = selectedAuthorities.includes(authority);
+                const authorityBrudd = perMynd[authority].reduce((sum, item) => sum + item.brudd, 0);
+                return (
+                  <button
+                    key={authority}
+                    onClick={() => handleAuthorityClick(authority)}
+                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
+                      isActive
+                        ? 'bg-blue-600 text-white shadow-sm'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    <span>{authority}</span>
+                    {authorityBrudd > 0 && (
+                      <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${
+                        isActive ? 'bg-white/20 text-white' : 'bg-red-100 text-red-700'
+                      }`}>
+                        {authorityBrudd}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+              {selectedAuthorities.length > 0 && (
+                <button
+                  onClick={() => setSelectedAuthorities([])}
+                  className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-all"
+                >
+                  <X className="w-3 h-3" />
+                  Fjern filter
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Loading Spinner */}
         {isLoading && (
           <div className="flex items-center justify-center py-8">
@@ -419,24 +463,24 @@ export default function TildaLookup() {
                 rap={rap}
                 koord={koord}
                 perMynd={perMynd}
-                selectedAuthority={selectedAuthority}
-                onClearSelection={() => setSelectedAuthority(null)}
+                selectedAuthorities={selectedAuthorities}
+                onClearSelection={() => setSelectedAuthorities([])}
               />
             )}
 
             {activeTab === "meldinger" && (
               <MessagesTab 
                 meldinger={meldinger}
-                selectedAuthority={selectedAuthority}
-                onClearSelection={() => setSelectedAuthority(null)}
+                selectedAuthorities={selectedAuthorities}
+                onClearSelection={() => setSelectedAuthorities([])}
               />
             )}
 
             {activeTab === "eksperiment" && (
               <ExperimentTab 
                 rap={rap}
-                selectedAuthority={selectedAuthority}
-                onClearSelection={() => setSelectedAuthority(null)}
+                selectedAuthorities={selectedAuthorities}
+                onClearSelection={() => setSelectedAuthorities([])}
               />
             )}
 
@@ -451,8 +495,8 @@ export default function TildaLookup() {
                 meldinger={meldinger}
                 financialData={financialData}
                 mulighetsrom={mulighetsrom}
-                selectedAuthority={selectedAuthority}
-                onClearSelection={() => setSelectedAuthority(null)}
+                selectedAuthorities={selectedAuthorities}
+                onClearSelection={() => setSelectedAuthorities([])}
               />
             )}
 
@@ -466,24 +510,24 @@ export default function TildaLookup() {
             {activeTab === "eiendommer" && (
               <PropertiesTab 
                 propertyData={propertyData}
-                selectedAuthority={selectedAuthority}
-                onClearSelection={() => setSelectedAuthority(null)}
+                selectedAuthorities={selectedAuthorities}
+                onClearSelection={() => setSelectedAuthorities([])}
               />
             )}
 
             {activeTab === "kjoretoy" && (
               <VehiclesTab 
                 vehicleData={vehicleData}
-                selectedAuthority={selectedAuthority}
-                onClearSelection={() => setSelectedAuthority(null)}
+                selectedAuthorities={selectedAuthorities}
+                onClearSelection={() => setSelectedAuthorities([])}
               />
             )}
 
             {activeTab === "roller" && (
               <RolesTab 
                 roleData={roleData}
-                selectedAuthority={selectedAuthority}
-                onClearSelection={() => setSelectedAuthority(null)}
+                selectedAuthorities={selectedAuthorities}
+                onClearSelection={() => setSelectedAuthorities([])}
               />
             )}
           </motion.div>

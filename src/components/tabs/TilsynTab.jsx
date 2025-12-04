@@ -11,7 +11,7 @@ export function TilsynTab({
   rap, 
   koord, 
   perMynd, 
-  selectedAuthority, 
+  selectedAuthorities = [], 
   onClearSelection 
 }) {
   const [subTab, setSubTab] = useState('oversikt'); // 'oversikt', 'trender'
@@ -28,9 +28,9 @@ export function TilsynTab({
     return Array.from(authorities).sort();
   }, [rapByMynd, koordByMynd]);
 
-  // Filter authorities if one is selected
-  const filteredAuthorities = selectedAuthority 
-    ? allAuthorities.filter(a => a === selectedAuthority)
+  // Filter authorities if any are selected
+  const filteredAuthorities = selectedAuthorities.length > 0
+    ? allAuthorities.filter(a => selectedAuthorities.includes(a))
     : allAuthorities;
 
   return (
@@ -62,10 +62,10 @@ export function TilsynTab({
           </button>
         </div>
 
-        {selectedAuthority && (
+        {selectedAuthorities.length > 0 && (
           <div className="flex items-center gap-2">
             <Badge className="bg-primary-50 text-primary-800 border border-primary-100 px-3 py-1">
-              Filtrert: {selectedAuthority}
+              Filtrert: {selectedAuthorities.join(', ')}
             </Badge>
             <Button 
               variant="outline" 
@@ -98,7 +98,7 @@ export function TilsynTab({
             {filteredAuthorities.map((mynd) => {
               const rapporter = rapByMynd[mynd] || [];
               const koordineringer = koordByMynd[mynd] || [];
-              const isSelected = mynd === selectedAuthority;
+              const isSelected = selectedAuthorities.includes(mynd);
               
               return (
                 <div 
@@ -288,19 +288,21 @@ export function TilsynTab({
           </div>
           <CardContent className="p-0">
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {selectedAuthority ? (
-                // Show only selected authority
-                perMynd[selectedAuthority] ? (
-                  <MiniLineChart 
-                    key={selectedAuthority} 
-                    title={`${selectedAuthority} – brudd per måned`} 
-                    data={perMynd[selectedAuthority]} 
-                  />
-                ) : (
-                  <div className="col-span-full text-center py-12 text-neutral-400 bg-white border border-neutral-200 rounded-digdir">
-                    <LineChartIcon className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                    <p>Ingen data for {selectedAuthority}</p>
-                  </div>
+              {selectedAuthorities.length > 0 ? (
+                // Show only selected authorities
+                selectedAuthorities.map(auth => 
+                  perMynd[auth] ? (
+                    <MiniLineChart 
+                      key={auth} 
+                      title={`${auth} – brudd per måned`} 
+                      data={perMynd[auth]} 
+                    />
+                  ) : (
+                    <div key={auth} className="text-center py-12 text-neutral-400 bg-white border border-neutral-200 rounded-digdir">
+                      <LineChartIcon className="w-12 h-12 mx-auto mb-3 opacity-20" />
+                      <p>Ingen data for {auth}</p>
+                    </div>
+                  )
                 )
               ) : (
                 // Show all authorities
