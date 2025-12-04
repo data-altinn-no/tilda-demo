@@ -39,7 +39,7 @@ import {
   RolesTab,
   FinancialTab 
 } from './components/tabs';
-import { ComplianceModal } from './components/compliance';
+import { ComplianceModal, InfoModal } from './components/modals';
 
 
 
@@ -68,6 +68,7 @@ export default function TildaLookup() {
   const [financialData, setFinancialData] = useState(null);
   const [mulighetsrom, setMulighetsrom] = useState(false);
   const [showComplianceModal, setShowComplianceModal] = useState(false);
+  const [showInfoModal, setShowInfoModal] = useState(true); // Show on first visit
   const [orgDetails, setOrgDetails] = useState(null);
   const [selectedAuthority, setSelectedAuthority] = useState(null);
 
@@ -511,6 +512,12 @@ export default function TildaLookup() {
         vehicleData={vehicleData}
         propertyData={propertyData}
         roleData={roleData}
+      />
+
+      {/* Info Modal - shown on first visit */}
+      <InfoModal
+        isOpen={showInfoModal}
+        onClose={() => setShowInfoModal(false)}
       />
     </div>
   );
