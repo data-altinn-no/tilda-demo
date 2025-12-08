@@ -506,7 +506,7 @@ function ModelCard({ model, isExpanded, onToggle }) {
  * Data Models Page
  */
 export function DataModelsPage() {
-  const [expandedModels, setExpandedModels] = useState(new Set(["tilsynsrapport"]));
+  const [expandedModels, setExpandedModels] = useState(new Set());
   
   const toggleModel = (modelId) => {
     setExpandedModels(prev => {
