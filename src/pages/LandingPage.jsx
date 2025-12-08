@@ -13,7 +13,7 @@ export function LandingPage() {
       id: "tilda",
       title: "Tilda",
       subtitle: "Tilsynstilsynet Dashboard",
-      description: "Søk opp organisasjoner og få oversikt over tilsynsdata, rapporter, koordinering og analyser fra ulike tilsynsmyndigheter.",
+      description: "En demonstrasjon av hvordan Tilda-tjenesten kan se ut i hos en tilsynsmyndighet. Alle data er vilkårlig generert.",
       icon: Share2,
       path: "/tilda",
       color: "primary",
@@ -105,7 +105,7 @@ export function LandingPage() {
                 </h2>
                 <p className="text-neutral-600">
                   Denne siden skal illustrere og forklare verdien og virkemåten til Tilda-tjenesten.
-                  Data som vises er generert for demonstrasjonsformål.
+                  Data som vises er <strong>generert</strong> for demonstrasjonsformål.
                 </p>
               </div>
             </div>
@@ -119,9 +119,13 @@ export function LandingPage() {
               
               const cardContent = (
                 <motion.div
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 40 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
+                  transition={{ 
+                    delay: 0.2 + index * 0.1,
+                    duration: 0.5,
+                    ease: "easeOut"
+                  }}
                   className={`digdir-card p-8 h-full flex flex-col transition-all duration-300 ${
                     isAvailable 
                       ? "hover:shadow-lg hover:border-primary-300 cursor-pointer group" 
