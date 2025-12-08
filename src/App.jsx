@@ -1,21 +1,22 @@
 import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { HashRouter, Routes, Route } from "react-router-dom";
 import { LandingPage, DataModelsPage } from "./pages";
 import TildaLookup from "./index.jsx";
 
 /**
  * Main App component with routing
+ * Using HashRouter for GitHub Pages compatibility (URLs will be /#/path)
  */
 export default function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/tilda" element={<TildaLookup />} />
         <Route path="/datamodeller" element={<DataModelsPage />} />
         <Route path="/kommende" element={<PlaceholderPage />} />
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
 
