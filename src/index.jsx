@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
-import { Info, Database, LineChart as LineChartIcon, Building2, RefreshCcw, Download, ListChecks, Circle, Mail, Zap, Car, Users, Calendar, X } from "lucide-react";
+import { Info, Database, LineChart as LineChartIcon, Building2, RefreshCcw, Download, ListChecks, Circle, Mail, Zap, Car, Users, Calendar, X, ArrowLeft } from "lucide-react";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { LineChart as ReLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
@@ -206,8 +207,17 @@ export default function TildaLookup() {
         animate={{ opacity: 1, y: 0 }} 
         className="grid gap-8"
       >
+        {/* Back link */}
+        <Link 
+          to="/" 
+          className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 font-medium transition-colors w-fit"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Tilbake til forsiden
+        </Link>
+
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-neutral-200 pb-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-neutral-200 pb-6 -mt-4">
           <div>
             <h1 className="text-4xl font-bold text-neutral-900 tracking-tight">
               Tilda
