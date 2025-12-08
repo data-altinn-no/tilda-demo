@@ -25,7 +25,7 @@ import {
 
 // Import extracted UI components
 import { Card, CardHeader, CardTitle, CardContent, Button, Input, Badge } from './components/ui';
-import { DetailedBox } from './components/layout';
+import { DetailedBox, Footer } from './components/layout';
 import { 
   GeneralInfoTab, 
   TilsynTab,
@@ -563,6 +563,9 @@ export default function TildaLookup() {
         isOpen={showInfoModal}
         onClose={() => setShowInfoModal(false)}
       />
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

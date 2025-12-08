@@ -3,3 +3,4 @@
  */
 
 export { DetailedBox } from './DetailedBox.jsx';
+export { Footer } from './Footer.jsx';
