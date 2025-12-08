@@ -9,17 +9,17 @@ export function Footer() {
     {
       href: "https://github.com/data-altinn-no/tilda-demo",
       icon: Github,
-      label: "GitHub",
+      label: "Kildekoden på GitHub",
     },
     {
       href: "https://github.com/data-altinn-no/tilda-demo/issues/new",
       icon: Bug,
-      label: "Meld inn forslag",
+      label: "Foreslå forbedringer",
     },
     {
-      href: "https://wiki.brreg.no/spaces/TDTD/overview",
+      href: "https://wiki.brreg.no/spaces/TDTD/pages/8749068/Deling+av+tilsynsdata+-+Tilda",
       icon: BookOpen,
-      label: "Tilda Wiki",
+      label: "Tilda Wiki (Brreg)",
     },
   ];
 
