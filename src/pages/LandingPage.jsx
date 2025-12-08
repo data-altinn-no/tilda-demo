@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Share2, FileText, ArrowRight, Building2, ClipboardList, Database, Mail } from "lucide-react";
+import { Share2, FileText, Building2, ClipboardList, Database, Mail } from "lucide-react";
 import { Footer } from "../components/layout";
 
 /**
@@ -101,11 +101,10 @@ export function LandingPage() {
               </div>
               <div>
                 <h2 className="text-lg font-semibold text-neutral-900 mb-2">
-                  Om disse tjenestene
+                  Om denne siden
                 </h2>
                 <p className="text-neutral-600">
-                  Disse tjenestene er demonstrasjoner og prototyper utviklet for å vise 
-                  muligheter innen deling og visualisering av offentlige data. 
+                  Denne siden skal illustrere og forklare verdien og virkemåten til Tilda-tjenesten.
                   Data som vises er generert for demonstrasjonsformål.
                 </p>
               </div>
@@ -164,13 +163,6 @@ export function LandingPage() {
                     </p>
                   </div>
 
-                  {/* Action */}
-                  {isAvailable && (
-                    <div className="mt-6 flex items-center gap-2 text-primary-600 font-medium group-hover:gap-3 transition-all">
-                      <span>Åpne tjeneste</span>
-                      <ArrowRight className="w-5 h-5" />
-                    </div>
-                  )}
                 </motion.div>
               );
 
