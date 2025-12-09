@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Share2, FileText, Building2, ClipboardList, Database, Mail, AlertTriangle } from "lucide-react";
+import { Share2, FileText, Building2, ClipboardList, Database, Mail, AlertTriangle, Code } from "lucide-react";
 import { Footer } from "../components/layout";
 
 /**
@@ -60,14 +60,14 @@ export function LandingPage() {
       available: true,
     },
     {
-      id: "symmetri",
-      title: "Symmetrikort",
-      subtitle: "Ta kontakt",
-      description: "Har du spørsmål eller tilbakemeldinger? Ta kontakt med oss for mer informasjon om Tilda og datadeling.",
-      icon: Mail,
-      path: "/api",
-      color: "neutral",
-      available: false,
+      id: "kode",
+      title: "Kodeeksempler",
+      subtitle: "For utviklere",
+      description: "GitHub-repositorier, kodeeksempler og lenker til relevante ressurser for Tilda-integrasjon.",
+      icon: Code,
+      path: "/kode",
+      color: "primary",
+      available: true,
     },
   ];
 
