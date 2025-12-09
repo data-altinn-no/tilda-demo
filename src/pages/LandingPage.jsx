@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Share2, FileText, Building2, ClipboardList, Database, Mail } from "lucide-react";
+import { Share2, FileText, Building2, ClipboardList, Database, Mail, AlertTriangle } from "lucide-react";
 import { Footer } from "../components/layout";
 
 /**
@@ -91,6 +91,17 @@ export function LandingPage() {
               Datadelingstjenesten Tilda <br></br>
               Her finner du alt du trenger for å bli kjent med Tilda og ta den i bruk!
             </p>
+          </div>
+
+          {/* Under Development Notice */}
+          <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-4 flex items-center gap-3 -mt-6">
+            <AlertTriangle className="w-6 h-6 text-amber-600 flex-shrink-0" />
+            <div>
+              <span className="font-semibold text-amber-800">Under utvikling</span>
+              <span className="text-amber-700 ml-2">
+                Denne siden er under aktiv utvikling og er ikke et ferdig produkt. Innhold og funksjonalitet kan endres.
+              </span>
+            </div>
           </div>
 
           {/* Info Section */}
