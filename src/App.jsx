@@ -1,7 +1,6 @@
 import React from "react";
 import { HashRouter, Routes, Route } from "react-router-dom";
-import { LandingPage, DataModelsPage } from "./pages";
-import TildaLookup from "./index.jsx";
+import { LandingPage, DataModelsPage, TildaPage } from "./pages";
 
 /**
  * Main App component with routing
@@ -12,7 +11,7 @@ export default function App() {
     <HashRouter>
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/tilda" element={<TildaLookup />} />
+        <Route path="/tilda" element={<TildaPage />} />
         <Route path="/datamodeller" element={<DataModelsPage />} />
         <Route path="/kommende" element={<PlaceholderPage />} />
       </Routes>

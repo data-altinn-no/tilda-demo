@@ -2,11 +2,10 @@ import React, { useMemo, useState } from "react";
 import { Info, Database, LineChart as LineChartIcon, Building2, RefreshCcw, Download, ListChecks, Circle, Mail, Zap, Car, Users, Calendar, X, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { LineChart as ReLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 // Import extracted utilities and data functions
-import { CITY_COORDINATES } from './constants.js';
-import { downloadCSV, downloadJSON, flattenBruddByMyndighet } from './utils/exportHelpers.js';
+import { CITY_COORDINATES } from '../constants.js';
+import { downloadCSV, downloadJSON, flattenBruddByMyndighet } from '../utils/exportHelpers.js';
 import { 
   genTilsynskoordineringFor, 
   genTilsynsrapportFor, 
@@ -17,16 +16,16 @@ import {
   genRollerFor,
   genOkInfoFor,
   genRelatedCompaniesFor
-} from './data/generators.js';
+} from '../data/generators.js';
 import { 
   isBrudd, 
   aggregateBrudd, 
   aggregateBruddByMyndighet 
-} from './data/aggregators.js';
+} from '../data/aggregators.js';
 
 // Import extracted UI components
-import { Card, CardHeader, CardTitle, CardContent, Button, Input, Badge } from './components/ui';
-import { DetailedBox, Footer } from './components/layout';
+import { Card, CardHeader, CardTitle, CardContent, Button, Input, Badge } from '../components/ui';
+import { DetailedBox, Footer } from '../components/layout';
 import { 
   GeneralInfoTab, 
   TilsynTab,
@@ -37,21 +36,13 @@ import {
   PropertiesTab,
   RolesTab,
   FinancialTab 
-} from './components/tabs';
-import { ComplianceModal, InfoModal } from './components/modals';
+} from '../components/tabs';
+import { ComplianceModal, InfoModal } from '../components/modals';
 
-
-
-
-
-
-
-
-
-/******************************
- * MAIN – Grafer + utlisting + statusikon (seed skjult til første oppslag)
- ******************************/
-export default function TildaLookup() {
+/**
+ * Tilda Lookup Page - Main dashboard for tilsyn data
+ */
+export function TildaPage() {
   const [orgnr, setOrgnr] = useState("123456789");
   const [koord, setKoord] = useState([]);
   const [rap, setRap] = useState([]);
