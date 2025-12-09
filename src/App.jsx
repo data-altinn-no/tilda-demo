@@ -1,6 +1,6 @@
 import React from "react";
 import { HashRouter, Routes, Route } from "react-router-dom";
-import { LandingPage, DataModelsPage, TildaPage } from "./pages";
+import { LandingPage, DataModelsPage, TildaPage, ApiPage, GuidesPage, ContactPage } from "./pages";
 
 /**
  * Main App component with routing
@@ -13,6 +13,9 @@ export default function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/tilda" element={<TildaPage />} />
         <Route path="/datamodeller" element={<DataModelsPage />} />
+        <Route path="/api" element={<ApiPage />} />
+        <Route path="/veiledninger" element={<GuidesPage />} />
+        <Route path="/kontakt" element={<ContactPage />} />
         <Route path="/kommende" element={<PlaceholderPage />} />
       </Routes>
     </HashRouter>
