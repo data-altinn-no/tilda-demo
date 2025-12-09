@@ -106,18 +106,63 @@ export function LandingPage() {
 
           {/* Info Section */}
           <div className="digdir-card p-6 bg-gradient-to-r from-primary-50 to-blue-50 border-primary-200">
-            <div className="flex items-start gap-4">
+            <div className="flex items-start gap-4 mb-6">
               <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center flex-shrink-0">
                 <ClipboardList className="w-5 h-5 text-primary-600" />
               </div>
               <div>
                 <h2 className="text-lg font-semibold text-neutral-900 mb-2">
-                  Om denne siden
+                  Hva er Tilda?
                 </h2>
-                <p className="text-neutral-600">
-                  Denne siden skal illustrere og forklare verdien og virkemåten til Tilda-tjenesten.
-                  Data som vises er <strong>generert</strong> for demonstrasjonsformål.
+                <p className="text-neutral-600 mb-3">
+                  <strong>Tilda</strong> (Tilsynsdata) er en nasjonal datadelingstjeneste som lar tilsynsmyndigheter 
+                  dele og hente tilsynsinformasjon på tvers av etater. Tjenesten er utviklet av Digitaliseringsdirektoratet 
+                  i samarbeid med Brønnøysundregistrene, og er tilgjengelig via data.altinn.no.
                 </p>
+                <p className="text-neutral-600 text-sm">
+                  <em>Merk: Data som vises på denne demosiden er <strong>generert</strong> for demonstrasjonsformål.</em>
+                </p>
+              </div>
+            </div>
+            
+            {/* Participating Authorities */}
+            <div className="border-t border-primary-200 pt-4">
+              <h3 className="text-sm font-semibold text-neutral-700 mb-3">Deltakende tilsynsmyndigheter</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                {[
+                  { name: "Justervesenet", logo: "", url: "https://www.justervesenet.no" },
+                  { name: "Arbeidstilsynet", logo: "https://www.arbeidstilsynet.no/Static/img/AB_logo_2.svg", url: "https://www.arbeidstilsynet.no" },
+                  { name: "Mattilsynet", logo: "https://www.mattilsynet.no/themes/mattilsynet/images/mattilsynet-logo.svg", url: "https://www.mattilsynet.no" },
+                  { name: "Miljødirektoratet", logo: null, url: "https://www.miljodirektoratet.no" },
+                  { name: "DSB", logo: null, url: "https://www.dsb.no" },
+                  { name: "Fiskeridirektoratet", logo: null, url: "https://www.fiskeridir.no" },
+                  { name: "Sjøfartsdirektoratet", logo: null, url: "https://www.sdir.no" },                  
+                  { name: "Konkurransetilsynet", logo: null, url: "https://www.konkurransetilsynet.no" },
+                  { name: "Havindustritilsynet", logo: null, url: "https://www.havtil.no" },
+                  { name: "UU-tilsynet", logo: null, url: "https://www.uutilsynet.no" },
+                  { name: "Direktoratet for mineralforvaltning", logo: "https://www.dirmin.no/themes/custom/dmf_hjemmeside/logo.svg", url: "https://www.dirmin.no" }
+                ].map((authority) => (
+                  <a 
+                    key={authority.name || authority.url}
+                    href={authority.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-white rounded-lg p-3 border border-neutral-200 flex flex-col items-center justify-center min-h-[72px] gap-2 hover:border-primary-300 hover:shadow-sm transition-all"
+                    title={authority.name || ""}
+                  >
+                    {authority.logo && (
+                      <img 
+                        src={authority.logo} 
+                        alt={authority.name || ""} 
+                        className="max-h-8 max-w-full object-contain"
+                        onError={(e) => { e.target.style.display = 'none'; }}
+                      />
+                    )}
+                    {!authority.logo && (
+                      <span className="text-xs text-neutral-600 text-center leading-tight">{authority.name}</span>
+                    )}
+                  </a>
+                ))}
               </div>
             </div>
           </div>

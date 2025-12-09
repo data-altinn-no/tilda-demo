@@ -2,7 +2,7 @@ import React from 'react';
 import { Info, Circle, HelpCircle, ExternalLink, TrendingUp, Building2, ArrowUpRight } from 'lucide-react';
 import { ComposedChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Bar, Legend } from 'recharts';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui';
-import { aggregateBrudd } from '../../data/aggregators.js';
+import { isBrudd } from '../../data/aggregators.js';
 
 // Colors for different authorities in the stacked bar chart
 const AUTHORITY_COLORS = [
@@ -12,43 +12,107 @@ const AUTHORITY_COLORS = [
 ];
 
 /**
- * Aggregate tilsyn data by month and authority for combined chart
+ * Get the half-year period key for a date (YYYY-H1 or YYYY-H2)
+ */
+function getHalfYearPeriod(dateStr) {
+  const month = parseInt(dateStr.substring(5, 7), 10);
+  const year = dateStr.substring(0, 4);
+  return month <= 6 ? `${year}-H1` : `${year}-H2`;
+}
+
+/**
+ * Get display label for half-year period
+ */
+function getHalfYearLabel(period) {
+  const [year, half] = period.split('-');
+  return half === 'H1' ? `${year} jan-jun` : `${year} jul-des`;
+}
+
+/**
+ * Generate all half-year periods between two dates
+ */
+function generateHalfYearPeriods(fromDate, toDate) {
+  const periods = [];
+  
+  if (!fromDate || !toDate) return periods;
+  
+  const startYear = parseInt(fromDate.substring(0, 4), 10);
+  const startMonth = parseInt(fromDate.substring(5, 7), 10);
+  const endYear = parseInt(toDate.substring(0, 4), 10);
+  const endMonth = parseInt(toDate.substring(5, 7), 10);
+  
+  // Determine starting half
+  let currentYear = startYear;
+  let currentHalf = startMonth <= 6 ? 1 : 2;
+  
+  // Determine ending half
+  const endHalf = endMonth <= 6 ? 1 : 2;
+  
+  while (currentYear < endYear || (currentYear === endYear && currentHalf <= endHalf)) {
+    periods.push(`${currentYear}-H${currentHalf}`);
+    
+    if (currentHalf === 1) {
+      currentHalf = 2;
+    } else {
+      currentHalf = 1;
+      currentYear++;
+    }
+  }
+  
+  return periods;
+}
+
+/**
+ * Aggregate tilsyn data by half-year period and authority for combined chart
  * Includes both tilsyn counts per authority and brudd counts
  */
-function aggregateTilsynByMonthAndAuthority(rap) {
-  if (!rap || rap.length === 0) return { data: [], authorities: [] };
-  
-  const byMonthAndAuth = {};
-  const bruddByMonth = {};
+function aggregateTilsynByHalfYearAndAuthority(rap, fromDate, toDate) {
+  const byPeriodAndAuth = {};
+  const bruddByPeriod = {};
   const allAuthorities = new Set();
   
-  rap.forEach(r => {
-    if (!r.dato) return;
-    const month = r.dato.substring(0, 7); // YYYY-MM
-    const auth = r.tilsynsmyndighet || 'Ukjent';
-    allAuthorities.add(auth);
-    
-    if (!byMonthAndAuth[month]) {
-      byMonthAndAuth[month] = {};
-      bruddByMonth[month] = 0;
-    }
-    byMonthAndAuth[month][auth] = (byMonthAndAuth[month][auth] || 0) + 1;
-    
-    // Count brudd (violations)
-    const hasBrudd = r.funn_alvorlighetsgrad && r.funn_alvorlighetsgrad !== 'Ingen';
-    if (hasBrudd) {
-      bruddByMonth[month] = (bruddByMonth[month] || 0) + 1;
-    }
+  // Generate all periods that should be shown
+  const allPeriods = generateHalfYearPeriods(fromDate, toDate);
+  
+  // Initialize all periods with zero values
+  allPeriods.forEach(period => {
+    byPeriodAndAuth[period] = {};
+    bruddByPeriod[period] = 0;
   });
+  
+  // Aggregate actual data
+  if (rap && rap.length > 0) {
+    rap.forEach(r => {
+      if (!r.dato) return;
+      const period = getHalfYearPeriod(r.dato);
+      const auth = r.tilsynsmyndighet || 'Ukjent';
+      allAuthorities.add(auth);
+      
+      if (!byPeriodAndAuth[period]) {
+        byPeriodAndAuth[period] = {};
+        bruddByPeriod[period] = 0;
+      }
+      byPeriodAndAuth[period][auth] = (byPeriodAndAuth[period][auth] || 0) + 1;
+      
+      // Count brudd (violations) using the same logic as aggregators.js
+      if (isBrudd(r)) {
+        bruddByPeriod[period] = (bruddByPeriod[period] || 0) + 1;
+      }
+    });
+  }
   
   const authorities = Array.from(allAuthorities).sort();
   
-  const data = Object.keys(byMonthAndAuth)
-    .sort()
-    .map(month => {
-      const entry = { periode: month, brudd: bruddByMonth[month] || 0 };
+  // Use allPeriods to ensure all periods are included, sorted
+  const data = allPeriods
+    .map(period => {
+      const entry = { 
+        periode: period, 
+        periodeLabel: getHalfYearLabel(period),
+        brudd: bruddByPeriod[period] || 0 
+      };
       authorities.forEach(auth => {
-        entry[auth] = byMonthAndAuth[month][auth] || 0;
+        entry[auth] = byPeriodAndAuth[period]?.[auth] || 0;
       });
       return entry;
     });
@@ -253,10 +317,10 @@ export function GeneralInfoTab({
     });
   }, [rap, fromDate, toDate]);
 
-  // Aggregate tilsyn by month and authority for stacked bar chart
-  const { data: tilsynByMonthData, authorities: tilsynAuthorities } = React.useMemo(() => 
-    aggregateTilsynByMonthAndAuthority(filteredRap), 
-    [filteredRap]
+  // Aggregate tilsyn by half-year period and authority for stacked bar chart
+  const { data: tilsynByPeriodData, authorities: tilsynAuthorities } = React.useMemo(() => 
+    aggregateTilsynByHalfYearAndAuthority(filteredRap, fromDate, toDate), 
+    [filteredRap, fromDate, toDate]
   );
 
   return (
@@ -382,7 +446,7 @@ export function GeneralInfoTab({
         {/* Combined Chart - Tilsyn by Authority (Bars) + Brudd Trend (Line) */}
         <div className="mt-6">
           <div className="text-sm text-gray-600 mb-3">
-            Tilsyn og brudd per måned
+            Tilsyn og brudd per halvår
             {fromDate && toDate && (
               <span className="text-xs text-gray-400 ml-2">
                 ({fromDate} til {toDate})
@@ -391,10 +455,10 @@ export function GeneralInfoTab({
           </div>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={tilsynByMonthData}>
+              <ComposedChart data={tilsynByPeriodData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="periode" tick={{ fontSize: 10 }} />
-                <YAxis yAxisId="left" tick={{ fontSize: 10 }} label={{ value: 'Tilsyn', angle: -90, position: 'insideLeft', fontSize: 10 }} />
+                <XAxis dataKey="periodeLabel" tick={{ fontSize: 10 }} />
+                <YAxis yAxisId="left" tick={{ fontSize: 10 }} label={{ value: 'Utførte tilsyn', angle: -90, position: 'insideLeft', fontSize: 10 }} />
                 <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10 }} label={{ value: 'Brudd', angle: 90, position: 'insideRight', fontSize: 10 }} />
                 <Tooltip 
                   content={({ active, payload, label }) => {
