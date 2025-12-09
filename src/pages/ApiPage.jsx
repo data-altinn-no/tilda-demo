@@ -85,10 +85,26 @@ const API_ENDPOINTS = [
 ];
 
 /**
- * Code example snippets
+ * Environment configurations
  */
-const CODE_EXAMPLES = {
-  curl: `curl -X GET "https://api.data.altinn.no/v1/evidence/{accreditationId}" \\
+const ENVIRONMENTS = {
+  test: {
+    name: "Test",
+    baseUrl: "https://test.api.data.altinn.no",
+    description: "Testmiljø for utvikling og testing"
+  },
+  prod: {
+    name: "Produksjon",
+    baseUrl: "https://api.data.altinn.no",
+    description: "Produksjonsmiljø"
+  }
+};
+
+/**
+ * Code example snippets - function to generate based on environment
+ */
+const getCodeExamples = (baseUrl) => ({
+  curl: `curl -X GET "${baseUrl}/v1/evidence/{accreditationId}" \\
   -H "Authorization: Bearer {access_token}" \\
   -H "Ocp-Apim-Subscription-Key: {subscription_key}"`,
   
@@ -98,11 +114,11 @@ client.DefaultRequestHeaders.Authorization =
 client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", subscriptionKey);
 
 var response = await client.GetAsync(
-    "https://api.data.altinn.no/v1/evidence/{accreditationId}");
+    "${baseUrl}/v1/evidence/{accreditationId}");
 var content = await response.Content.ReadAsStringAsync();`,
 
   javascript: `const response = await fetch(
-  "https://api.data.altinn.no/v1/evidence/{accreditationId}",
+  "${baseUrl}/v1/evidence/{accreditationId}",
   {
     headers: {
       "Authorization": "Bearer " + accessToken,
@@ -111,7 +127,7 @@ var content = await response.Content.ReadAsStringAsync();`,
   }
 );
 const data = await response.json();`,
-};
+});
 
 /**
  * Expandable endpoint card
@@ -245,6 +261,10 @@ function CodeExample({ code }) {
 export function ApiPage() {
   const [expandedEndpoints, setExpandedEndpoints] = useState(new Set());
   const [activeCodeTab, setActiveCodeTab] = useState("curl");
+  const [environment, setEnvironment] = useState("prod");
+
+  const currentEnv = ENVIRONMENTS[environment];
+  const CODE_EXAMPLES = getCodeExamples(currentEnv.baseUrl);
 
   const toggleEndpoint = (id) => {
     setExpandedEndpoints(prev => {
@@ -325,15 +345,34 @@ export function ApiPage() {
             </div>
           </div>
 
+          {/* Environment Selector */}
           <div className="digdir-card p-6">
             <div className="flex items-start gap-4">
               <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center flex-shrink-0">
                 <Server className="w-5 h-5 text-primary-600" />
               </div>
               <div className="flex-1">
-                <h2 className="text-lg font-semibold text-neutral-900 mb-2">Base URL</h2>
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-lg font-semibold text-neutral-900">Miljø og Base URL</h2>
+                  <div className="flex bg-neutral-100 rounded-lg p-1">
+                    {Object.entries(ENVIRONMENTS).map(([key, env]) => (
+                      <button
+                        key={key}
+                        onClick={() => setEnvironment(key)}
+                        className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                          environment === key
+                            ? "bg-white text-primary-700 shadow-sm"
+                            : "text-neutral-600 hover:text-neutral-900"
+                        }`}
+                      >
+                        {env.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <p className="text-sm text-neutral-500 mb-2">{currentEnv.description}</p>
                 <code className="block bg-neutral-100 px-4 py-3 rounded-lg text-sm font-mono text-neutral-800">
-                  https://api.data.altinn.no
+                  {currentEnv.baseUrl}
                 </code>
               </div>
             </div>
