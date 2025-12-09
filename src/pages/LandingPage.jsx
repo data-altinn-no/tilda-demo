@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Share2, FileText, Building2, ClipboardList, Database, Mail, AlertTriangle, Code } from "lucide-react";
+import { Share2, FileText, Building2, ClipboardList, Database, Mail, AlertTriangle, Code, Plug } from "lucide-react";
 import { Footer } from "../components/layout";
 
 /**
@@ -54,7 +54,7 @@ export function LandingPage() {
       title: "API-dokumentasjon",
       subtitle: "For utviklere",
       description: "Teknisk dokumentasjon for Tilda REST API. Se endepunkter, autentisering og kodeeksempler.",
-      icon: Database,
+      icon: Plug,
       path: "/api",
       color: "primary",
       available: true,
