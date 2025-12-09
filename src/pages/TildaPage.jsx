@@ -354,9 +354,6 @@ export function TildaPage() {
                 className="glass-card rounded-xl p-2 bg-indigo-50/50 border-indigo-100/50"
               >
                 <nav className="flex flex-wrap items-center gap-1">
-                  <div className="px-2 text-xs font-semibold text-indigo-400 uppercase tracking-wider mr-2">
-                    Mulighetsrom
-                  </div>
                   {mulighetsromTabs.map((tab) => {
                     const Icon = tab.icon;
                     const isActive = activeTab === tab.id;

@@ -397,8 +397,21 @@ export function GeneralInfoTab({
                 <YAxis yAxisId="left" tick={{ fontSize: 10 }} label={{ value: 'Tilsyn', angle: -90, position: 'insideLeft', fontSize: 10 }} />
                 <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10 }} label={{ value: 'Brudd', angle: 90, position: 'insideRight', fontSize: 10 }} />
                 <Tooltip 
-                  contentStyle={{ fontSize: 12 }}
-                  formatter={(value, name) => [value, name]}
+                  content={({ active, payload, label }) => {
+                    if (!active || !payload) return null;
+                    const filtered = payload.filter(p => p.value > 0);
+                    if (filtered.length === 0) return null;
+                    return (
+                      <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3">
+                        <p className="font-medium text-gray-900 mb-2">{label}</p>
+                        {filtered.map((entry, index) => (
+                          <p key={index} className="text-sm" style={{ color: entry.color }}>
+                            {entry.name}: {entry.value}
+                          </p>
+                        ))}
+                      </div>
+                    );
+                  }}
                 />
                 <Legend wrapperStyle={{ fontSize: 10 }} />
                 {tilsynAuthorities.map((auth, index) => (
