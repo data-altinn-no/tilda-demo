@@ -130,10 +130,10 @@ export function LandingPage() {
               <h3 className="text-sm font-semibold text-neutral-700 mb-3">Deltakende tilsynsmyndigheter</h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
                 {[
-                  { name: "Justervesenet", logo: "", url: "https://www.justervesenet.no" },
+                  { name: "Justervesenet", logo: "https://www.justervesenet.no/wp-content/themes/flavor/images/logo.svg", url: "https://www.justervesenet.no" },
                   { name: "Arbeidstilsynet", logo: "https://www.arbeidstilsynet.no/Static/img/AB_logo_2.svg", url: "https://www.arbeidstilsynet.no" },
                   { name: "Mattilsynet", logo: "https://www.mattilsynet.no/themes/mattilsynet/images/mattilsynet-logo.svg", url: "https://www.mattilsynet.no" },
-                  { name: "Miljødirektoratet", logo: null, url: "https://www.miljodirektoratet.no" },
+                  { name: "Miljødirektoratet", logo: "https://www.miljodirektoratet.no/assets/logo/new/logo-primary.svg", url: "https://www.miljodirektoratet.no" },
                   { name: "DSB", logo: null, url: "https://www.dsb.no" },
                   { name: "Fiskeridirektoratet", logo: null, url: "https://www.fiskeridir.no" },
                   { name: "Sjøfartsdirektoratet", logo: null, url: "https://www.sdir.no" },                  
