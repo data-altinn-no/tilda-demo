@@ -471,8 +471,7 @@ export function GeneralInfoTab({
                 <li key={company.organisasjonsnummer} className="flex items-center justify-between bg-white p-3 rounded border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors">
                   <div>
                     <div className="font-medium text-gray-900">{company.name}</div>
-                    <div className="text-xs text-gray-500">Org.nr: {company.organisasjonsnummer}</div>
-                    <div className="text-xs text-gray-500">{company.address}, {company.zipcode} {company.city}</div>
+                    <div className="text-xs text-gray-500">Org.nr: {company.organisasjonsnummer} | {company.address}, {company.zipcode} {company.city}</div>
                   </div>
                   <button
                     onClick={() => onRelatedCompanyClick(company.organisasjonsnummer, company.name)}
