@@ -129,13 +129,18 @@ export function genRelatedCompaniesFor(orgnr, orgName) {
     const parentOrgnr = '9' + String(randInt(10000000, 99999999));
     const baseName = orgName ? orgName.replace(/ AS$| ASA$/, '') : rand(COMPANY_NAMES).replace(/ AS$| ASA$/, '');
     const parentName = `${baseName} ${rand(SUBSIDIARY_SUFFIXES)} AS`;
+    const zipcode = String(randInt(1000, 9999));
+    const city = rand(CITIES);
     
     return {
       type: 'parent',
       companies: [{
         organisasjonsnummer: parentOrgnr,
         name: parentName,
-        relationship: 'Morselskap'
+        relationship: 'Morselskap',
+        address: `${rand(STREET_NAMES)} ${randInt(1, 99)}`,
+        zipcode: zipcode,
+        city: city
       }]
     };
   } else {
@@ -155,11 +160,16 @@ export function genRelatedCompaniesFor(orgnr, orgName) {
       
       const baseName = orgName ? orgName.replace(/ AS$| ASA$/, '') : rand(COMPANY_NAMES).replace(/ AS$| ASA$/, '');
       const subName = `${baseName} ${rand(SUBSIDIARY_SUFFIXES)} AS`;
+      const zipcode = String(randInt(1000, 9999));
+      const city = rand(CITIES);
       
       subsidiaries.push({
         organisasjonsnummer: subOrgnr,
         name: subName,
-        relationship: 'Datterselskap'
+        relationship: 'Datterselskap',
+        address: `${rand(STREET_NAMES)} ${randInt(1, 99)}`,
+        zipcode: zipcode,
+        city: city
       });
     }
     

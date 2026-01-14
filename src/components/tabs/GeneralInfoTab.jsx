@@ -12,112 +12,114 @@ const AUTHORITY_COLORS = [
 ];
 
 /**
- * Get the half-year period key for a date (YYYY-H1 or YYYY-H2)
+ * Generate dynamic periods by splitting the date range into 10 equal parts
  */
-function getHalfYearPeriod(dateStr) {
-  const month = parseInt(dateStr.substring(5, 7), 10);
-  const year = dateStr.substring(0, 4);
-  return month <= 6 ? `${year}-H1` : `${year}-H2`;
-}
-
-/**
- * Get display label for half-year period
- */
-function getHalfYearLabel(period) {
-  const [year, half] = period.split('-');
-  return half === 'H1' ? `${year} jan-jun` : `${year} jul-des`;
-}
-
-/**
- * Generate all half-year periods between two dates
- */
-function generateHalfYearPeriods(fromDate, toDate) {
+function generateDynamicPeriods(fromDate, toDate, numPeriods = 10) {
   const periods = [];
   
   if (!fromDate || !toDate) return periods;
   
-  const startYear = parseInt(fromDate.substring(0, 4), 10);
-  const startMonth = parseInt(fromDate.substring(5, 7), 10);
-  const endYear = parseInt(toDate.substring(0, 4), 10);
-  const endMonth = parseInt(toDate.substring(5, 7), 10);
+  const startDate = new Date(fromDate);
+  const endDate = new Date(toDate);
+  const totalMs = endDate.getTime() - startDate.getTime();
+  const periodMs = totalMs / numPeriods;
   
-  // Determine starting half
-  let currentYear = startYear;
-  let currentHalf = startMonth <= 6 ? 1 : 2;
-  
-  // Determine ending half
-  const endHalf = endMonth <= 6 ? 1 : 2;
-  
-  while (currentYear < endYear || (currentYear === endYear && currentHalf <= endHalf)) {
-    periods.push(`${currentYear}-H${currentHalf}`);
+  for (let i = 0; i < numPeriods; i++) {
+    const periodStart = new Date(startDate.getTime() + (i * periodMs));
+    const periodEnd = new Date(startDate.getTime() + ((i + 1) * periodMs));
     
-    if (currentHalf === 1) {
-      currentHalf = 2;
-    } else {
-      currentHalf = 1;
-      currentYear++;
-    }
+    periods.push({
+      index: i,
+      start: periodStart,
+      end: periodEnd,
+      label: formatPeriodLabel(periodStart, periodEnd)
+    });
   }
   
   return periods;
 }
 
 /**
- * Aggregate tilsyn data by half-year period and authority for combined chart
- * Includes both tilsyn counts per authority and brudd counts
+ * Format period label based on duration
  */
-function aggregateTilsynByHalfYearAndAuthority(rap, fromDate, toDate) {
-  const byPeriodAndAuth = {};
-  const bruddByPeriod = {};
+function formatPeriodLabel(start, end) {
+  const months = ['jan', 'feb', 'mar', 'apr', 'mai', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'des'];
+  const startMonth = months[start.getMonth()];
+  const endMonth = months[end.getMonth()];
+  const startYear = start.getFullYear();
+  const endYear = end.getFullYear();
+  
+  if (startYear === endYear) {
+    if (start.getMonth() === end.getMonth()) {
+      return `${startMonth} ${startYear}`;
+    }
+    return `${startMonth}-${endMonth} ${startYear}`;
+  }
+  return `${startMonth} ${startYear.toString().slice(-2)}-${endMonth} ${endYear.toString().slice(-2)}`;
+}
+
+/**
+ * Find which period index a date belongs to
+ */
+function getPeriodIndex(dateStr, periods) {
+  const date = new Date(dateStr);
+  for (let i = 0; i < periods.length; i++) {
+    if (date >= periods[i].start && date < periods[i].end) {
+      return i;
+    }
+  }
+  // Check if it's in the last period (inclusive of end date)
+  if (periods.length > 0 && date <= periods[periods.length - 1].end) {
+    return periods.length - 1;
+  }
+  return -1;
+}
+
+/**
+ * Aggregate tilsyn data by dynamic periods
+ * Splits the date range into 10 equal parts
+ */
+function aggregateTilsynByDynamicPeriods(rap, fromDate, toDate) {
   const allAuthorities = new Set();
   
-  // Generate all periods that should be shown
-  const allPeriods = generateHalfYearPeriods(fromDate, toDate);
+  // Generate dynamic periods
+  const periods = generateDynamicPeriods(fromDate, toDate, 10);
   
-  // Initialize all periods with zero values
-  allPeriods.forEach(period => {
-    byPeriodAndAuth[period] = {};
-    bruddByPeriod[period] = 0;
-  });
+  // Initialize period data
+  const periodData = periods.map(p => ({
+    periode: p.index,
+    periodeLabel: p.label,
+    brudd: 0,
+    tilsyn: 0
+  }));
   
   // Aggregate actual data
   if (rap && rap.length > 0) {
     rap.forEach(r => {
       if (!r.dato) return;
-      const period = getHalfYearPeriod(r.dato);
+      const periodIndex = getPeriodIndex(r.dato, periods);
+      if (periodIndex === -1) return;
+      
       const auth = r.tilsynsmyndighet || 'Ukjent';
       allAuthorities.add(auth);
       
-      if (!byPeriodAndAuth[period]) {
-        byPeriodAndAuth[period] = {};
-        bruddByPeriod[period] = 0;
-      }
-      byPeriodAndAuth[period][auth] = (byPeriodAndAuth[period][auth] || 0) + 1;
+      periodData[periodIndex].tilsyn = (periodData[periodIndex].tilsyn || 0) + 1;
       
-      // Count brudd (violations) using the same logic as aggregators.js
+      if (!periodData[periodIndex][auth]) {
+        periodData[periodIndex][auth] = 0;
+      }
+      periodData[periodIndex][auth]++;
+      
+      // Count brudd (violations)
       if (isBrudd(r)) {
-        bruddByPeriod[period] = (bruddByPeriod[period] || 0) + 1;
+        periodData[periodIndex].brudd++;
       }
     });
   }
   
   const authorities = Array.from(allAuthorities).sort();
   
-  // Use allPeriods to ensure all periods are included, sorted
-  const data = allPeriods
-    .map(period => {
-      const entry = { 
-        periode: period, 
-        periodeLabel: getHalfYearLabel(period),
-        brudd: bruddByPeriod[period] || 0 
-      };
-      authorities.forEach(auth => {
-        entry[auth] = byPeriodAndAuth[period]?.[auth] || 0;
-      });
-      return entry;
-    });
-  
-  return { data, authorities };
+  return { data: periodData, authorities };
 }
 
 /**
@@ -317,9 +319,9 @@ export function GeneralInfoTab({
     });
   }, [rap, fromDate, toDate]);
 
-  // Aggregate tilsyn by half-year period and authority for stacked bar chart
+  // Aggregate tilsyn by dynamic periods (10 equal parts of the date range)
   const { data: tilsynByPeriodData, authorities: tilsynAuthorities } = React.useMemo(() => 
-    aggregateTilsynByHalfYearAndAuthority(filteredRap, fromDate, toDate), 
+    aggregateTilsynByDynamicPeriods(filteredRap, fromDate, toDate), 
     [filteredRap, fromDate, toDate]
   );
 
@@ -415,7 +417,15 @@ export function GeneralInfoTab({
         )}
         
         {/* Statistics Row */}
-        <div className="grid md:grid-cols-3 gap-4">
+        <div className="text-sm font-medium text-gray-700 mt-2">Treff i angitt tidsperiode</div>
+        <div className="grid md:grid-cols-4 gap-4">
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="text-sm text-gray-600 flex items-center">
+              Antall tilsynsmyndigheter
+              <InfoTooltip text="Antall unike tilsynsmyndigheter som har utført tilsyn på denne organisasjonen i valgt periode." />
+            </div>
+            <div className="text-xl font-semibold">{Object.keys(perMynd).length}</div>
+          </div>
           <div className="bg-gray-50 p-4 rounded-lg">
             <div className="text-sm text-gray-600 flex items-center">
               Brudd
@@ -462,6 +472,7 @@ export function GeneralInfoTab({
                   <div>
                     <div className="font-medium text-gray-900">{company.name}</div>
                     <div className="text-xs text-gray-500">Org.nr: {company.organisasjonsnummer}</div>
+                    <div className="text-xs text-gray-500">{company.address}, {company.zipcode} {company.city}</div>
                   </div>
                   <button
                     onClick={() => onRelatedCompanyClick(company.organisasjonsnummer, company.name)}
@@ -479,7 +490,7 @@ export function GeneralInfoTab({
         {/* Combined Chart - Tilsyn by Authority (Bars) + Brudd Trend (Line) */}
         <div className="mt-6">
           <div className="text-sm text-gray-600 mb-3">
-            Tilsyn og brudd per halvår
+            Tilsyn og brudd over tid
             {fromDate && toDate && (
               <span className="text-xs text-gray-400 ml-2">
                 ({fromDate} til {toDate})
@@ -511,16 +522,19 @@ export function GeneralInfoTab({
                   }}
                 />
                 <Legend wrapperStyle={{ fontSize: 10 }} />
-                {tilsynAuthorities.map((auth, index) => (
-                  <Bar 
-                    key={auth} 
-                    dataKey={auth} 
-                    stackId="tilsyn" 
-                    yAxisId="left"
-                    fill={AUTHORITY_COLORS[index % AUTHORITY_COLORS.length]}
-                    name={auth}
-                  />
-                ))}
+                <Bar 
+                  dataKey={(entry) => {
+                    let total = 0;
+                    tilsynAuthorities.forEach(auth => {
+                      total += entry[auth] || 0;
+                    });
+                    return total;
+                  }}
+                  yAxisId="left"
+                  fill="#6366f1"
+                  name="Tilsyn"
+                  radius={[4, 4, 0, 0]}
+                />
                 <Line 
                   type="monotone" 
                   dataKey="brudd" 
@@ -534,7 +548,7 @@ export function GeneralInfoTab({
             </ResponsiveContainer>
           </div>
           <div className="text-xs text-gray-500 mt-2 text-center">
-            Søyler: Antall tilsyn per myndighet | Linje: Antall brudd
+            Søyler: Antall tilsyn | Linje: Antall brudd
           </div>
         </div>
       </CardContent>

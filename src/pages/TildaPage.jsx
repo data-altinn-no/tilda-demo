@@ -64,11 +64,11 @@ export function TildaPage() {
   const [orgDetails, setOrgDetails] = useState(null);
   const [selectedAuthorities, setSelectedAuthorities] = useState([]);
   
-  // Date range for search - default to last 10 years
+  // Date range for search - default to last 3 years
   const today = new Date().toISOString().split('T')[0];
-  const tenYearsAgo = new Date(new Date().setFullYear(new Date().getFullYear() - 10)).toISOString().split('T')[0];
-  const [fromDate, setFromDate] = useState(tenYearsAgo);
-  const [toDate, setToDate] = useState(today);
+  const threeYearsAgo = new Date(new Date().setFullYear(new Date().getFullYear() - 3)).toISOString().split('T')[0];
+  const [fromDate, setFromDate] = useState(threeYearsAgo);
+  const toDate = today;
   // Store the dates used for the current search (set when Søk is clicked)
   const [searchFromDate, setSearchFromDate] = useState(null);
   const [searchToDate, setSearchToDate] = useState(null);
@@ -227,7 +227,7 @@ export function TildaPage() {
         {/* Search Card */}
         <div className="digdir-card p-8 bg-white">
           <div className="flex flex-col md:flex-row gap-6 items-end justify-between">
-            <div className="flex-1 w-full grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="flex-1 w-full grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               <div className="w-full">
                 <label className="block text-sm font-semibold text-neutral-700 mb-2">Organisasjonsnummer</label>
                 <div className="relative">
@@ -255,19 +255,6 @@ export function TildaPage() {
                 </div>
               </div>
               
-              <div className="w-full">
-                <label className="block text-sm font-semibold text-neutral-700 mb-2">Til dato</label>
-                <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
-                  <Input 
-                    type="date"
-                    className="digdir-input pl-10 h-12 w-full"
-                    value={toDate}
-                    onChange={(e) => setToDate(e.target.value)}
-                  />
-                </div>
-              </div>
-              
               <div className="flex items-center h-12 mt-auto">
                 <label className="flex items-center gap-3 p-3 rounded-digdir hover:bg-neutral-50 cursor-pointer transition-colors w-full border border-neutral-200">
                   <input 
@@ -281,13 +268,7 @@ export function TildaPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-4 w-full md:w-auto mt-4 md:mt-0">
-              {hasLookedUp && generatedFor && (
-                <Badge variant="secondary" className="bg-neutral-100 text-neutral-700 border border-neutral-200 px-3 py-1 text-sm">
-                  Generert for {generatedFor}
-                </Badge>
-              )}
-              
+            <div className="flex items-center gap-4 w-full md:w-auto mt-4 md:mt-0 flex-shrink-0">
               <Button 
                 id="search-button"
                 onClick={handleLookup} 
@@ -301,14 +282,16 @@ export function TildaPage() {
                 Søk
               </Button>
 
-              {hasData && mulighetsrom && (
-                <Button 
-                  onClick={() => setShowComplianceModal(true)}
-                  className="h-12 px-8 text-base digdir-button min-w-[120px] bg-green-600 hover:bg-green-700 text-white transition-colors"
-                >
-                  Vurder
-                </Button>
-              )}
+              <div className="w-[120px]">
+                {hasData && mulighetsrom && (
+                  <Button 
+                    onClick={() => setShowComplianceModal(true)}
+                    className="h-12 px-8 text-base digdir-button w-full bg-green-600 hover:bg-green-700 text-white transition-colors"
+                  >
+                    Vurder
+                  </Button>
+                )}
+              </div>
               
               {hasLookedUp && (
                 <div className="w-12 h-12 flex items-center justify-center rounded-full bg-neutral-50 border border-neutral-200">
