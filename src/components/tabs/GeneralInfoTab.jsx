@@ -363,6 +363,39 @@ export function GeneralInfoTab({
           </div>
         )}
 
+        {/* Annual Turnover - Last 3 Years */}
+        {financialData?.regnskapsaar && financialData.regnskapsaar.length > 0 && (() => {
+          const sortedYears = [...financialData.regnskapsaar].sort((a, b) => b.aar - a.aar).slice(0, 3);
+          return (
+            <div className="grid md:grid-cols-3 gap-4">
+              {sortedYears.map((year, index) => {
+                const turnover = year.finansielleNokkeltal?.omsetning?.beloep || 0;
+                const formattedTurnover = new Intl.NumberFormat('nb-NO', {
+                  style: 'currency',
+                  currency: 'NOK',
+                  maximumFractionDigits: 0
+                }).format(turnover);
+                
+                // Compare with next year in array (which is the previous year chronologically)
+                const nextYearData = sortedYears[index + 1];
+                const previousTurnover = nextYearData?.finansielleNokkeltal?.omsetning?.beloep || 0;
+                
+                let textColorClass = 'text-gray-700';
+                if (nextYearData) {
+                  textColorClass = turnover >= previousTurnover ? 'text-green-600' : 'text-red-600';
+                }
+                
+                return (
+                  <div key={year.aar} className="bg-gray-50 p-4 rounded-lg">
+                    <div className="text-sm text-gray-600">Omsetning {year.aar}</div>
+                    <div className={`text-lg font-semibold ${textColorClass}`}>{formattedTurnover}</div>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })()}
+
         {/* Gazelle Indicator */}
         {isGazelle && (
           <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 p-4 rounded-lg flex items-center gap-3">
