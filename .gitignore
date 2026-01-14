@@ -109,3 +109,6 @@ temp/
 # Vite
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Chrome debug profile
+.vscode/chrome-debug-profile/
