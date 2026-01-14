@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { ClipboardCheck, LineChart as LineChartIcon, Calendar, CheckCircle2, ListChecks, Bell, BellOff, User, FileText, Clock, CheckCircle, AlertTriangle } from 'lucide-react';
+import { ClipboardCheck, LineChart as LineChartIcon, Calendar, CheckCircle2, ListChecks, Bell, BellOff, User, FileText, Clock, CheckCircle, AlertTriangle, HelpCircle } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, Button, Badge } from '../ui';
 import { MiniLineChart } from '../charts';
 import { groupByMyndighet } from '../../data/aggregators';
@@ -162,41 +162,59 @@ export function TilsynTab({
                                   )}
                                 </div>
                                 <div className="flex items-center gap-1">
-                                  {r.varpisel && (
+                                  <div className="relative group">
                                     <span className={`flex items-center gap-1 text-xs px-1.5 py-0.5 rounded ${
-                                      r.varpisel === 'Varslet' 
-                                        ? 'bg-blue-100 text-blue-700' 
-                                        : 'bg-orange-100 text-orange-700'
+                                      r.varpisel === 'Ja' 
+                                        ? 'bg-orange-100 text-orange-700' 
+                                        : r.varpisel === 'Nei'
+                                          ? 'bg-blue-100 text-blue-700'
+                                          : 'bg-gray-100 text-gray-700'
                                     }`}>
-                                      {r.varpisel === 'Varslet' ? <Bell className="w-3 h-3" /> : <BellOff className="w-3 h-3" />}
-                                      {r.varpisel}
+                                      {r.varpisel === 'Ja' ? <BellOff className="w-3 h-3" /> : <Bell className="w-3 h-3" />}
+                                      Uanmeldt: {r.varpisel || 'Ikke angitt'}
+                                      <HelpCircle className="w-3 h-3 ml-0.5 text-gray-400" />
                                     </span>
-                                  )}
+                                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-10">
+                                      Var tilsynsobjektet varslet på forhånd
+                                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
+                                    </div>
+                                  </div>
                                   {r.status && (
-                                    <span className={`flex items-center gap-1 text-xs px-1.5 py-0.5 rounded ${
-                                      r.status === 'Gjennomført' 
-                                        ? 'bg-green-100 text-green-700' 
-                                        : 'bg-yellow-100 text-yellow-700'
-                                    }`}>
-                                      {r.status === 'Gjennomført' ? <CheckCircle className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
-                                      {r.status}
-                                    </span>
+                                    <div className="relative group">
+                                      <span className={`flex items-center gap-1 text-xs px-1.5 py-0.5 rounded ${
+                                        r.status === 'Gjennomført' 
+                                          ? 'bg-green-100 text-green-700' 
+                                          : 'bg-yellow-100 text-yellow-700'
+                                      }`}>
+                                        {r.status === 'Gjennomført' ? <CheckCircle className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
+                                        Status: {r.status}
+                                        <HelpCircle className="w-3 h-3 ml-0.5 text-gray-400" />
+                                      </span>
+                                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-10">
+                                        Status på tilsynsgjennomføring
+                                        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
+                                      </div>
+                                    </div>
                                   )}
                                 </div>
                               </div>
-                              {r.tema && <div className="text-neutral-600 text-xs mb-1">{r.tema}</div>}
+                              {r.tema && <div className="text-neutral-600 text-xs mb-1">Tema: {r.tema}</div>}
                               {r.reaksjonstype && (
-                                <span className={`text-xs px-1.5 py-0.5 rounded ${
-                                  r.reaksjonstype === 'Pålegg' || r.reaksjonstype === 'Tvangsmulkt' 
-                                    ? 'bg-red-100 text-red-700' 
-                                    : 'bg-neutral-100 text-neutral-600'
-                                }`}>
-                                  {r.reaksjonstype}
-                                </span>
+                                <div className="text-xs mb-1">
+                                  <span className="text-neutral-600">Reaksjoner: </span>
+                                  <span className={`px-1.5 py-0.5 rounded ${
+                                    r.reaksjonstype === 'Pålegg' || r.reaksjonstype === 'Tvangsmulkt' 
+                                      ? 'bg-red-100 text-red-700' 
+                                      : 'bg-neutral-100 text-neutral-600'
+                                  }`}>
+                                    {r.reaksjonstype}
+                                  </span>
+                                </div>
                               )}
                               {r.kontaktperson && (
                                 <div className="flex items-center gap-1 text-xs text-neutral-500 mt-1">
                                   <User className="w-3 h-3" />
+                                  <span className="text-neutral-600">Kontaktpunkt:</span>
                                   <span>{r.kontaktperson.navn}</span>
                                   <span className="text-neutral-400">·</span>
                                   <span className="text-blue-600">{r.kontaktperson.kontaktinfo}</span>

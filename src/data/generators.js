@@ -16,9 +16,9 @@ import { randomDateISOYearAround, randomFutureDateISO, randomDateInRange } from 
  * Data generation functions for creating dummy supervision data
  */
 
-// Generate supervision coordination data
+// Generate supervision coordination data (planned/future tilsyn)
 export function genTilsynskoordineringFor(orgnr) {
-  const n = randInt(1, 100);
+  const n = randInt(0, 5); // Lower number: 0-5 planned tilsyn
   
   return Array.from({ length: n }).map(() => {
     const start = randomFutureDateISO(1, 9);
@@ -47,39 +47,82 @@ const EMAIL_DOMAINS = ['tilsynet.no', 'kontroll.no', 'myndighet.no', 'stat.no', 
 
 // Generate supervision reports
 export function genTilsynsrapportFor(orgnr, fromDate = null, toDate = null) {
-  const n = randInt(1, 100);
+  const reports = [];
   
-  return Array.from({ length: n }).map((_, idx) => {
-    const city = rand(CITIES);
-    const firstName = rand(FIRST_NAMES);
-    const lastName = rand(LAST_NAMES);
-    const useEmail = Math.random() > 0.3; // 70% email, 30% phone
-    const contactInfo = useEmail 
-      ? `${firstName.toLowerCase()}.${lastName.toLowerCase()}@${rand(EMAIL_DOMAINS)}`
-      : `+47 ${randInt(400, 499)} ${randInt(10, 99)} ${randInt(100, 999)}`;
-    
-    return {
-      tilsynsmyndighet: rand(AUTHORITIES),
-      organisasjonsnummer: orgnr,
-      dato: randomDateInRange(fromDate, toDate),
-      funn_alvorlighetsgrad: rand([
-        "Ingen", "Ingen", "Ingen", "Ingen", "Ingen", "Ingen", "Ingen", "Ingen", "Ingen", "Ingen", "Ingen", "Ingen",
-        "Lav", "Lav", "Lav", "Lav","Lav", "Lav",
-        "Medium", "Medium",
-        "Høy"
-      ]),
-      reaksjonstype: rand(REACTIONS),
-      tema: rand(THEMES),
-      tilsynsadresse: `${rand(STREET_NAMES)} ${randInt(1, 99)}, ${randInt(1000, 9999)} ${city}`,
-      varpisel: rand(['Varslet', 'Varslet', 'Varslet', 'Uanmeldt']), // 75% varslet, 25% uanmeldt
-      kontaktperson: {
-        navn: `${firstName} ${lastName}`,
-        kontaktinfo: contactInfo
-      },
-      status: rand(['Gjennomført', 'Gjennomført', 'Gjennomført', 'Gjennomført', 'Under oppfølging']), // 80% gjennomført
-      rapportUrl: `https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf`
-    };
-  });
+  // Determine date range
+  const startDate = fromDate ? new Date(fromDate) : new Date(new Date().setFullYear(new Date().getFullYear() - 10));
+  const endDate = toDate ? new Date(toDate) : new Date();
+  
+  // Calculate number of years in range
+  const startYear = startDate.getFullYear();
+  const endYear = endDate.getFullYear();
+  
+  // Select 1-5 authorities for the ENTIRE time interval
+  const numAuthorities = randInt(1, 5);
+  const shuffledAuthorities = [...AUTHORITIES].sort(() => Math.random() - 0.5);
+  const selectedAuthorities = shuffledAuthorities.slice(0, numAuthorities);
+  
+  // Generate tilsyn year by year
+  for (let year = startYear; year <= endYear; year++) {
+    // Each authority has 0-1 tilsyn per year (lower frequency)
+    selectedAuthorities.forEach(authority => {
+      const tilsynCount = Math.random() < 0.5 ? 1 : 0; // 50% chance of 1 tilsyn, 50% chance of 0
+      
+      for (let i = 0; i < tilsynCount; i++) {
+        // Generate random date within this year (respecting fromDate/toDate bounds)
+        const yearStart = new Date(Math.max(new Date(`${year}-01-01`).getTime(), startDate.getTime()));
+        const yearEnd = new Date(Math.min(new Date(`${year}-12-31`).getTime(), endDate.getTime()));
+        
+        if (yearStart > yearEnd) continue;
+        
+        const randomTime = yearStart.getTime() + Math.random() * (yearEnd.getTime() - yearStart.getTime());
+        const tilsynDate = new Date(randomTime);
+        const dato = `${tilsynDate.getFullYear()}-${pad(tilsynDate.getMonth() + 1)}-${pad(tilsynDate.getDate())}`;
+        
+        const city = rand(CITIES);
+        const firstName = rand(FIRST_NAMES);
+        const lastName = rand(LAST_NAMES);
+        const useEmail = Math.random() > 0.3;
+        const contactInfo = useEmail 
+          ? `${firstName.toLowerCase()}.${lastName.toLowerCase()}@${rand(EMAIL_DOMAINS)}`
+          : `+47 ${randInt(400, 499)} ${randInt(10, 99)} ${randInt(100, 999)}`;
+        
+        // Brudd: weighted heavily towards no brudd
+        // ~80% no brudd, ~12% low, ~5% medium, ~3% high
+        const bruddRoll = Math.random();
+        let funn_alvorlighetsgrad;
+        if (bruddRoll < 0.80) {
+          funn_alvorlighetsgrad = "Ingen";
+        } else if (bruddRoll < 0.92) {
+          funn_alvorlighetsgrad = "Lav";
+        } else if (bruddRoll < 0.97) {
+          funn_alvorlighetsgrad = "Medium";
+        } else {
+          funn_alvorlighetsgrad = "Høy";
+        }
+        
+        reports.push({
+          tilsynsmyndighet: authority,
+          organisasjonsnummer: orgnr,
+          dato: dato,
+          funn_alvorlighetsgrad: funn_alvorlighetsgrad,
+          reaksjonstype: funn_alvorlighetsgrad === "Ingen" ? "Ingen" : rand(REACTIONS),
+          tema: rand(THEMES),
+          tilsynsadresse: `${rand(STREET_NAMES)} ${randInt(1, 99)}, ${randInt(1000, 9999)} ${city}`,
+          varpisel: rand(['Nei', 'Nei', 'Nei', 'Ja', 'Ikke angitt']),
+          kontaktperson: {
+            navn: `${firstName} ${lastName}`,
+            kontaktinfo: contactInfo
+          },
+          status: rand(['Gjennomført', 'Gjennomført', 'Gjennomført', 'Gjennomført', 'Under oppfølging']),
+          rapportUrl: `https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf`
+        });
+      }
+    });
+  }
+  
+  // Sort by date descending
+  return reports.sort((a, b) => b.dato.localeCompare(a.dato));
 }
 
 // Generate messages from other authorities
