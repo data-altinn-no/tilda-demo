@@ -493,8 +493,11 @@ export function TildaPage() {
             {activeTab === "meldinger" && (
               <MessagesTab 
                 meldinger={meldinger}
-                selectedAuthorities={selectedAuthorities}
+                selectedAuthority={selectedAuthorities[0]}
                 onClearSelection={() => setSelectedAuthorities([])}
+                generatedFor={generatedFor}
+                fromDate={fromDate}
+                toDate={toDate}
               />
             )}
 

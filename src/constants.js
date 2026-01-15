@@ -136,9 +136,8 @@ export const ORGANIZATION_FORMS = [
 // Message types
 export const MESSAGE_TYPES = [
   "varsel-om-rapport", 
-  "forespørsel-om-informasjon", 
-  "koordinering-av-tilsyn", 
-  "oppfølging-av-funn"
+  "varsel-om-koordinering", 
+  "varsel-fritekst"
 ];
 
 // City coordinates for Norway map

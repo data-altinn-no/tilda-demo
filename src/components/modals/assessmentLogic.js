@@ -95,7 +95,7 @@ export function calculateComplianceScore({ rap, koord, meldinger, financialData,
 
   // 4. Messages from Authorities (Weight: 10%)
   const criticalMessages = meldinger.filter(m => 
-    m.meldingsinnholdTilAnnenMyndighet?.meldingsType === 'oppfølging-av-funn'
+    m.meldingsinnholdTilAnnenMyndighet?.meldingsType === 'varsel-om-rapport'
   ).length;
 
   if (criticalMessages > 0) {

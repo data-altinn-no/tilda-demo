@@ -191,6 +191,54 @@ export function genMeldingerFor(orgnr) {
   }));
 }
 
+// Generate messages to other authorities (MTAM)
+export function genMeldingerTilAndreMyndighetFor(orgnr) {
+  const n = randInt(2, 30);
+  
+  return Array.from({ length: n }).map((_, idx) => ({
+    identifikator: `MSG-${orgnr}-${String(idx + 1).padStart(3, '0')}`,
+    mottaker: rand(AUTHORITIES),
+    meldingOmTildaenhet: orgnr,
+    datoForMeldingTilAnnenMyndighet: new Date(Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000).toISOString(),
+    meldingsinnholdTilAnnenMyndighet: {
+      meldingsType: rand(MESSAGE_TYPES),
+      fritekst: `Automatisk generert melding vedrørende ${rand(THEMES).toLowerCase()} for organisasjon ${orgnr}. ${rand(['Vennligst følg opp innen 30 dager.', 'Krever umiddelbar oppmerksomhet.', 'Til orientering og videre koordinering.', 'Forespørsel om tilleggsopplysninger.'])}`
+    }
+  }));
+}
+
+// Generate sent messages (outgoing from this organization)
+export function genSendteMeldingerFor(orgnr, fromDate = null, toDate = null) {
+  const n = randInt(3, 15);
+  
+  // Calculate date range
+  const endDate = toDate ? new Date(toDate) : new Date();
+  const startDate = fromDate ? new Date(fromDate) : new Date(Date.now() - 365 * 24 * 60 * 60 * 1000);
+  const dateRange = endDate.getTime() - startDate.getTime();
+  
+  const sentMessages = [
+    'Forespørsel om koordinering av tilsyn planlagt for neste kvartal.',
+    'Varsel om endringer i våre rutiner som kan påvirke kommende tilsyn.',
+    'Oppfølging av tidligere tilsynsrapport - tiltak er implementert.',
+    'Melding om avvik funnet i egen internkontroll.',
+    'Forespørsel om utsettelse av planlagt tilsyn grunnet vedlikehold.',
+    'Informasjon om nye sikkerhetstiltak implementert i bedriften.',
+    'Varsel om midlertidig stenging av deler av anlegget.',
+    'Oppfølging av pålegg - dokumentasjon på utbedringer vedlagt.',
+    'Forespørsel om veiledning angående nye regelverk.',
+    'Melding om hendelse som kan være av interesse for tilsynsmyndighet.'
+  ];
+  
+  return Array.from({ length: n }).map((_, idx) => ({
+    id: `SENT-${orgnr}-${Date.now()}-${idx}`,
+    type: rand(MESSAGE_TYPES),
+    recipient: rand(AUTHORITIES),
+    message: rand(sentMessages),
+    timestamp: new Date(startDate.getTime() + Math.random() * dateRange),
+    status: 'sent'
+  }));
+}
+
 // Generate organization details
 export function genOrganisationDetailsFor(orgnr, presetName = null) {
   const selectedNace = rand(NACE_CODES);
