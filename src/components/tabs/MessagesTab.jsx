@@ -7,7 +7,7 @@ import { genSendteMeldingerFor } from '../../data/generators.js';
 /**
  * Messages Tab Component - Displays messages with sub-tabs for received and sent
  */
-export function MessagesTab({ meldinger, generatedFor, fromDate, toDate }) {
+export function MessagesTab({ meldinger, generatedFor, fromDate, toDate, organizationNumber }) {
   const [activeTab, setActiveTab] = useState('mottatte');
   const [selectedMessageAuthority, setSelectedMessageAuthority] = useState(null);
   
@@ -38,14 +38,20 @@ export function MessagesTab({ meldinger, generatedFor, fromDate, toDate }) {
       if (m.recipient) authorities.add(m.recipient);
     });
     
-    return Array.from(authorities).sort();
+    return Array.from(authorities).sort((a, b) => a.localeCompare(b, 'no'));
   }, [meldinger, sentMessages]);
   
   const [sendForm, setSendForm] = useState({
     type: '',
     recipient: '',
-    message: ''
+    message: '',
+    tilsynsobjekt: organizationNumber || ''
   });
+
+  // Update tilsynsobjekt when organizationNumber changes
+  useEffect(() => {
+    setSendForm(prev => ({ ...prev, tilsynsobjekt: organizationNumber || '' }));
+  }, [organizationNumber]);
 
   const handleSendMessage = () => {
     if (!sendForm.type || !sendForm.recipient || !sendForm.message.trim()) {
@@ -57,12 +63,13 @@ export function MessagesTab({ meldinger, generatedFor, fromDate, toDate }) {
       type: sendForm.type,
       recipient: sendForm.recipient,
       message: sendForm.message,
+      tilsynsobjekt: sendForm.tilsynsobjekt,
       timestamp: new Date(),
       status: 'sent'
     };
 
     setSentMessages(prev => [newMessage, ...prev]);
-    setSendForm({ type: '', recipient: '', message: '' });
+    setSendForm({ type: '', recipient: '', message: '', tilsynsobjekt: organizationNumber || '' });
   };
 
   const renderTabButton = (tabId, label, icon) => (
@@ -222,10 +229,14 @@ export function MessagesTab({ meldinger, generatedFor, fromDate, toDate }) {
                           {message.type}
                         </Badge>
                       </div>
-                      <div className="grid grid-cols-2 gap-3 mb-3">
+                      <div className="grid grid-cols-3 gap-3 mb-3">
                         <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
                           <span className="text-gray-500 text-xs uppercase tracking-wider font-semibold block mb-1">Til</span>
                           <span className="font-medium text-gray-900">{message.recipient}</span>
+                        </div>
+                        <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                          <span className="text-gray-500 text-xs uppercase tracking-wider font-semibold block mb-1">Tilda-enhet</span>
+                          <span className="font-medium text-gray-900">{message.tilsynsobjekt || 'Ikke angitt'}</span>
                         </div>
                         <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
                           <span className="text-gray-500 text-xs uppercase tracking-wider font-semibold block mb-1">Status</span>
@@ -285,13 +296,27 @@ export function MessagesTab({ meldinger, generatedFor, fromDate, toDate }) {
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white"
                     >
                       <option value="">Velg mottaker...</option>
-                      {AUTHORITIES.map(authority => (
+                      {[...AUTHORITIES].sort((a, b) => a.localeCompare(b, 'no')).map(authority => (
                         <option key={authority} value={authority}>{authority}</option>
                       ))}
                     </select>
                     <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                   </div>
                 </div>
+              </div>
+
+              {/* Tilda-enhet Field */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Tilda-enhet
+                </label>
+                <input
+                  type="text"
+                  value={sendForm.tilsynsobjekt}
+                  onChange={(e) => setSendForm(prev => ({ ...prev, tilsynsobjekt: e.target.value }))}
+                  placeholder="Organisasjonsnummer..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
               </div>
 
               {/* Message Text Area */}

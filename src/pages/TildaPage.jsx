@@ -496,6 +496,7 @@ export function TildaPage() {
                 generatedFor={generatedFor}
                 fromDate={fromDate}
                 toDate={toDate}
+                organizationNumber={generatedFor}
               />
             )}
 
