@@ -173,6 +173,14 @@ export function TildaPage() {
 
   const hasData = hasLookedUp && (rap.length > 0 || koord.length > 0);
   const perMynd = useMemo(()=> aggregateBruddByMyndighet(rap), [rap]);
+  
+  // Get all unique authorities from both rap and koord
+  const allAuthorities = useMemo(() => {
+    const authorities = new Set();
+    rap.forEach(r => r.tilsynsmyndighet && authorities.add(r.tilsynsmyndighet));
+    koord.forEach(k => k.tilsynsmyndighet && authorities.add(k.tilsynsmyndighet));
+    return Array.from(authorities).sort();
+  }, [rap, koord]);
 
   const baseTabs = [
     { id: "general", label: "Generell informasjon", icon: Info },
@@ -391,12 +399,12 @@ export function TildaPage() {
         )}
 
         {/* Authority Filter Row - only show on tilsyn, meldinger, eksperiment, download tabs */}
-        {hasData && Object.keys(perMynd).length > 0 && ['tilsyn', 'meldinger', 'eksperiment', 'download'].includes(activeTab) && (
+        {hasData && allAuthorities.length > 0 && ['tilsyn', 'meldinger', 'eksperiment', 'download'].includes(activeTab) && (
           <div className="glass-card rounded-xl p-2 -mt-4">
             <div className="flex items-center gap-1.5 flex-wrap">
-              {Object.keys(perMynd).map((authority) => {
+              {allAuthorities.map((authority) => {
                 const isActive = selectedAuthorities.includes(authority);
-                const authorityBrudd = perMynd[authority].reduce((sum, item) => sum + item.brudd, 0);
+                const authorityBrudd = perMynd[authority]?.reduce((sum, item) => sum + item.brudd, 0) || 0;
                 return (
                   <button
                     key={authority}

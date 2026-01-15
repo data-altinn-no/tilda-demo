@@ -16,6 +16,11 @@ import { randomDateISOYearAround, randomFutureDateISO, randomDateInRange } from 
  * Data generation functions for creating dummy supervision data
  */
 
+// Contact person names for koordinering
+const KOORD_FIRST_NAMES = ['Erik', 'Anne', 'Lars', 'Kari', 'Ole', 'Ingrid', 'Per', 'Marit', 'Bjørn', 'Hilde', 'Tor', 'Silje', 'Geir', 'Lise', 'Arne'];
+const KOORD_LAST_NAMES = ['Hansen', 'Johansen', 'Olsen', 'Larsen', 'Andersen', 'Pedersen', 'Nilsen', 'Kristiansen', 'Jensen', 'Karlsen', 'Johnsen', 'Pettersen', 'Eriksen', 'Berg', 'Haugen'];
+const KOORD_EMAIL_DOMAINS = ['tilsynet.no', 'kontroll.no', 'myndighet.no', 'stat.no', 'forvaltning.no'];
+
 // Generate supervision coordination data (planned/future tilsyn)
 export function genTilsynskoordineringFor(orgnr) {
   const n = randInt(0, 5); // Lower number: 0-5 planned tilsyn
@@ -27,6 +32,13 @@ export function genTilsynskoordineringFor(orgnr) {
     endD.setDate(startD.getDate() + randInt(0, 10));
     const slutt = Math.random() > 0.5 ? `${endD.getFullYear()}-${pad(endD.getMonth() + 1)}-${pad(endD.getDate())}` : undefined;
     const city = rand(CITIES);
+    const firstName = rand(KOORD_FIRST_NAMES);
+    const lastName = rand(KOORD_LAST_NAMES);
+    const useEmail = Math.random() > 0.3;
+    const contactInfo = useEmail 
+      ? `${firstName.toLowerCase()}.${lastName.toLowerCase()}@${rand(KOORD_EMAIL_DOMAINS)}`
+      : `+47 ${randInt(400, 499)} ${randInt(10, 99)} ${randInt(100, 999)}`;
+    
     return {
       tilsynsmyndighet: rand(AUTHORITIES),
       organisasjonsnummer: orgnr,
@@ -36,6 +48,10 @@ export function genTilsynskoordineringFor(orgnr) {
       kontrolladresse: `${rand(STREET_NAMES)} ${randInt(1, 99)}, ${randInt(1000, 9999)} ${city}`,
       tilsynsaktivitet: Math.random() > 0.5 ? "Tilsyn" : "Kampanje",
       varighet_timer: randInt(1, 8),
+      kontaktperson: {
+        navn: `${firstName} ${lastName}`,
+        kontaktinfo: contactInfo
+      }
     };
   });
 }
@@ -87,26 +103,60 @@ export function genTilsynsrapportFor(orgnr, fromDate = null, toDate = null) {
           ? `${firstName.toLowerCase()}.${lastName.toLowerCase()}@${rand(EMAIL_DOMAINS)}`
           : `+47 ${randInt(400, 499)} ${randInt(10, 99)} ${randInt(100, 999)}`;
         
-        // Brudd: weighted heavily towards no brudd
-        // ~80% no brudd, ~12% low, ~5% medium, ~3% high
-        const bruddRoll = Math.random();
-        let funn_alvorlighetsgrad;
-        if (bruddRoll < 0.80) {
-          funn_alvorlighetsgrad = "Ingen";
-        } else if (bruddRoll < 0.92) {
-          funn_alvorlighetsgrad = "Lav";
-        } else if (bruddRoll < 0.97) {
-          funn_alvorlighetsgrad = "Medium";
+        // Generate multiple brudd/funn (0-3 per tilsyn)
+        // ~60% chance of no brudd, ~25% chance of 1, ~10% chance of 2, ~5% chance of 3
+        const bruddCountRoll = Math.random();
+        let bruddCount;
+        if (bruddCountRoll < 0.60) {
+          bruddCount = 0;
+        } else if (bruddCountRoll < 0.85) {
+          bruddCount = 1;
+        } else if (bruddCountRoll < 0.95) {
+          bruddCount = 2;
         } else {
-          funn_alvorlighetsgrad = "Høy";
+          bruddCount = 3;
+        }
+        
+        const funn = [];
+        for (let j = 0; j < bruddCount; j++) {
+          // Severity distribution for each brudd
+          const severityRoll = Math.random();
+          let alvorlighetsgrad;
+          if (severityRoll < 0.50) {
+            alvorlighetsgrad = "Lav";
+          } else if (severityRoll < 0.85) {
+            alvorlighetsgrad = "Medium";
+          } else {
+            alvorlighetsgrad = "Høy";
+          }
+          
+          funn.push({
+            alvorlighetsgrad: alvorlighetsgrad,
+            reaksjonstype: rand(REACTIONS),
+            beskrivelse: rand([
+              'Manglende dokumentasjon',
+              'Avvik fra forskrift',
+              'Brudd på internkontroll',
+              'Manglende opplæring',
+              'Feil i rapportering',
+              'Avvik fra godkjenning',
+              'Manglende vedlikehold',
+              'Brudd på HMS-krav'
+            ])
+          });
         }
         
         reports.push({
           tilsynsmyndighet: authority,
           organisasjonsnummer: orgnr,
           dato: dato,
-          funn_alvorlighetsgrad: funn_alvorlighetsgrad,
-          reaksjonstype: funn_alvorlighetsgrad === "Ingen" ? "Ingen" : rand(REACTIONS),
+          funn: funn,
+          // Keep legacy fields for backwards compatibility
+          funn_alvorlighetsgrad: funn.length > 0 ? funn.reduce((max, f) => {
+            const order = { 'Høy': 3, 'Medium': 2, 'Lav': 1 };
+            return order[f.alvorlighetsgrad] > order[max] ? f.alvorlighetsgrad : max;
+          }, 'Lav') : "Ingen",
+          reaksjonstype: funn.length > 0 ? funn[0].reaksjonstype : "Ingen",
           tema: rand(THEMES),
           tilsynsadresse: `${rand(STREET_NAMES)} ${randInt(1, 99)}, ${randInt(1000, 9999)} ${city}`,
           varpisel: rand(['Nei', 'Nei', 'Nei', 'Ja', 'Ikke angitt']),
