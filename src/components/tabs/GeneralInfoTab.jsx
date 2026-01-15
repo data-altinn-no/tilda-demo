@@ -1,6 +1,6 @@
-import React from 'react';
-import { Info, Circle, HelpCircle, ExternalLink, TrendingUp, Building2, ArrowUpRight } from 'lucide-react';
-import { ComposedChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Bar, Legend } from 'recharts';
+import React, { useState } from 'react';
+import { Info, Circle, HelpCircle, ExternalLink, TrendingUp, TrendingDown, Building2, ArrowUpRight, ChevronDown, ChevronUp } from 'lucide-react';
+import { BarChart, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Bar, Legend } from 'recharts';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui';
 import { isBrudd } from '../../data/aggregators.js';
 
@@ -59,67 +59,37 @@ function formatPeriodLabel(start, end) {
 }
 
 /**
- * Find which period index a date belongs to
+ * Aggregate tilsyn data by year for the chart
  */
-function getPeriodIndex(dateStr, periods) {
-  const date = new Date(dateStr);
-  for (let i = 0; i < periods.length; i++) {
-    if (date >= periods[i].start && date < periods[i].end) {
-      return i;
-    }
-  }
-  // Check if it's in the last period (inclusive of end date)
-  if (periods.length > 0 && date <= periods[periods.length - 1].end) {
-    return periods.length - 1;
-  }
-  return -1;
-}
-
-/**
- * Aggregate tilsyn data by dynamic periods
- * Splits the date range into 10 equal parts
- */
-function aggregateTilsynByDynamicPeriods(rap, fromDate, toDate) {
-  const allAuthorities = new Set();
+function aggregateTilsynByYear(rap) {
+  const yearData = {};
   
-  // Generate dynamic periods
-  const periods = generateDynamicPeriods(fromDate, toDate, 10);
-  
-  // Initialize period data
-  const periodData = periods.map(p => ({
-    periode: p.index,
-    periodeLabel: p.label,
-    brudd: 0,
-    tilsyn: 0
-  }));
-  
-  // Aggregate actual data
   if (rap && rap.length > 0) {
     rap.forEach(r => {
       if (!r.dato) return;
-      const periodIndex = getPeriodIndex(r.dato, periods);
-      if (periodIndex === -1) return;
+      const year = r.dato.substring(0, 4);
       
-      const auth = r.tilsynsmyndighet || 'Ukjent';
-      allAuthorities.add(auth);
-      
-      periodData[periodIndex].tilsyn = (periodData[periodIndex].tilsyn || 0) + 1;
-      
-      if (!periodData[periodIndex][auth]) {
-        periodData[periodIndex][auth] = 0;
+      if (!yearData[year]) {
+        yearData[year] = {
+          year,
+          tilsyn: 0,
+          brudd: 0,
+          myndigheter: new Set()
+        };
       }
-      periodData[periodIndex][auth]++;
       
-      // Count brudd (violations)
+      yearData[year].tilsyn++;
+      yearData[year].myndigheter.add(r.tilsynsmyndighet || 'Ukjent');
+      
       if (isBrudd(r)) {
-        periodData[periodIndex].brudd++;
+        yearData[year].brudd++;
       }
     });
   }
   
-  const authorities = Array.from(allAuthorities).sort();
-  
-  return { data: periodData, authorities };
+  return Object.values(yearData)
+    .map(y => ({ ...y, myndigheter: y.myndigheter.size }))
+    .sort((a, b) => a.year.localeCompare(b.year));
 }
 
 /**
@@ -301,6 +271,8 @@ export function GeneralInfoTab({
   relatedCompanies,
   onRelatedCompanyClick
 }) {
+  const [showYearlyOverview, setShowYearlyOverview] = useState(false);
+
   // Check if organization is a gazelle
   const isGazelle = React.useMemo(() => 
     isGazelleOrganisation(financialData, orgDetails), 
@@ -319,11 +291,54 @@ export function GeneralInfoTab({
     });
   }, [rap, fromDate, toDate]);
 
-  // Aggregate tilsyn by dynamic periods (10 equal parts of the date range)
-  const { data: tilsynByPeriodData, authorities: tilsynAuthorities } = React.useMemo(() => 
-    aggregateTilsynByDynamicPeriods(filteredRap, fromDate, toDate), 
-    [filteredRap, fromDate, toDate]
+  // Aggregate tilsyn by year for the chart
+  const chartData = React.useMemo(() => 
+    aggregateTilsynByYear(filteredRap), 
+    [filteredRap]
   );
+
+  // Aggregate yearly overview data
+  const yearlyOverview = React.useMemo(() => {
+    const yearData = {};
+    
+    rap.forEach(r => {
+      if (!r.dato) return;
+      const year = r.dato.substring(0, 4);
+      
+      if (!yearData[year]) {
+        yearData[year] = {
+          year,
+          tilsyn: 0,
+          brudd: 0,
+          reaksjoner: 0,
+          myndigheter: new Set()
+        };
+      }
+      
+      yearData[year].tilsyn++;
+      yearData[year].myndigheter.add(r.tilsynsmyndighet);
+      
+      // Count tilsyn with brudd (not total funn) to match aggregated bruddCount
+      if (isBrudd(r)) {
+        yearData[year].brudd++;
+      }
+      
+      // Count reaksjoner from funn array
+      if (r.funn && r.funn.length > 0) {
+        r.funn.forEach(f => {
+          if (f.reaksjonstype && f.reaksjonstype !== 'Ingen') {
+            yearData[year].reaksjoner++;
+          }
+        });
+      } else if (r.reaksjonstype && r.reaksjonstype !== 'Ingen') {
+        yearData[year].reaksjoner++;
+      }
+    });
+    
+    return Object.values(yearData)
+      .map(y => ({ ...y, myndigheter: y.myndigheter.size }))
+      .sort((a, b) => b.year.localeCompare(a.year));
+  }, [rap]);
 
   return (
     <Card>
@@ -367,7 +382,7 @@ export function GeneralInfoTab({
 
         {/* Annual Turnover - Last 3 Years */}
         {financialData?.regnskapsaar && financialData.regnskapsaar.length > 0 && (() => {
-          const sortedYears = [...financialData.regnskapsaar].sort((a, b) => b.aar - a.aar).slice(0, 3);
+          const sortedYears = [...financialData.regnskapsaar].sort((a, b) => a.aar - b.aar).slice(-3);
           return (
             <div className="grid md:grid-cols-3 gap-4">
               {sortedYears.map((year, index) => {
@@ -378,19 +393,32 @@ export function GeneralInfoTab({
                   maximumFractionDigits: 0
                 }).format(turnover);
                 
-                // Compare with next year in array (which is the previous year chronologically)
-                const nextYearData = sortedYears[index + 1];
-                const previousTurnover = nextYearData?.finansielleNokkeltal?.omsetning?.beloep || 0;
+                // Compare with previous year in array (which is the earlier year chronologically)
+                const prevYearData = sortedYears[index - 1];
+                const previousTurnover = prevYearData?.finansielleNokkeltal?.omsetning?.beloep || 0;
                 
-                let textColorClass = 'text-gray-700';
-                if (nextYearData) {
-                  textColorClass = turnover >= previousTurnover ? 'text-green-600' : 'text-red-600';
-                }
+                // Calculate percentage change
+                const percentChange = prevYearData && previousTurnover > 0
+                  ? ((turnover - previousTurnover) / previousTurnover) * 100
+                  : null;
+                
+                const isPositive = percentChange !== null && percentChange >= 0;
+                const colorClass = percentChange === null ? 'text-gray-700' : isPositive ? 'text-green-600' : 'text-red-600';
                 
                 return (
                   <div key={year.aar} className="bg-gray-50 p-4 rounded-lg">
                     <div className="text-sm text-gray-600">Omsetning {year.aar}</div>
-                    <div className={`text-lg font-semibold ${textColorClass}`}>{formattedTurnover}</div>
+                    <div className={`text-lg font-semibold ${colorClass}`}>{formattedTurnover}</div>
+                    {percentChange !== null && (
+                      <div className={`flex items-center gap-1 text-sm mt-1 ${colorClass}`}>
+                        {isPositive ? (
+                          <TrendingUp className="w-4 h-4" />
+                        ) : (
+                          <TrendingDown className="w-4 h-4" />
+                        )}
+                        <span>{isPositive ? '+' : ''}{percentChange.toFixed(1)}%</span>
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -416,48 +444,115 @@ export function GeneralInfoTab({
           </div>
         )}
         
-        {/* Statistics Row */}
-        <div className="text-sm font-medium text-gray-700 mt-2">Treff i angitt tidsperiode</div>
-        <div className="grid md:grid-cols-4 gap-4">
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <div className="text-sm text-gray-600 flex items-center">
-              Antall tilsynsmyndigheter
-              <InfoTooltip text="Antall unike tilsynsmyndigheter som har utført tilsyn på denne organisasjonen i valgt periode." />
-            </div>
-            <div className="text-xl font-semibold">{Object.keys(perMynd).length}</div>
+        {/* Statistics Row - Clickable */}
+        <button
+          type="button"
+          onClick={() => setShowYearlyOverview(!showYearlyOverview)}
+          className="w-full text-left"
+        >
+          <div className="flex items-center justify-between text-sm font-medium text-gray-700 mt-2 mb-2">
+            <span>Treff i angitt tidsperiode</span>
+            <span className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800">
+              {showYearlyOverview ? 'Skjul' : 'Vis'} årsoversikt
+              {showYearlyOverview ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </span>
           </div>
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <div className="text-sm text-gray-600 flex items-center">
-              Brudd
-              <InfoTooltip text="Antall registrerte avvik eller regelbrudd fra tilsyn. Inkluderer alle funn med alvorlighetsgrad eller reaksjonstype. Status baseres på andel tilsyn med brudd." />
+          <div className="grid md:grid-cols-4 gap-4">
+            <div className="bg-gray-50 p-4 rounded-lg hover:bg-gray-100 transition-colors">
+              <div className="text-sm text-gray-600 flex items-center">
+                Antall tilsynsmyndigheter
+                <InfoTooltip text="Antall unike tilsynsmyndigheter som har utført tilsyn på denne organisasjonen i valgt periode." />
+              </div>
+              <div className="text-xl font-semibold">{Object.keys(perMynd).length}</div>
             </div>
-            <div className={`text-2xl font-bold ${getStatusColor()}`}>{bruddCount}</div>
-            <div className="text-sm text-gray-600 mt-1">
-              {rap.length > 0 ? (
-                <>
-                  {Math.round((bruddCount / rap.length) * 100)}% av tilsyn
-                  {bruddCount === 0 ? ' - Utmerket' : (bruddCount / rap.length) < 0.2 ? ' - Bra' : (bruddCount / rap.length) < 0.5 ? ' - Moderat' : ' - Kritisk'}
-                </>
-              ) : (
-                'Ingen data'
-              )}
+            <div className="bg-gray-50 p-4 rounded-lg hover:bg-gray-100 transition-colors">
+              <div className="text-sm text-gray-600 flex items-center">
+                Brudd
+                <InfoTooltip text="Antall registrerte avvik eller regelbrudd fra tilsyn. Inkluderer alle funn med alvorlighetsgrad eller reaksjonstype. Status baseres på andel tilsyn med brudd." />
+              </div>
+              <div className={`text-2xl font-bold ${getStatusColor()}`}>{bruddCount}</div>
+              <div className="text-sm text-gray-600 mt-1">
+                {rap.length > 0 ? (
+                  <>
+                    {Math.round((bruddCount / rap.length) * 100)}% av tilsyn
+                    {bruddCount === 0 ? ' - Utmerket' : (bruddCount / rap.length) < 0.2 ? ' - Bra' : (bruddCount / rap.length) < 0.5 ? ' - Moderat' : ' - Kritisk'}
+                  </>
+                ) : (
+                  'Ingen data'
+                )}
+              </div>
+            </div>
+            <div className="bg-gray-50 p-4 rounded-lg hover:bg-gray-100 transition-colors">
+              <div className="text-sm text-gray-600 flex items-center">
+                Utførte tilsyn
+                <InfoTooltip text="Totalt antall gjennomførte tilsyn og kontroller registrert for denne organisasjonen fra alle tilsynsmyndigheter." />
+              </div>
+              <div className="text-xl font-semibold">{rap.length}</div>
+            </div>
+            <div className="bg-gray-50 p-4 rounded-lg hover:bg-gray-100 transition-colors">
+              <div className="text-sm text-gray-600 flex items-center">
+                Fremtidige tilsyn
+                <InfoTooltip text="Planlagte og koordinerte tilsyn som er registrert for fremtiden. Viser kommende tilsynsaktiviteter fra ulike myndigheter." />
+              </div>
+              <div className="text-xl font-semibold">{koord.length}</div>
             </div>
           </div>
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <div className="text-sm text-gray-600 flex items-center">
-              Utførte tilsyn
-              <InfoTooltip text="Totalt antall gjennomførte tilsyn og kontroller registrert for denne organisasjonen fra alle tilsynsmyndigheter." />
+        </button>
+        
+        {/* Yearly Overview Table - Transposed: years as columns, metrics as rows */}
+        {showYearlyOverview && yearlyOverview.length > 0 && (() => {
+          const sortedYears = [...yearlyOverview].sort((a, b) => a.year.localeCompare(b.year));
+          return (
+            <div className="bg-white border border-gray-200 rounded-lg overflow-hidden mt-2 overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="text-left px-4 py-3 font-medium text-gray-700 sticky left-0 bg-gray-50"></th>
+                    {sortedYears.map(row => (
+                      <th key={row.year} className="text-center px-4 py-3 font-medium text-gray-700 min-w-[80px]">
+                        {row.year}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="bg-white">
+                    <td className="px-4 py-2 font-medium text-gray-700 sticky left-0 bg-white">Tilsyn</td>
+                    {sortedYears.map(row => (
+                      <td key={row.year} className="px-4 py-2 text-center text-gray-700">{row.tilsyn}</td>
+                    ))}
+                  </tr>
+                  <tr className="bg-gray-50">
+                    <td className="px-4 py-2 font-medium text-gray-700 sticky left-0 bg-gray-50">Brudd</td>
+                    {sortedYears.map(row => (
+                      <td key={row.year} className="px-4 py-2 text-center">
+                        <span className={row.brudd > 0 ? 'text-red-600 font-medium' : 'text-gray-700'}>
+                          {row.brudd}
+                        </span>
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="bg-white">
+                    <td className="px-4 py-2 font-medium text-gray-700 sticky left-0 bg-white">Reaksjoner</td>
+                    {sortedYears.map(row => (
+                      <td key={row.year} className="px-4 py-2 text-center">
+                        <span className={row.reaksjoner > 0 ? 'text-orange-600 font-medium' : 'text-gray-700'}>
+                          {row.reaksjoner}
+                        </span>
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="bg-gray-50">
+                    <td className="px-4 py-2 font-medium text-gray-700 sticky left-0 bg-gray-50">Myndigheter</td>
+                    {sortedYears.map(row => (
+                      <td key={row.year} className="px-4 py-2 text-center text-gray-700">{row.myndigheter}</td>
+                    ))}
+                  </tr>
+                </tbody>
+              </table>
             </div>
-            <div className="text-xl font-semibold">{rap.length}</div>
-          </div>
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <div className="text-sm text-gray-600 flex items-center">
-              Fremtidige tilsyn
-              <InfoTooltip text="Planlagte og koordinerte tilsyn som er registrert for fremtiden. Viser kommende tilsynsaktiviteter fra ulike myndigheter." />
-            </div>
-            <div className="text-xl font-semibold">{koord.length}</div>
-          </div>
-        </div>
+          );
+        })()}
         
         {/* Related Companies */}
         {relatedCompanies && relatedCompanies.companies && relatedCompanies.companies.length > 0 && (
@@ -486,10 +581,10 @@ export function GeneralInfoTab({
           </div>
         )}
         
-        {/* Combined Chart - Tilsyn by Authority (Bars) + Brudd Trend (Line) */}
+        {/* Grouped Bar Chart - Tilsyn, Brudd, Myndigheter per year */}
         <div className="mt-6" role="figure" aria-labelledby="chart-title" aria-describedby="chart-description">
           <div id="chart-title" className="text-sm text-gray-600 mb-3">
-            Tilsyn og brudd over tid
+            Tilsyn, brudd og tilsynsmyndigheter per år
             {fromDate && toDate && (
               <span className="text-xs text-gray-400 ml-2">
                 ({fromDate} til {toDate})
@@ -498,31 +593,24 @@ export function GeneralInfoTab({
           </div>
           {/* Screen reader description for chart data */}
           <div id="chart-description" className="sr-only">
-            Graf som viser antall tilsyn og brudd over tid. 
-            {tilsynByPeriodData && tilsynByPeriodData.length > 0 && (
-              `Totalt ${tilsynByPeriodData.reduce((sum, d) => {
-                let periodTotal = 0;
-                tilsynAuthorities.forEach(auth => periodTotal += d[auth] || 0);
-                return sum + periodTotal;
-              }, 0)} tilsyn og ${tilsynByPeriodData.reduce((sum, d) => sum + (d.brudd || 0), 0)} brudd i perioden.`
+            Graf som viser antall tilsyn, brudd og tilsynsmyndigheter per år. 
+            {chartData && chartData.length > 0 && (
+              `Totalt ${chartData.reduce((sum, d) => sum + (d.tilsyn || 0), 0)} tilsyn og ${chartData.reduce((sum, d) => sum + (d.brudd || 0), 0)} brudd i perioden.`
             )}
           </div>
           <div className="h-64" aria-hidden="true">
             <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={tilsynByPeriodData}>
+              <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="periodeLabel" tick={{ fontSize: 10 }} />
-                <YAxis yAxisId="left" tick={{ fontSize: 10 }} label={{ value: 'Utførte tilsyn', angle: -90, position: 'insideLeft', fontSize: 10 }} />
-                <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10 }} label={{ value: 'Brudd', angle: 90, position: 'insideRight', fontSize: 10 }} />
+                <XAxis dataKey="year" tick={{ fontSize: 10 }} />
+                <YAxis tick={{ fontSize: 10 }} />
                 <Tooltip 
                   content={({ active, payload, label }) => {
                     if (!active || !payload) return null;
-                    const filtered = payload.filter(p => p.value > 0);
-                    if (filtered.length === 0) return null;
                     return (
                       <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3">
                         <p className="font-medium text-gray-900 mb-2">{label}</p>
-                        {filtered.map((entry, index) => (
+                        {payload.map((entry, index) => (
                           <p key={index} className="text-sm" style={{ color: entry.color }}>
                             {entry.name}: {entry.value}
                           </p>
@@ -533,32 +621,25 @@ export function GeneralInfoTab({
                 />
                 <Legend wrapperStyle={{ fontSize: 10 }} />
                 <Bar 
-                  dataKey={(entry) => {
-                    let total = 0;
-                    tilsynAuthorities.forEach(auth => {
-                      total += entry[auth] || 0;
-                    });
-                    return total;
-                  }}
-                  yAxisId="left"
+                  dataKey="tilsyn"
                   fill="#6366f1"
                   name="Tilsyn"
                   radius={[4, 4, 0, 0]}
                 />
-                <Line 
-                  type="monotone" 
-                  dataKey="brudd" 
-                  yAxisId="right"
-                  stroke="#000000" 
-                  strokeWidth={3} 
-                  dot={{ fill: '#000000', strokeWidth: 2, r: 4 }}
+                <Bar 
+                  dataKey="brudd"
+                  fill="#dc2626"
                   name="Brudd"
+                  radius={[4, 4, 0, 0]}
                 />
-              </ComposedChart>
+                <Bar 
+                  dataKey="myndigheter"
+                  fill="#16a34a"
+                  name="Myndigheter"
+                  radius={[4, 4, 0, 0]}
+                />
+              </BarChart>
             </ResponsiveContainer>
-          </div>
-          <div className="text-xs text-gray-500 mt-2 text-center">
-            Søyler: Antall tilsyn | Linje: Antall brudd
           </div>
         </div>
       </CardContent>
