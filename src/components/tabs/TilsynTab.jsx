@@ -312,13 +312,6 @@ export function TilsynTab({
                                 <div key={fIdx} className="border-l-2 border-red-200 pl-2 py-1 space-y-1">
                                   <div className="flex items-center gap-2 flex-wrap">
                                     <span className={`text-xs px-1.5 py-0.5 rounded ${
-                                      f.reaksjonstype === 'Pålegg' || f.reaksjonstype === 'Tvangsmulkt' 
-                                        ? 'bg-red-100 text-red-700' 
-                                        : 'bg-neutral-100 text-neutral-600'
-                                    }`}>
-                                      {f.reaksjonstype}
-                                    </span>
-                                    <span className={`text-xs px-1.5 py-0.5 rounded ${
                                       f.alvorlighetsgrad === 'Høy' 
                                         ? 'bg-red-100 text-red-700' 
                                         : f.alvorlighetsgrad === 'Medium'
@@ -327,10 +320,20 @@ export function TilsynTab({
                                     }`}>
                                       {f.alvorlighetsgrad}
                                     </span>
+                                    {f.beskrivelse && (
+                                      <span className="text-xs text-neutral-600">{f.beskrivelse}</span>
+                                    )}
                                   </div>
-                                  {f.beskrivelse && (
-                                    <div className="text-xs text-neutral-600">{f.beskrivelse}</div>
-                                  )}
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs text-neutral-500">Reaksjon:</span>
+                                    <span className={`text-xs px-1.5 py-0.5 rounded ${
+                                      f.reaksjonstype === 'Pålegg' || f.reaksjonstype === 'Tvangsmulkt' 
+                                        ? 'bg-red-100 text-red-700' 
+                                        : 'bg-neutral-100 text-neutral-600'
+                                    }`}>
+                                      {f.reaksjonstype}
+                                    </span>
+                                  </div>
                                 </div>
                               ))}
                             </>
