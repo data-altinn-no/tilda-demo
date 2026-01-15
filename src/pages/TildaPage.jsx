@@ -198,12 +198,20 @@ export function TildaPage() {
         animate={{ opacity: 1, y: 0 }} 
         className="grid gap-8"
       >
+        {/* Skip link for keyboard users */}
+        <a 
+          href="#main-content" 
+          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary-600 focus:text-white focus:rounded-lg focus:outline-none"
+        >
+          Hopp til hovedinnhold
+        </a>
+
         {/* Back link */}
         <Link 
           to="/" 
           className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 font-medium transition-colors w-fit"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="w-4 h-4" aria-hidden="true" />
           Tilbake til forsiden
         </Link>
 
@@ -229,35 +237,44 @@ export function TildaPage() {
           <div className="flex flex-col md:flex-row gap-6 items-end justify-between">
             <div className="flex-1 w-full grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               <div className="w-full">
-                <label className="block text-sm font-semibold text-neutral-700 mb-2">Organisasjonsnummer</label>
+                <label htmlFor="orgnr-input" className="block text-sm font-semibold text-neutral-700 mb-2">Organisasjonsnummer</label>
                 <div className="relative">
-                  <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
+                  <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" aria-hidden="true" />
                   <Input 
+                    id="orgnr-input"
                     className={`digdir-input pl-10 h-12 text-lg w-full ${!isValidOrgnr && orgnr.length > 0 ? 'border-danger text-danger' : ''}`}
                     value={orgnr} 
                     onChange={handleInputChange} 
                     placeholder="9 siffer"
                     maxLength={9}
+                    aria-describedby={!isValidOrgnr && orgnr.length > 0 ? 'orgnr-error' : undefined}
+                    aria-invalid={!isValidOrgnr && orgnr.length > 0}
                   />
+                  {!isValidOrgnr && orgnr.length > 0 && (
+                    <span id="orgnr-error" className="sr-only">Organisasjonsnummer må være 9 siffer</span>
+                  )}
                 </div>
               </div>
               
               <div className="w-full">
-                <label className="block text-sm font-semibold text-neutral-700 mb-2">Fra dato</label>
+                <label htmlFor="from-date-input" className="block text-sm font-semibold text-neutral-700 mb-2">Fra dato</label>
                 <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" aria-hidden="true" />
                   <Input 
+                    id="from-date-input"
                     type="date"
                     className="digdir-input pl-10 h-12 w-full"
                     value={fromDate}
                     onChange={(e) => setFromDate(e.target.value)}
+                    aria-label="Fra dato - velg startdato for søket"
                   />
                 </div>
               </div>
               
               <div className="flex items-center h-12 mt-auto">
-                <label className="flex items-center gap-3 p-3 rounded-digdir hover:bg-neutral-50 cursor-pointer transition-colors w-full border border-neutral-200">
+                <label htmlFor="mulighetsrom-checkbox" className="flex items-center gap-3 p-3 rounded-digdir hover:bg-neutral-50 cursor-pointer transition-colors w-full border border-neutral-200">
                   <input 
+                    id="mulighetsrom-checkbox"
                     type="checkbox" 
                     checked={mulighetsrom} 
                     onChange={(e) => setMulighetsrom(e.target.checked)}
@@ -273,6 +290,7 @@ export function TildaPage() {
                 id="search-button"
                 onClick={handleLookup} 
                 disabled={!isValidOrgnr || isLoading}
+                aria-label="Søk etter organisasjon"
                 className={`h-12 px-8 text-base digdir-button min-w-[120px] ${
                   (!isValidOrgnr || isLoading) 
                     ? 'bg-neutral-200 text-neutral-500 cursor-not-allowed' 
@@ -286,6 +304,7 @@ export function TildaPage() {
                 {hasData && mulighetsrom && (
                   <Button 
                     onClick={() => setShowComplianceModal(true)}
+                    aria-label="Vurder etterlevelse for organisasjonen"
                     className="h-12 px-8 text-base digdir-button w-full bg-green-600 hover:bg-green-700 text-white transition-colors"
                   >
                     Vurder
@@ -294,8 +313,12 @@ export function TildaPage() {
               </div>
               
               {hasLookedUp && (
-                <div className="w-12 h-12 flex items-center justify-center rounded-full bg-neutral-50 border border-neutral-200">
-                  <Circle className={`w-6 h-6 ${getStatusColor()}`} fill="currentColor" />
+                <div 
+                  className="w-12 h-12 flex items-center justify-center rounded-full bg-neutral-50 border border-neutral-200"
+                  role="status"
+                  aria-label={`Status: ${bruddCount === 0 ? 'Ingen brudd funnet' : bruddCount < 3 ? 'Noen brudd funnet' : 'Mange brudd funnet'}`}
+                >
+                  <Circle className={`w-6 h-6 ${getStatusColor()}`} fill="currentColor" aria-hidden="true" />
                 </div>
               )}
             </div>
@@ -307,7 +330,7 @@ export function TildaPage() {
           <div className="flex flex-col gap-2">
             {/* Primary Tabs */}
             <div className="glass-card rounded-xl p-2">
-              <nav className="flex flex-wrap items-center gap-1">
+              <nav className="flex flex-wrap items-center gap-1" role="tablist" aria-label="Hovednavigasjon">
                 {baseTabs.map((tab) => {
                   const Icon = tab.icon;
                   const isActive = activeTab === tab.id;
@@ -315,13 +338,16 @@ export function TildaPage() {
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
+                      role="tab"
+                      aria-selected={isActive}
+                      aria-controls={`${tab.id}-panel`}
                       className={`flex items-center gap-2 py-2 px-3 rounded-lg font-medium text-sm transition-all duration-200 whitespace-nowrap ${
                         isActive
                           ? 'bg-white text-primary-700 shadow-sm ring-1 ring-black/5'
                           : 'text-slate-600 hover:text-slate-900 hover:bg-white/40'
                       }`}
                     >
-                      <Icon className={`w-4 h-4 ${isActive ? 'text-primary-500' : 'text-slate-400'}`} />
+                      <Icon className={`w-4 h-4 ${isActive ? 'text-primary-500' : 'text-slate-400'}`} aria-hidden="true" />
                       {tab.label}
                     </button>
                   );
@@ -336,7 +362,7 @@ export function TildaPage() {
                 animate={{ opacity: 1, height: 'auto' }}
                 className="glass-card rounded-xl p-2 bg-indigo-50/50 border-indigo-100/50"
               >
-                <nav className="flex flex-wrap items-center gap-1">
+                <nav className="flex flex-wrap items-center gap-1" role="tablist" aria-label="Mulighetsrom navigasjon">
                   {mulighetsromTabs.map((tab) => {
                     const Icon = tab.icon;
                     const isActive = activeTab === tab.id;
@@ -344,13 +370,16 @@ export function TildaPage() {
                       <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
+                        role="tab"
+                        aria-selected={isActive}
+                        aria-controls={`${tab.id}-panel`}
                         className={`flex items-center gap-2 py-1.5 px-3 rounded-lg font-medium text-sm transition-all duration-200 whitespace-nowrap ${
                           isActive
                             ? 'bg-white text-indigo-700 shadow-sm ring-1 ring-indigo-100'
                             : 'text-indigo-600/70 hover:text-indigo-800 hover:bg-white/40'
                         }`}
                       >
-                        <Icon className={`w-4 h-4 ${isActive ? 'text-indigo-500' : 'text-indigo-400'}`} />
+                        <Icon className={`w-4 h-4 ${isActive ? 'text-indigo-500' : 'text-indigo-400'}`} aria-hidden="true" />
                         {tab.label}
                       </button>
                     );
@@ -413,12 +442,16 @@ export function TildaPage() {
         )}
 
         {/* Tab Content */}
-        {hasData ? (
+        <main id="main-content" role="main" aria-label="Hovedinnhold">
+          {hasData ? (
           <motion.div
             key={activeTab}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
+            role="tabpanel"
+            id={`${activeTab}-panel`}
+            aria-labelledby={activeTab}
           >
             {/* Content rendering logic remains mostly the same, just wrapped in motion div */}
             {activeTab === "general" && (
@@ -515,7 +548,7 @@ export function TildaPage() {
         ) : (
           <div className="glass-card rounded-2xl p-12 text-center max-w-2xl mx-auto mt-8">
             <div className="w-24 h-24 bg-primary-50 rounded-full flex items-center justify-center mx-auto mb-6 animate-float">
-              <Database className="w-12 h-12 text-primary-300" />
+              <Database className="w-12 h-12 text-primary-300" aria-hidden="true" />
             </div>
             <h3 className="text-2xl font-bold text-slate-800 mb-3">Ingen data å vise</h3>
             <p className="text-slate-500 max-w-md mx-auto">
@@ -523,6 +556,7 @@ export function TildaPage() {
             </p>
           </div>
         )}
+        </main>
       </motion.div>
 
       {/* Compliance Assessment Modal */}

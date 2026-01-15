@@ -162,7 +162,11 @@ export function TilsynTab({
                                   )}
                                 </div>
                                 <div className="flex items-center gap-1">
-                                  <div className="relative group">
+                                  <button 
+                                    type="button"
+                                    className="relative group focus:outline-none focus:ring-2 focus:ring-primary-500 rounded"
+                                    aria-describedby={`uanmeldt-tooltip-${idx}`}
+                                  >
                                     <span className={`flex items-center gap-1 text-xs px-1.5 py-0.5 rounded ${
                                       r.varpisel === 'Ja' 
                                         ? 'bg-orange-100 text-orange-700' 
@@ -170,31 +174,43 @@ export function TilsynTab({
                                           ? 'bg-blue-100 text-blue-700'
                                           : 'bg-gray-100 text-gray-700'
                                     }`}>
-                                      {r.varpisel === 'Ja' ? <BellOff className="w-3 h-3" /> : <Bell className="w-3 h-3" />}
+                                      {r.varpisel === 'Ja' ? <BellOff className="w-3 h-3" aria-hidden="true" /> : <Bell className="w-3 h-3" aria-hidden="true" />}
                                       Uanmeldt: {r.varpisel || 'Ikke angitt'}
-                                      <HelpCircle className="w-3 h-3 ml-0.5 text-gray-400" />
+                                      <HelpCircle className="w-3 h-3 ml-0.5 text-gray-400" aria-hidden="true" />
                                     </span>
-                                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-10">
+                                    <div 
+                                      id={`uanmeldt-tooltip-${idx}`}
+                                      role="tooltip"
+                                      className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus:opacity-100 group-focus:visible transition-all duration-200 whitespace-nowrap z-10"
+                                    >
                                       Var tilsynsobjektet varslet på forhånd
-                                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
+                                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800" aria-hidden="true"></div>
                                     </div>
-                                  </div>
+                                  </button>
                                   {r.status && (
-                                    <div className="relative group">
+                                    <button 
+                                      type="button"
+                                      className="relative group focus:outline-none focus:ring-2 focus:ring-primary-500 rounded"
+                                      aria-describedby={`status-tooltip-${idx}`}
+                                    >
                                       <span className={`flex items-center gap-1 text-xs px-1.5 py-0.5 rounded ${
                                         r.status === 'Gjennomført' 
                                           ? 'bg-green-100 text-green-700' 
                                           : 'bg-yellow-100 text-yellow-700'
                                       }`}>
-                                        {r.status === 'Gjennomført' ? <CheckCircle className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
+                                        {r.status === 'Gjennomført' ? <CheckCircle className="w-3 h-3" aria-hidden="true" /> : <Clock className="w-3 h-3" aria-hidden="true" />}
                                         Status: {r.status}
-                                        <HelpCircle className="w-3 h-3 ml-0.5 text-gray-400" />
+                                        <HelpCircle className="w-3 h-3 ml-0.5 text-gray-400" aria-hidden="true" />
                                       </span>
-                                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-10">
+                                      <div 
+                                        id={`status-tooltip-${idx}`}
+                                        role="tooltip"
+                                        className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus:opacity-100 group-focus:visible transition-all duration-200 whitespace-nowrap z-10"
+                                      >
                                         Status på tilsynsgjennomføring
-                                        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
+                                        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800" aria-hidden="true"></div>
                                       </div>
-                                    </div>
+                                    </button>
                                   )}
                                 </div>
                               </div>

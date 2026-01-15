@@ -487,8 +487,8 @@ export function GeneralInfoTab({
         )}
         
         {/* Combined Chart - Tilsyn by Authority (Bars) + Brudd Trend (Line) */}
-        <div className="mt-6">
-          <div className="text-sm text-gray-600 mb-3">
+        <div className="mt-6" role="figure" aria-labelledby="chart-title" aria-describedby="chart-description">
+          <div id="chart-title" className="text-sm text-gray-600 mb-3">
             Tilsyn og brudd over tid
             {fromDate && toDate && (
               <span className="text-xs text-gray-400 ml-2">
@@ -496,7 +496,18 @@ export function GeneralInfoTab({
               </span>
             )}
           </div>
-          <div className="h-64">
+          {/* Screen reader description for chart data */}
+          <div id="chart-description" className="sr-only">
+            Graf som viser antall tilsyn og brudd over tid. 
+            {tilsynByPeriodData && tilsynByPeriodData.length > 0 && (
+              `Totalt ${tilsynByPeriodData.reduce((sum, d) => {
+                let periodTotal = 0;
+                tilsynAuthorities.forEach(auth => periodTotal += d[auth] || 0);
+                return sum + periodTotal;
+              }, 0)} tilsyn og ${tilsynByPeriodData.reduce((sum, d) => sum + (d.brudd || 0), 0)} brudd i perioden.`
+            )}
+          </div>
+          <div className="h-64" aria-hidden="true">
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={tilsynByPeriodData}>
                 <CartesianGrid strokeDasharray="3 3" />
