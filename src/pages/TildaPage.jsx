@@ -349,7 +349,7 @@ export function TildaPage() {
                       role="tab"
                       aria-selected={isActive}
                       aria-controls={`${tab.id}-panel`}
-                      className={`flex items-center gap-2 py-2 px-3 rounded-lg font-medium text-sm transition-all duration-200 whitespace-nowrap ${
+                      className={`flex items-center gap-3 py-3 px-5 rounded-lg font-medium text-base transition-all duration-200 whitespace-nowrap ${
                         isActive
                           ? 'bg-white text-primary-700 shadow-sm ring-1 ring-black/5'
                           : 'text-slate-600 hover:text-slate-900 hover:bg-white/40'
@@ -381,7 +381,7 @@ export function TildaPage() {
                         role="tab"
                         aria-selected={isActive}
                         aria-controls={`${tab.id}-panel`}
-                        className={`flex items-center gap-2 py-1.5 px-3 rounded-lg font-medium text-sm transition-all duration-200 whitespace-nowrap ${
+                        className={`flex items-center gap-3 py-2.5 px-4 rounded-lg font-medium text-base transition-all duration-200 whitespace-nowrap ${
                           isActive
                             ? 'bg-white text-indigo-700 shadow-sm ring-1 ring-indigo-100'
                             : 'text-indigo-600/70 hover:text-indigo-800 hover:bg-white/40'
@@ -398,8 +398,8 @@ export function TildaPage() {
           </div>
         )}
 
-        {/* Authority Filter Row - only show on tilsyn, meldinger, eksperiment, download tabs */}
-        {hasData && allAuthorities.length > 0 && ['tilsyn', 'meldinger', 'eksperiment', 'download'].includes(activeTab) && (
+        {/* Authority Filter Row - only show on tilsyn, eksperiment, download tabs */}
+        {hasData && allAuthorities.length > 0 && ['tilsyn', 'eksperiment', 'download'].includes(activeTab) && (
           <div className="glass-card rounded-xl p-2 -mt-4">
             <div className="flex items-center gap-1.5 flex-wrap">
               {allAuthorities.map((authority) => {
@@ -493,8 +493,6 @@ export function TildaPage() {
             {activeTab === "meldinger" && (
               <MessagesTab 
                 meldinger={meldinger}
-                selectedAuthority={selectedAuthorities[0]}
-                onClearSelection={() => setSelectedAuthorities([])}
                 generatedFor={generatedFor}
                 fromDate={fromDate}
                 toDate={toDate}

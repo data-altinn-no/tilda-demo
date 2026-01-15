@@ -7,8 +7,9 @@ import { genSendteMeldingerFor } from '../../data/generators.js';
 /**
  * Messages Tab Component - Displays messages with sub-tabs for received and sent
  */
-export function MessagesTab({ meldinger, selectedAuthority, onClearSelection, generatedFor, fromDate, toDate }) {
+export function MessagesTab({ meldinger, generatedFor, fromDate, toDate }) {
   const [activeTab, setActiveTab] = useState('mottatte');
+  const [selectedMessageAuthority, setSelectedMessageAuthority] = useState(null);
   
   // Generate sent messages based on date range
   const generatedSentMessages = useMemo(() => {
@@ -22,26 +23,29 @@ export function MessagesTab({ meldinger, selectedAuthority, onClearSelection, ge
   useEffect(() => {
     setSentMessages(generatedSentMessages);
   }, [generatedSentMessages]);
+  
+  // Get unique authorities from message data
+  const messageAuthorities = useMemo(() => {
+    const authorities = new Set();
+    
+    // Add authorities from received messages (senders)
+    meldinger.forEach(m => {
+      if (m.mottaker) authorities.add(m.mottaker);
+    });
+    
+    // Add authorities from sent messages (recipients)
+    sentMessages.forEach(m => {
+      if (m.recipient) authorities.add(m.recipient);
+    });
+    
+    return Array.from(authorities).sort();
+  }, [meldinger, sentMessages]);
+  
   const [sendForm, setSendForm] = useState({
     type: '',
     recipient: '',
     message: ''
   });
-
-  const renderTabButton = (tabId, label, icon) => (
-    <button
-      key={tabId}
-      onClick={() => setActiveTab(tabId)}
-      className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-        activeTab === tabId
-          ? 'bg-blue-100 text-blue-700 border border-blue-200'
-          : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-      }`}
-    >
-      {icon}
-      {label}
-    </button>
-  );
 
   const handleSendMessage = () => {
     if (!sendForm.type || !sendForm.recipient || !sendForm.message.trim()) {
@@ -60,6 +64,21 @@ export function MessagesTab({ meldinger, selectedAuthority, onClearSelection, ge
     setSentMessages(prev => [newMessage, ...prev]);
     setSendForm({ type: '', recipient: '', message: '' });
   };
+
+  const renderTabButton = (tabId, label, icon) => (
+    <button
+      key={tabId}
+      onClick={() => setActiveTab(tabId)}
+      className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+        activeTab === tabId
+          ? 'bg-blue-100 text-blue-700 border border-blue-200'
+          : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+      }`}
+    >
+      {icon}
+      {label}
+    </button>
+  );
 
   const getMeldingTypeColor = (type) => {
     switch(type) {
@@ -84,31 +103,39 @@ export function MessagesTab({ meldinger, selectedAuthority, onClearSelection, ge
     <Card className="rounded-2xl">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Mail className="w-5 h-5" />
-            Meldinger
+          <div className="flex gap-2">
+            {renderTabButton('mottatte', `Mottatte (${selectedMessageAuthority ? meldinger.filter(m => m.mottaker === selectedMessageAuthority).length : meldinger.length})`, <Inbox className="w-4 h-4" />)}
+            {renderTabButton('sendte', `Sendte (${selectedMessageAuthority ? sentMessages.filter(m => m.recipient === selectedMessageAuthority).length : sentMessages.length})`, <Send className="w-4 h-4" />)}
+            {renderTabButton('ny-melding', 'Ny melding', <Plus className="w-4 h-4" />)}
           </div>
-          {selectedAuthority && (
+          {messageAuthorities.length > 0 && (
             <div className="flex items-center gap-2">
-              <Badge className="bg-blue-100 text-blue-800">Filtrert: {selectedAuthority}</Badge>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={onClearSelection}
-                className="text-xs px-2 py-1"
-              >
-                Fjern filter
-              </Button>
+              <div className="relative">
+                <select
+                  value={selectedMessageAuthority || ''}
+                  onChange={(e) => setSelectedMessageAuthority(e.target.value || null)}
+                  className="px-3 py-1 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white pr-8"
+                >
+                  <option value="">Alle myndigheter</option>
+                  {messageAuthorities.map(authority => (
+                    <option key={authority} value={authority}>{authority}</option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none" />
+              </div>
+              {selectedMessageAuthority && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setSelectedMessageAuthority(null)}
+                  className="text-xs px-2 py-1"
+                >
+                  Fjern filter
+                </Button>
+              )}
             </div>
           )}
         </CardTitle>
-        
-        {/* Tab Navigation */}
-        <div className="flex gap-2 mt-4">
-          {renderTabButton('mottatte', 'Mottatte', <Inbox className="w-4 h-4" />)}
-          {renderTabButton('sendte', 'Sendte', <Send className="w-4 h-4" />)}
-          {renderTabButton('ny-melding', 'Ny melding', <Plus className="w-4 h-4" />)}
-        </div>
       </CardHeader>
       <CardContent className="grid gap-4">
         {activeTab === 'mottatte' && (
@@ -123,9 +150,9 @@ export function MessagesTab({ meldinger, selectedAuthority, onClearSelection, ge
             ) : (
               <div className="grid gap-4">
                 <div className="text-sm text-gray-600 mb-2">
-                  Viser {selectedAuthority ? meldinger.filter(m => m.mottaker === selectedAuthority).length : meldinger.length} mottatte meldinger
+                  Viser {selectedMessageAuthority ? meldinger.filter(m => m.mottaker === selectedMessageAuthority).length : meldinger.length} mottatte meldinger
                 </div>
-                {(selectedAuthority ? meldinger.filter(m => m.mottaker === selectedAuthority) : meldinger).map((melding) => {
+                {(selectedMessageAuthority ? meldinger.filter(m => m.mottaker === selectedMessageAuthority) : meldinger).map((melding) => {
                   const meldingDate = new Date(melding.datoForMeldingTilAnnenMyndighet);
                   return (
                     <Card key={melding.identifikator} className="hover:shadow-md transition-shadow">
@@ -167,10 +194,10 @@ export function MessagesTab({ meldinger, selectedAuthority, onClearSelection, ge
         {activeTab === 'sendte' && (
           <div>
             <div className="text-sm text-gray-600 mb-4">
-              Sendte meldinger ({sentMessages.length})
+              Viser {selectedMessageAuthority ? sentMessages.filter(m => m.recipient === selectedMessageAuthority).length : sentMessages.length} sendte meldinger
             </div>
             
-            {sentMessages.length === 0 ? (
+            {(selectedMessageAuthority ? sentMessages.filter(m => m.recipient === selectedMessageAuthority) : sentMessages).length === 0 ? (
               <Card className="text-center py-8">
                 <CardContent>
                   <Send className="w-12 h-12 mx-auto text-gray-400 mb-3" />
@@ -180,7 +207,7 @@ export function MessagesTab({ meldinger, selectedAuthority, onClearSelection, ge
               </Card>
             ) : (
               <div className="grid gap-4">
-                {sentMessages.map((message) => (
+                {(selectedMessageAuthority ? sentMessages.filter(m => m.recipient === selectedMessageAuthority) : sentMessages).map((message) => (
                   <Card key={message.id} className="hover:shadow-md transition-shadow">
                     <CardContent className="pt-4">
                       <div className="flex items-start justify-between mb-3">
