@@ -159,7 +159,9 @@ export function MessagesTab({ meldinger, generatedFor, fromDate, toDate, organiz
                 <div className="text-sm text-gray-600 mb-2">
                   Viser {selectedMessageAuthority ? meldinger.filter(m => m.mottaker === selectedMessageAuthority).length : meldinger.length} mottatte meldinger
                 </div>
-                {(selectedMessageAuthority ? meldinger.filter(m => m.mottaker === selectedMessageAuthority) : meldinger).map((melding) => {
+                {(selectedMessageAuthority ? meldinger.filter(m => m.mottaker === selectedMessageAuthority) : meldinger)
+                  .sort((a, b) => new Date(b.datoForMeldingTilAnnenMyndighet) - new Date(a.datoForMeldingTilAnnenMyndighet))
+                  .map((melding) => {
                   const meldingDate = new Date(melding.datoForMeldingTilAnnenMyndighet);
                   return (
                     <Card key={melding.identifikator} className="hover:shadow-md transition-shadow">
