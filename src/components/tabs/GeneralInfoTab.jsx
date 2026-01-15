@@ -60,29 +60,40 @@ function formatPeriodLabel(start, end) {
 
 /**
  * Aggregate tilsyn data by year for the chart
+ * Shows all years from fromDate to current year, even if no data exists
  */
-function aggregateTilsynByYear(rap) {
+function aggregateTilsynByYear(rap, fromDate) {
   const yearData = {};
   
+  // Determine year range: from fromDate year to current year
+  const startYear = fromDate ? parseInt(fromDate.substring(0, 4)) : new Date().getFullYear() - 5;
+  const currentYear = new Date().getFullYear();
+  
+  // Initialize all years in range with zero values
+  for (let year = startYear; year <= currentYear; year++) {
+    const yearStr = year.toString();
+    yearData[yearStr] = {
+      year: yearStr,
+      tilsyn: 0,
+      brudd: 0,
+      myndigheter: new Set()
+    };
+  }
+  
+  // Aggregate actual data
   if (rap && rap.length > 0) {
     rap.forEach(r => {
       if (!r.dato) return;
       const year = r.dato.substring(0, 4);
       
-      if (!yearData[year]) {
-        yearData[year] = {
-          year,
-          tilsyn: 0,
-          brudd: 0,
-          myndigheter: new Set()
-        };
-      }
-      
-      yearData[year].tilsyn++;
-      yearData[year].myndigheter.add(r.tilsynsmyndighet || 'Ukjent');
-      
-      if (isBrudd(r)) {
-        yearData[year].brudd++;
+      // Only count if year is in our range
+      if (yearData[year]) {
+        yearData[year].tilsyn++;
+        yearData[year].myndigheter.add(r.tilsynsmyndighet || 'Ukjent');
+        
+        if (isBrudd(r)) {
+          yearData[year].brudd++;
+        }
       }
     });
   }
@@ -213,14 +224,17 @@ const AUTHORITY_INFO = {
 
 /**
  * Tooltip component for displaying help text on hover
+ * @param {string} text - The tooltip text
+ * @param {string} position - 'top' (default) or 'bottom' for tooltip position
  */
-function InfoTooltip({ text }) {
+function InfoTooltip({ text, position = 'top' }) {
+  const isBottom = position === 'bottom';
   return (
-    <div className="relative inline-block ml-1 group">
+    <div className="relative inline-block ml-1 group z-10">
       <HelpCircle className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-help" />
-      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 w-48 text-center z-10">
+      <div className={`absolute ${isBottom ? 'top-full mt-2' : 'bottom-full mb-2'} left-1/2 -translate-x-1/2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 w-48 text-center z-[100]`}>
         {text}
-        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
+        <div className={`absolute ${isBottom ? 'bottom-full border-b-gray-800' : 'top-full border-t-gray-800'} left-1/2 -translate-x-1/2 border-4 border-transparent`}></div>
       </div>
     </div>
   );
@@ -293,52 +307,62 @@ export function GeneralInfoTab({
 
   // Aggregate tilsyn by year for the chart
   const chartData = React.useMemo(() => 
-    aggregateTilsynByYear(filteredRap), 
-    [filteredRap]
+    aggregateTilsynByYear(filteredRap, fromDate), 
+    [filteredRap, fromDate]
   );
 
-  // Aggregate yearly overview data
+  // Aggregate yearly overview data - shows all years from fromDate to current year
   const yearlyOverview = React.useMemo(() => {
     const yearData = {};
     
+    // Determine year range: from fromDate year to current year
+    const startYear = fromDate ? parseInt(fromDate.substring(0, 4)) : new Date().getFullYear() - 5;
+    const currentYear = new Date().getFullYear();
+    
+    // Initialize all years in range with zero values
+    for (let year = startYear; year <= currentYear; year++) {
+      const yearStr = year.toString();
+      yearData[yearStr] = {
+        year: yearStr,
+        tilsyn: 0,
+        brudd: 0,
+        reaksjoner: 0,
+        myndigheter: new Set()
+      };
+    }
+    
+    // Aggregate actual data
     rap.forEach(r => {
       if (!r.dato) return;
       const year = r.dato.substring(0, 4);
       
-      if (!yearData[year]) {
-        yearData[year] = {
-          year,
-          tilsyn: 0,
-          brudd: 0,
-          reaksjoner: 0,
-          myndigheter: new Set()
-        };
-      }
-      
-      yearData[year].tilsyn++;
-      yearData[year].myndigheter.add(r.tilsynsmyndighet);
-      
-      // Count tilsyn with brudd (not total funn) to match aggregated bruddCount
-      if (isBrudd(r)) {
-        yearData[year].brudd++;
-      }
-      
-      // Count reaksjoner from funn array
-      if (r.funn && r.funn.length > 0) {
-        r.funn.forEach(f => {
-          if (f.reaksjonstype && f.reaksjonstype !== 'Ingen') {
-            yearData[year].reaksjoner++;
-          }
-        });
-      } else if (r.reaksjonstype && r.reaksjonstype !== 'Ingen') {
-        yearData[year].reaksjoner++;
+      // Only count if year is in our range
+      if (yearData[year]) {
+        yearData[year].tilsyn++;
+        yearData[year].myndigheter.add(r.tilsynsmyndighet);
+        
+        // Count tilsyn with brudd (not total funn) to match aggregated bruddCount
+        if (isBrudd(r)) {
+          yearData[year].brudd++;
+        }
+        
+        // Count reaksjoner from funn array
+        if (r.funn && r.funn.length > 0) {
+          r.funn.forEach(f => {
+            if (f.reaksjonstype && f.reaksjonstype !== 'Ingen') {
+              yearData[year].reaksjoner++;
+            }
+          });
+        } else if (r.reaksjonstype && r.reaksjonstype !== 'Ingen') {
+          yearData[year].reaksjoner++;
+        }
       }
     });
     
     return Object.values(yearData)
       .map(y => ({ ...y, myndigheter: y.myndigheter.size }))
       .sort((a, b) => b.year.localeCompare(a.year));
-  }, [rap]);
+  }, [rap, fromDate]);
 
   return (
     <Card>
@@ -503,7 +527,7 @@ export function GeneralInfoTab({
         {showYearlyOverview && yearlyOverview.length > 0 && (() => {
           const sortedYears = [...yearlyOverview].sort((a, b) => a.year.localeCompare(b.year));
           return (
-            <div className="bg-white border border-gray-200 rounded-lg overflow-hidden mt-2 overflow-x-auto">
+            <div className="bg-white border border-gray-200 rounded-lg mt-2">
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
@@ -517,13 +541,21 @@ export function GeneralInfoTab({
                 </thead>
                 <tbody>
                   <tr className="bg-white">
-                    <td className="px-4 py-2 font-medium text-gray-700 sticky left-0 bg-white">Tilsyn</td>
+                    <td className="px-4 py-2 font-medium text-gray-700 sticky left-0 bg-white">
+                      <span className="flex items-center">
+                        Tilsyn
+                      </span>
+                    </td>
                     {sortedYears.map(row => (
                       <td key={row.year} className="px-4 py-2 text-center text-gray-700">{row.tilsyn}</td>
                     ))}
                   </tr>
-                  <tr className="bg-gray-50">
-                    <td className="px-4 py-2 font-medium text-gray-700 sticky left-0 bg-gray-50">Brudd</td>
+                  <tr className="bg-white">
+                    <td className="px-4 py-2 font-medium text-gray-700 sticky left-0 bg-white">
+                      <span className="flex items-center">
+                        Brudd
+                      </span>
+                    </td>
                     {sortedYears.map(row => (
                       <td key={row.year} className="px-4 py-2 text-center">
                         <span className={row.brudd > 0 ? 'text-red-600 font-medium' : 'text-gray-700'}>
@@ -532,8 +564,12 @@ export function GeneralInfoTab({
                       </td>
                     ))}
                   </tr>
-                  <tr className="bg-white">
-                    <td className="px-4 py-2 font-medium text-gray-700 sticky left-0 bg-white">Reaksjoner</td>
+                  <tr className="bg-gray-50">
+                    <td className="px-4 py-2 font-medium text-gray-700 sticky left-0 bg-gray-50">
+                      <span className="flex items-center">
+                        Reaksjoner
+                      </span>
+                    </td>
                     {sortedYears.map(row => (
                       <td key={row.year} className="px-4 py-2 text-center">
                         <span className={row.reaksjoner > 0 ? 'text-orange-600 font-medium' : 'text-gray-700'}>
@@ -543,7 +579,11 @@ export function GeneralInfoTab({
                     ))}
                   </tr>
                   <tr className="bg-gray-50">
-                    <td className="px-4 py-2 font-medium text-gray-700 sticky left-0 bg-gray-50">Myndigheter</td>
+                    <td className="px-4 py-2 font-medium text-gray-700 sticky left-0 bg-gray-50">
+                      <span className="flex items-center">
+                        Myndigheter
+                      </span>
+                    </td>
                     {sortedYears.map(row => (
                       <td key={row.year} className="px-4 py-2 text-center text-gray-700">{row.myndigheter}</td>
                     ))}
