@@ -18,6 +18,7 @@ export function TilsynTab({
   const [sortField, setSortField] = useState('dato'); // 'dato' or 'myndighet'
   const [sortOrder, setSortOrder] = useState('desc'); // 'desc' = newest/Z first, 'asc' = oldest/A first
   const [showOnlyBrudd, setShowOnlyBrudd] = useState(false); // Filter to show only tilsyn with brudd
+  const [showOnlyKoordinerte, setShowOnlyKoordinerte] = useState(false); // Filter to show only koordinerte tilsyn
 
   // Sort and filter utførte tilsyn
   const sortedRap = useMemo(() => {
@@ -28,6 +29,11 @@ export function TilsynTab({
     // Filter by brudd if enabled
     if (showOnlyBrudd) {
       filtered = filtered.filter(r => r.funn_alvorlighetsgrad && r.funn_alvorlighetsgrad !== 'Ingen');
+    }
+    
+    // Filter by koordinerte tilsyn if enabled
+    if (showOnlyKoordinerte) {
+      filtered = filtered.filter(r => r.samtidigeKontroller && r.samtidigeKontroller.length > 0);
     }
     
     return [...filtered].sort((a, b) => {
@@ -45,13 +51,18 @@ export function TilsynTab({
           : myndB.localeCompare(myndA);
       }
     });
-  }, [rap, selectedAuthorities, sortField, sortOrder, showOnlyBrudd]);
+  }, [rap, selectedAuthorities, sortField, sortOrder, showOnlyBrudd, showOnlyKoordinerte]);
 
   // Sort and filter planlagte tilsyn
   const sortedKoord = useMemo(() => {
     let filtered = selectedAuthorities.length > 0
       ? koord.filter(k => selectedAuthorities.includes(k.tilsynsmyndighet))
       : koord;
+    
+    // Filter by koordinerte tilsyn if enabled
+    if (showOnlyKoordinerte) {
+      filtered = filtered.filter(k => k.samtidigeKontroller && k.samtidigeKontroller.length > 0);
+    }
     
     return [...filtered].sort((a, b) => {
       if (sortField === 'dato') {
@@ -68,7 +79,7 @@ export function TilsynTab({
           : myndB.localeCompare(myndA);
       }
     });
-  }, [koord, selectedAuthorities, sortField, sortOrder]);
+  }, [koord, selectedAuthorities, sortField, sortOrder, showOnlyKoordinerte]);
 
   // Group reports by authority for trends
   const rapByMynd = useMemo(() => groupByMyndighet(rap), [rap]);
@@ -132,6 +143,20 @@ export function TilsynTab({
                 <AlertTriangle className="w-4 h-4" aria-hidden="true" />
                 Kun brudd
               </button>
+              {/* Koordinerte tilsyn filter toggle */}
+              <button
+                onClick={() => setShowOnlyKoordinerte(prev => !prev)}
+                className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium border transition-all ${
+                  showOnlyKoordinerte 
+                    ? 'bg-purple-100 border-purple-300 text-purple-700' 
+                    : 'bg-white border-neutral-200 text-neutral-600 hover:bg-neutral-50'
+                }`}
+                aria-pressed={showOnlyKoordinerte}
+                aria-label="Vis kun koordinerte tilsyn"
+              >
+                <Building2 className="w-4 h-4" aria-hidden="true" />
+                Koordinerte tilsyn
+              </button>
               {/* Sort field selector */}
               <select
                 value={sortField}
@@ -158,6 +183,20 @@ export function TilsynTab({
           )}
           {subTab === 'planlagt' && (
             <>
+              {/* Koordinerte tilsyn filter toggle */}
+              <button
+                onClick={() => setShowOnlyKoordinerte(prev => !prev)}
+                className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium border transition-all ${
+                  showOnlyKoordinerte 
+                    ? 'bg-purple-100 border-purple-300 text-purple-700' 
+                    : 'bg-white border-neutral-200 text-neutral-600 hover:bg-neutral-50'
+                }`}
+                aria-pressed={showOnlyKoordinerte}
+                aria-label="Vis kun koordinerte tilsyn"
+              >
+                <Building2 className="w-4 h-4" aria-hidden="true" />
+                Koordinerte tilsyn
+              </button>
               {/* Sort field selector */}
               <select
                 value={sortField}
@@ -311,6 +350,9 @@ export function TilsynTab({
                               {r.funn.map((f, fIdx) => (
                                 <div key={fIdx} className="border-l-2 border-red-200 pl-2 py-1 space-y-1">
                                   <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="text-xs text-neutral-600">
+                                      Funn: {f.beskrivelse || 'Ikke spesifisert'}
+                                    </span>
                                     <span className={`text-xs px-1.5 py-0.5 rounded ${
                                       f.alvorlighetsgrad === 'Høy' 
                                         ? 'bg-red-100 text-red-700' 
@@ -320,9 +362,6 @@ export function TilsynTab({
                                     }`}>
                                       {f.alvorlighetsgrad}
                                     </span>
-                                    {f.beskrivelse && (
-                                      <span className="text-xs text-neutral-600">{f.beskrivelse}</span>
-                                    )}
                                   </div>
                                   <div className="flex items-center gap-2">
                                     <span className="text-xs text-neutral-500">Reaksjon:</span>

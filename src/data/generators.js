@@ -23,10 +23,74 @@ const KOORD_EMAIL_DOMAINS = ['tilsynet.no', 'kontroll.no', 'myndighet.no', 'stat
 
 // Generate supervision coordination data (planned/future tilsyn)
 export function genTilsynskoordineringFor(orgnr) {
-  const n = randInt(0, 5); // Lower number: 0-5 planned tilsyn
+  const reports = [];
+  const totalPlanned = randInt(0, 5);
   
-  return Array.from({ length: n }).map(() => {
+  // Generate coordinated planned tilsyn (40% of planned tilsyn will be coordinated)
+  const coordinatedCount = Math.floor(totalPlanned * 0.4);
+  const coordinatedDates = [];
+  
+  // Create coordinated tilsyn dates
+  for (let i = 0; i < coordinatedCount; i++) {
     const start = randomFutureDateISO(1, 9);
+    const startD = new Date(start);
+    const endD = new Date(startD);
+    endD.setDate(startD.getDate() + randInt(0, 3)); // Shorter duration for coordinated
+    const slutt = Math.random() > 0.5 ? `${endD.getFullYear()}-${pad(endD.getMonth() + 1)}-${pad(endD.getDate())}` : undefined;
+    
+    // Select 2-3 authorities for coordination
+    const shuffledAuthorities = [...AUTHORITIES].sort(() => Math.random() - 0.5);
+    const coordAuthorities = shuffledAuthorities.slice(0, randInt(2, 3));
+    
+    coordinatedDates.push({ start, slutt, authorities: coordAuthorities });
+  }
+  
+  // Generate coordinated tilsyn
+  coordinatedDates.forEach(({ start, slutt, authorities }) => {
+    const city = rand(CITIES);
+    const address = `${rand(STREET_NAMES)} ${randInt(1, 99)}, ${randInt(1000, 9999)} ${city}`;
+    const tema = rand(THEMES); // Same theme for coordinated tilsyn
+    const aktivitet = Math.random() > 0.5 ? "Tilsyn" : "Kampanje";
+    
+    authorities.forEach(authority => {
+      const firstName = rand(KOORD_FIRST_NAMES);
+      const lastName = rand(KOORD_LAST_NAMES);
+      const useEmail = Math.random() > 0.3;
+      const contactInfo = useEmail 
+        ? `${firstName.toLowerCase()}.${lastName.toLowerCase()}@${rand(KOORD_EMAIL_DOMAINS)}`
+        : `+47 ${randInt(400, 499)} ${randInt(10, 99)} ${randInt(100, 999)}`;
+      
+      // Create samtidigeKontroller with other authorities in this coordination
+      const samtidigeKontroller = authorities
+        .filter(a => a !== authority)
+        .map(a => ({ samtidigTilsynsmyndighet: a }));
+      
+      reports.push({
+        tilsynsmyndighet: authority,
+        organisasjonsnummer: orgnr,
+        tilsynstema: tema,
+        startdato: start,
+        sluttdato: slutt,
+        kontrolladresse: address,
+        tilsynsaktivitet: aktivitet,
+        varighet_timer: randInt(2, 6), // Coordinated tilsyn might be shorter
+        samtidigeKontroller: samtidigeKontroller,
+        kontaktperson: {
+          navn: `${firstName} ${lastName}`,
+          kontaktinfo: contactInfo
+        }
+      });
+    });
+  });
+  
+  // Generate individual (non-coordinated) planned tilsyn
+  const individualCount = totalPlanned - coordinatedCount * 2; // Approximate individual count
+  for (let i = 0; i < individualCount; i++) {
+    const start = randomFutureDateISO(1, 9);
+    
+    // Skip if this date conflicts with coordinated tilsyn
+    if (coordinatedDates.some(cd => cd.start === start)) continue;
+    
     const startD = new Date(start);
     const endD = new Date(startD);
     endD.setDate(startD.getDate() + randInt(0, 10));
@@ -39,7 +103,7 @@ export function genTilsynskoordineringFor(orgnr) {
       ? `${firstName.toLowerCase()}.${lastName.toLowerCase()}@${rand(KOORD_EMAIL_DOMAINS)}`
       : `+47 ${randInt(400, 499)} ${randInt(10, 99)} ${randInt(100, 999)}`;
     
-    return {
+    reports.push({
       tilsynsmyndighet: rand(AUTHORITIES),
       organisasjonsnummer: orgnr,
       tilsynstema: rand(THEMES),
@@ -48,12 +112,15 @@ export function genTilsynskoordineringFor(orgnr) {
       kontrolladresse: `${rand(STREET_NAMES)} ${randInt(1, 99)}, ${randInt(1000, 9999)} ${city}`,
       tilsynsaktivitet: Math.random() > 0.5 ? "Tilsyn" : "Kampanje",
       varighet_timer: randInt(1, 8),
+      samtidigeKontroller: [], // No coordination for individual tilsyn
       kontaktperson: {
         navn: `${firstName} ${lastName}`,
         kontaktinfo: contactInfo
       }
-    };
-  });
+    });
+  }
+  
+  return reports;
 }
 
 // Contact person names for tilsyn
@@ -78,14 +145,123 @@ export function genTilsynsrapportFor(orgnr, fromDate = null, toDate = null) {
   const shuffledAuthorities = [...AUTHORITIES].sort(() => Math.random() - 0.5);
   const selectedAuthorities = shuffledAuthorities.slice(0, numAuthorities);
   
-  // Generate tilsyn year by year
+  // Generate coordinated tilsyn dates (ensure at least 1-2 coordinated events)
+  const coordinatedDates = [];
+  const totalYears = endYear - startYear + 1;
+  const coordinatedCount = Math.max(1, Math.floor(totalYears * 0.3)); // At least 1, up to 30% coordination rate
+  
+  for (let i = 0; i < coordinatedCount; i++) {
+    const year = randInt(startYear, endYear);
+    const yearStart = new Date(Math.max(new Date(`${year}-01-01`).getTime(), startDate.getTime()));
+    const yearEnd = new Date(Math.min(new Date(`${year}-12-31`).getTime(), endDate.getTime()));
+    
+    if (yearStart <= yearEnd) {
+      const randomTime = yearStart.getTime() + Math.random() * (yearEnd.getTime() - yearStart.getTime());
+      const tilsynDate = new Date(randomTime);
+      const dato = `${tilsynDate.getFullYear()}-${pad(tilsynDate.getMonth() + 1)}-${pad(tilsynDate.getDate())}`;
+      
+      // Ensure we have at least 2 authorities for coordination, select 2-3 authorities
+      const minAuthorities = Math.min(2, selectedAuthorities.length);
+      const maxAuthorities = Math.min(3, selectedAuthorities.length);
+      const numCoordAuthorities = randInt(minAuthorities, maxAuthorities);
+      const coordAuthorities = [...selectedAuthorities].sort(() => Math.random() - 0.5).slice(0, numCoordAuthorities);
+      
+      if (coordAuthorities.length >= 2) {
+        coordinatedDates.push({ dato, authorities: coordAuthorities });
+      }
+    }
+  }
+  
+  // Generate coordinated tilsyn first
+  coordinatedDates.forEach(({ dato, authorities }) => {
+    const city = rand(CITIES);
+    const address = `${rand(STREET_NAMES)} ${randInt(1, 99)}, ${randInt(1000, 9999)} ${city}`;
+    const tema = rand(THEMES); // Same theme for coordinated tilsyn
+    
+    authorities.forEach((authority, index) => {
+      const firstName = rand(FIRST_NAMES);
+      const lastName = rand(LAST_NAMES);
+      const useEmail = Math.random() > 0.3;
+      const contactInfo = useEmail 
+        ? `${firstName.toLowerCase()}.${lastName.toLowerCase()}@${rand(EMAIL_DOMAINS)}`
+        : `+47 ${randInt(400, 499)} ${randInt(10, 99)} ${randInt(100, 999)}`;
+      
+      // Generate brudd for this authority
+      const bruddCountRoll = Math.random();
+      let bruddCount;
+      if (bruddCountRoll < 0.60) {
+        bruddCount = 0;
+      } else if (bruddCountRoll < 0.85) {
+        bruddCount = 1;
+      } else if (bruddCountRoll < 0.95) {
+        bruddCount = 2;
+      } else {
+        bruddCount = 3;
+      }
+      
+      const funn = [];
+      for (let j = 0; j < bruddCount; j++) {
+        const severityRoll = Math.random();
+        let alvorlighetsgrad;
+        if (severityRoll < 0.50) {
+          alvorlighetsgrad = "Lav";
+        } else if (severityRoll < 0.85) {
+          alvorlighetsgrad = "Medium";
+        } else {
+          alvorlighetsgrad = "Høy";
+        }
+        
+        funn.push({
+          alvorlighetsgrad: alvorlighetsgrad,
+          reaksjonstype: rand(REACTIONS),
+          beskrivelse: rand([
+            'Manglende dokumentasjon',
+            'Avvik fra forskrift',
+            'Brudd på internkontroll',
+            'Manglende opplæring',
+            'Feil i rapportering',
+            'Avvik fra godkjenning',
+            'Manglende vedlikehold',
+            'Brudd på HMS-krav'
+          ])
+        });
+      }
+      
+      // Create samtidigeKontroller with other authorities in this coordination
+      const samtidigeKontroller = authorities
+        .filter(a => a !== authority)
+        .map(a => ({ samtidigTilsynsmyndighet: a }));
+      
+      reports.push({
+        tilsynsmyndighet: authority,
+        organisasjonsnummer: orgnr,
+        dato: dato,
+        funn: funn,
+        funn_alvorlighetsgrad: funn.length > 0 ? funn.reduce((max, f) => {
+          const order = { 'Høy': 3, 'Medium': 2, 'Lav': 1 };
+          return order[f.alvorlighetsgrad] > order[max] ? f.alvorlighetsgrad : max;
+        }, 'Lav') : "Ingen",
+        reaksjonstype: funn.length > 0 ? funn[0].reaksjonstype : "Ingen",
+        tema: tema,
+        tilsynsadresse: address,
+        varpisel: rand(['Nei', 'Nei', 'Nei', 'Ja', 'Ikke angitt']),
+        samtidigeKontroller: samtidigeKontroller,
+        kontaktperson: {
+          navn: `${firstName} ${lastName}`,
+          kontaktinfo: contactInfo
+        },
+        status: rand(['Gjennomført', 'Gjennomført', 'Gjennomført', 'Gjennomført', 'Under oppfølging']),
+        rapportUrl: `https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf`
+      });
+    });
+  });
+  
+  // Generate individual (non-coordinated) tilsyn
   for (let year = startYear; year <= endYear; year++) {
-    // Each authority has 0-1 tilsyn per year (lower frequency)
     selectedAuthorities.forEach(authority => {
-      const tilsynCount = Math.random() < 0.5 ? 1 : 0; // 50% chance of 1 tilsyn, 50% chance of 0
+      const tilsynCount = Math.random() < 0.4 ? 1 : 0; // 40% chance of individual tilsyn
       
       for (let i = 0; i < tilsynCount; i++) {
-        // Generate random date within this year (respecting fromDate/toDate bounds)
         const yearStart = new Date(Math.max(new Date(`${year}-01-01`).getTime(), startDate.getTime()));
         const yearEnd = new Date(Math.min(new Date(`${year}-12-31`).getTime(), endDate.getTime()));
         
@@ -95,6 +271,9 @@ export function genTilsynsrapportFor(orgnr, fromDate = null, toDate = null) {
         const tilsynDate = new Date(randomTime);
         const dato = `${tilsynDate.getFullYear()}-${pad(tilsynDate.getMonth() + 1)}-${pad(tilsynDate.getDate())}`;
         
+        // Skip if this date is already used for coordinated tilsyn
+        if (coordinatedDates.some(cd => cd.dato === dato)) continue;
+        
         const city = rand(CITIES);
         const firstName = rand(FIRST_NAMES);
         const lastName = rand(LAST_NAMES);
@@ -103,8 +282,6 @@ export function genTilsynsrapportFor(orgnr, fromDate = null, toDate = null) {
           ? `${firstName.toLowerCase()}.${lastName.toLowerCase()}@${rand(EMAIL_DOMAINS)}`
           : `+47 ${randInt(400, 499)} ${randInt(10, 99)} ${randInt(100, 999)}`;
         
-        // Generate multiple brudd/funn (0-3 per tilsyn)
-        // ~60% chance of no brudd, ~25% chance of 1, ~10% chance of 2, ~5% chance of 3
         const bruddCountRoll = Math.random();
         let bruddCount;
         if (bruddCountRoll < 0.60) {
@@ -119,7 +296,6 @@ export function genTilsynsrapportFor(orgnr, fromDate = null, toDate = null) {
         
         const funn = [];
         for (let j = 0; j < bruddCount; j++) {
-          // Severity distribution for each brudd
           const severityRoll = Math.random();
           let alvorlighetsgrad;
           if (severityRoll < 0.50) {
@@ -151,7 +327,6 @@ export function genTilsynsrapportFor(orgnr, fromDate = null, toDate = null) {
           organisasjonsnummer: orgnr,
           dato: dato,
           funn: funn,
-          // Keep legacy fields for backwards compatibility
           funn_alvorlighetsgrad: funn.length > 0 ? funn.reduce((max, f) => {
             const order = { 'Høy': 3, 'Medium': 2, 'Lav': 1 };
             return order[f.alvorlighetsgrad] > order[max] ? f.alvorlighetsgrad : max;
@@ -160,6 +335,7 @@ export function genTilsynsrapportFor(orgnr, fromDate = null, toDate = null) {
           tema: rand(THEMES),
           tilsynsadresse: `${rand(STREET_NAMES)} ${randInt(1, 99)}, ${randInt(1000, 9999)} ${city}`,
           varpisel: rand(['Nei', 'Nei', 'Nei', 'Ja', 'Ikke angitt']),
+          samtidigeKontroller: [], // No coordination for individual tilsyn
           kontaktperson: {
             navn: `${firstName} ${lastName}`,
             kontaktinfo: contactInfo
