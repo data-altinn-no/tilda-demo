@@ -20,16 +20,18 @@ const CONTACTS = [
   {
     id: "forvaltning",
     title: "Forvaltningsansvarlig",
+    organization: "Brønnøysundregistrene",
     description: "For sporsmal om Tilda-tjenesten, tilgang og integrasjon",
-    email: "dan@altinn.no",
+    email: "kkn@brreg.no",
     icon: Users,
     color: "blue",
   },
   {
     id: "teknisk",
     title: "Teknisk support",
+    organization: "data.altinn.no/Digdir",
     description: "For tekniske sporsmal om API, autentisering og feilsituasjoner",
-    email: "servicedesk@digdir.no",
+    email: "dan@altinn.no",
     icon: MessageSquare,
     color: "green",
   },
@@ -69,17 +71,20 @@ function ContactCard({ contact }) {
   const colors = COLOR_MAP[contact.color] || COLOR_MAP.blue;
 
   return (
-    <div className={`digdir-card p-6 ${colors.border} border-2`}>
-      <div className="flex items-start gap-4">
+    <div className={`digdir-card p-6 ${colors.border} border-2 h-full`}>
+      <div className="flex items-start gap-4 h-full">
         <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${colors.bg}`}>
           <Icon className={`w-6 h-6 ${colors.icon}`} />
         </div>
-        <div className="flex-1">
-          <h3 className="text-lg font-semibold text-neutral-900 mb-1">{contact.title}</h3>
-          <p className="text-neutral-600 text-sm mb-4">{contact.description}</p>
+        <div className="flex-1 flex flex-col h-full">
+          <div className="flex-1">
+            <h3 className="text-lg font-semibold text-neutral-900 mb-1">{contact.title}</h3>
+            <p className="text-sm text-neutral-500 mb-2 font-medium">{contact.organization}</p>
+            <p className="text-neutral-600 text-sm mb-4">{contact.description}</p>
+          </div>
           <a 
             href={`mailto:${contact.email}`}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium w-fit"
           >
             <Mail className="w-4 h-4" />
             {contact.email}
@@ -143,11 +148,11 @@ export function ContactPage() {
               <div>
                 <h2 className="text-lg font-semibold text-neutral-900 mb-2">Tilbakemeldinger</h2>
                 <p className="text-neutral-600 mb-3">
-                  Vi setter pris pa tilbakemeldinger om tjenesten. Har du forslag til forbedringer 
-                  eller har du oppdaget feil? Gi oss beskjed!
+                  Vi setter pris pa tilbakemeldinger om dokumentasjonen og disse sidene.
+                  Har du forslag til forbedringer eller har du oppdaget feil? Gi oss beskjed! :)
                 </p>
                 <a 
-                  href="https://github.com/data-altinn-no/docs/issues/new" 
+                  href="https://github.com/data-altinn-no/tilda-demo/issues/new" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 text-purple-700 hover:text-purple-800 font-medium"
@@ -167,8 +172,8 @@ export function ContactPage() {
               <div>
                 <h2 className="text-lg font-semibold text-neutral-900 mb-2">Tilda-samarbeidet pa Slack</h2>
                 <p className="text-neutral-600 mb-3">
-                  Bli med i Tilda-samarbeidet pa Slack for a diskutere med andre tilsynsmyndigheter, 
-                  stille sporsmal og fa hjelp fra fellesskapet.
+                  Alle som er med i Tilda-samarbeidet har tilgang til en privat kanal på Digdir sin offentlige Slack.
+                  Her kan man utveksle erfaringer og spørre andre om hjelp.
                 </p>
                 <a 
                   href="https://join.slack.com/t/digdir-samarbeid/shared_invite/zt-2yp202pnk-PXnfUDQICM3PFDPXfehGiQ" 
