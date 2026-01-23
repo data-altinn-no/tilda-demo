@@ -67,10 +67,10 @@ const DATA_MODELS = [
     color: "green",
     fields: [
       { name: "identifikator", type: "string", description: "Unik meldings-ID (UUID)" },
-      { name: "datoForMeldingTilAnnenMyndighet", type: "datetime", description: "Tidspunkt for sending" },
-      { name: "mottaker", type: "string", description: "Organisasjonsnummer til mottakende tilsynsmyndighet" },
+      { name: "meldingFraMyndighet", type: "string", description: "Organisasjonsnummer til avsendende tilsynsmyndighet" },
       { name: "meldingOmTildaenhet", type: "string", description: "Organisasjonsnummer meldingen gjelder" },
-      { name: "meldingsinnholdTilAnnenMyndighet", type: "MeldingsInnhold", description: "Innhold med meldingsType og fritekst" },
+      { name: "datoForMeldingTilAnnenMyndighet", type: "datetime", description: "Tidspunkt for sending" },
+      { name: "meldingsinnholdTilAnnenMyndighet", type: "AlertMessageContent", description: "Innhold med meldingsType og fritekst" },
     ]
   },
   {
@@ -103,6 +103,24 @@ const DATA_MODELS = [
       { name: "bedriftsnummer", type: "string?", description: "Bedriftsnummer" },
       { name: "paragraf6", type: "boolean", description: "Omfattet av §6 i storulykkeforskriften" },
       { name: "paragraf9", type: "boolean", description: "Omfattet av §9 i storulykkeforskriften" },
+    ]
+  },
+  {
+    id: "tildaregistryentry",
+    name: "enhetsinformasjon (TildaRegistryEntry)",
+    description: "Registerinformasjon om en Tilda-enhet",
+    icon: Database,
+    color: "indigo",
+    fields: [
+      { name: "tildaenhet", type: "string", description: "Organisasjonsnummer" },
+      { name: "tildaenhetNavn", type: "string", description: "Navn på enheten" },
+      { name: "epostaddresser", type: "array", description: "E-postadresser" },
+      { name: "tildaenhetHovedenhet", type: "string", description: "Hovedenhet" },
+      { name: "besoeksadresse", type: "ERAddress", description: "Besøksadresse" },
+      { name: "naeringskode", type: "string", description: "Næringskode" },
+      { name: "organisasjonsform", type: "string", description: "Organisasjonsform" },
+      { name: "regnskapsInformasjon", type: "AccountsInformation", description: "Regnskapsinformasjon" },
+      { name: "driftsstatus", type: "OperationStatus", description: "Driftsstatus" },
     ]
   },
 ];
@@ -258,12 +276,47 @@ const COMPLEX_TYPES = {
       { name: "sluttdatoForKampanje", type: "datetime", description: "Sluttdato for kampanjen" },
     ]
   },
-  MeldingsInnhold: {
-    name: "MeldingsInnhold",
+  AlertMessageContent: {
+    name: "AlertMessageContent",
     description: "Innhold i melding til annen myndighet",
     fields: [
-      { name: "meldingsType", type: "string", description: "Type melding (varsel-om-rapport, varsel-om-koordinering, varsel-fritekst)" },
+      { name: "meldingsType", type: "AlertMessageType", description: "Type melding" },
+      { name: "relatertDatasettOppslagsUrl", type: "string?", description: "URL til relatert datasett" },
       { name: "fritekst", type: "string?", description: "Fritekst i meldingen" },
+    ]
+  },
+  AlertMessageType: {
+    name: "AlertMessageType (enum)",
+    description: "Type melding til annen myndighet",
+    fields: [
+      { name: "varsel-om-rapport", type: "enum", description: "Varsel om rapport" },
+      { name: "varsel-om-koordinering", type: "enum", description: "Varsel om koordinering" },
+      { name: "varsel-fritekst", type: "enum", description: "Varsel med fritekst" },
+    ]
+  },
+  ERAddress: {
+    name: "ERAddress",
+    description: "Utvidet adresseinformasjon fra Enhetsregisteret",
+    fields: [
+      { name: "lengdegrad", type: "string?", description: "Geografisk lengdegrad" },
+      { name: "breddegrad", type: "string?", description: "Geografisk breddegrad" },
+      { name: "bygningsnummer", type: "string?", description: "Bygningsnummer" },
+      { name: "bruksenhetsnummer", type: "string?", description: "Bruksenhetsnummer" },
+      { name: "adressenavn", type: "string?", description: "Navn på adresse/gate" },
+      { name: "adressenummer", type: "string?", description: "Gatenummer" },
+      { name: "postnummer", type: "string?", description: "Postnummer" },
+      { name: "poststedsnavn", type: "string?", description: "Navn på poststed" },
+      { name: "kommunenummer", type: "string?", description: "Kommunenummer" },
+      { name: "bydel", type: "string?", description: "Bydel" },
+      { name: "fylkesnummer", type: "string?", description: "Fylkesnummer" },
+    ]
+  },
+  AccountsInformation: {
+    name: "AccountsInformation",
+    description: "Regnskapsinformasjon for enheten",
+    fields: [
+      { name: "regnskapsplikt", type: "boolean?", description: "Om enheten har regnskapsplikt" },
+      { name: "revisjonsplikt", type: "boolean?", description: "Om enheten har revisjonsplikt" },
     ]
   },
   ControlState: {
@@ -297,6 +350,18 @@ const COMPLEX_TYPES = {
       { name: "ja", type: "enum", description: "Er storulykketilsyn" },
     ]
   },
+  OperationStatus: {
+    name: "OperationStatus (enum)",
+    description: "Driftsstatus for enheten",
+    fields: [
+      { name: "ikkeAngitt", type: "enum", description: "Ikke angitt" },
+      { name: "konkurs", type: "enum", description: "Under konkurs" },
+      { name: "underAvvikling", type: "enum", description: "Under avvikling" },
+      { name: "underTvangsavviklingEllerTvangsopploesning", type: "enum", description: "Under tvangsavvikling eller tvangsoppløsning" },
+      { name: "ok", type: "enum", description: "Normal drift" },
+      { name: "slettet", type: "enum", description: "Slettet" },
+    ]
+  },
 };
 
 /**
@@ -323,6 +388,7 @@ const COLOR_MAP = {
   green: { bg: "bg-green-50", border: "border-green-200", icon: "text-green-600", badge: "bg-green-100 text-green-700" },
   orange: { bg: "bg-orange-50", border: "border-orange-200", icon: "text-orange-600", badge: "bg-orange-100 text-orange-700" },
   red: { bg: "bg-red-50", border: "border-red-200", icon: "text-red-600", badge: "bg-red-100 text-red-700" },
+  indigo: { bg: "bg-indigo-50", border: "border-indigo-200", icon: "text-indigo-600", badge: "bg-indigo-100 text-indigo-700" },
 };
 
 /**
@@ -368,12 +434,6 @@ function FieldRow({ field, depth = 0, expandedFields, toggleField }) {
       >
         <td className={`py-2.5 pr-4 ${indentClass}`}>
           <div className="flex items-center gap-2">
-            {hasComplexType && (
-              <span className="text-neutral-400 w-4 flex-shrink-0">
-                {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-              </span>
-            )}
-            {!hasComplexType && depth > 0 && <span className="w-4 flex-shrink-0" />}
             <code className="font-mono text-neutral-900 bg-neutral-100 px-1.5 py-0.5 rounded">
               {field.name}
             </code>
@@ -561,10 +621,8 @@ export function DataModelsPage() {
               <FileText className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
               <div>
                 <p className="text-neutral-700">
-                  Denne siden viser datamodellene som brukes i Tilda-demonstrasjonen. 
-                  Klikk på en modell for å se alle feltene og deres beskrivelser.
-                  Dataene er generert for demonstrasjonsformål og representerer typiske strukturer 
-                  for deling av tilsynsdata mellom offentlige myndigheter.
+                  Denne siden viser datamodellene som er i bruk i Tilda-tjenesten. 
+                  Klikk på en modell for å se alle feltene og deres beskrivelser.                
                 </p>
               </div>
             </div>
@@ -601,6 +659,27 @@ export function DataModelsPage() {
                 onToggle={() => toggleModel(model.id)}
               />
             ))}
+          </div>
+
+          {/* NuGet Package Reference */}
+          <div className="digdir-card p-5 bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
+            <div className="flex items-start gap-3">
+              <Database className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <p className="text-neutral-700 mb-3">
+                  Alle modellene i Tilda ligger i en nuget-pakke som kan tas i bruk av konsumenter og tilbydere.
+                </p>
+                <a 
+                  href="https://www.nuget.org/packages/Dan.Tilda.Models" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium text-sm"
+                >
+                  <Database className="w-4 h-4" />
+                  Dan.Tilda.Models på NuGet
+                </a>
+              </div>
+            </div>
           </div>
         </motion.div>
       </div>
