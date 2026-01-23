@@ -22,21 +22,21 @@ import { Footer } from "../components/layout";
 const GUIDES = [
   {
     id: "kom-i-gang",
-    title: "Kom i gang med Tilda",
+    title: "Å ta i bruk Tilda - steg for steg",
     description: "En introduksjon til Tilda og hvordan du kan ta tjenesten i bruk",
     icon: BookOpen,
     color: "blue",
     steps: [
       {
         title: "Forstå hva Tilda er",
-        content: "Tilda er en datadelingstjeneste som lar tilsynsmyndigheter dele og hente tilsynsdata. Tjenesten er bygget på data.altinn.no-plattformen og bruker Maskinporten for sikker autentisering."
+        content: "Tilda er en datadelingstjeneste som lar tilsynsmyndigheter dele og hente planlagte tilsyn, tilsynsrapporter og å sende meldinger til andre tilsynsmyndigheter. Alle norske tilsynsmyndigheter er velkommen til å bli med for å utveksle data og dra nytte av erfaringer og samarbeid i Tilda-fellesskapet. Målet er selvsagt at samtlige skal bli med - og at alle både konsumerer og deler data og støtter mottak av meldinger fra de andre."
       },
       {
-        title: "Identifiser ditt behov",
-        content: "Er du en datakonsument som vil hente tilsynsdata, eller en dataprodusent som vil dele data? Dette avgjør hvilken integrasjon du trenger."
+        title: "Hvordan skape verdi med Tilda?",
+        content: "Hvilke tilsynsmyndigheter samarbeider dere med? Hvilke data trenger dere fra andre? Hvilke data kan dere dele med andre?"
       },
       {
-        title: "Sett opp Maskinporten",
+        title: "",
         content: "Alle integrasjoner krever Maskinporten-autentisering. Kontakt Digdir for å få tilgang til scopet altinn:dataaltinnno/tilda."
       },
       {

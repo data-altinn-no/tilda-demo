@@ -9,3 +9,5 @@ export { ApiPage } from './ApiPage.jsx';
 export { GuidesPage } from './GuidesPage.jsx';
 export { ContactPage } from './ContactPage.jsx';
 export { CodePage } from './CodePage.jsx';
+export { DataAnalysisPage } from './DataAnalysisPage.jsx';
+export { TestDataPage } from './TestDataPage.jsx';

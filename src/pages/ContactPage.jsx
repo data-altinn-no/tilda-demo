@@ -22,7 +22,7 @@ const CONTACTS = [
     title: "Forvaltningsansvarlig",
     organization: "Brønnøysundregistrene",
     description: "For sporsmal om Tilda-tjenesten, tilgang og integrasjon",
-    email: "kkn@brreg.no",
+    email: "tilda@brreg.no",
     icon: Users,
     color: "blue",
   },

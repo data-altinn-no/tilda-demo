@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Share2, FileText, Building2, ClipboardList, Database, Mail, AlertTriangle, Code, Plug } from "lucide-react";
+import { Share2, FileText, Building2, ClipboardList, Database, Mail, AlertTriangle, Code, Plug, BarChart3, TestTube } from "lucide-react";
 import { Footer } from "../components/layout";
 
 /**
@@ -66,6 +66,26 @@ export function LandingPage() {
       description: "GitHub-repositorier, kodeeksempler og lenker til relevante ressurser for Tilda-integrasjon.",
       icon: Code,
       path: "/kode",
+      color: "primary",
+      available: true,
+    },
+    {
+      id: "dataanalyse",
+      title: "Dataanalyse",
+      subtitle: "Innsikt og statistikk",
+      description: "Analyser og statistikk basert på tilsynsdata. Få innsikt i tilsynsaktivitet og trender på tvers av myndigheter.",
+      icon: BarChart3,
+      path: "/dataanalyse",
+      color: "primary",
+      available: true,
+    },
+    {
+      id: "testdata",
+      title: "Testdata",
+      subtitle: "Syntetiske datasett",
+      description: "Tilgang til testdata og syntetiske datasett for utvikling og testing av integrasjoner mot Tilda.",
+      icon: TestTube,
+      path: "/testdata",
       color: "primary",
       available: true,
     },
