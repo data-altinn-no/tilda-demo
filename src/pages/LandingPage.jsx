@@ -70,12 +70,12 @@ export function LandingPage() {
       available: true,
     },
     {
-      id: "dataanalyse",
-      title: "Dataanalyse",
-      subtitle: "Innsikt og statistikk",
-      description: "Analyser og statistikk basert på tilsynsdata. Få innsikt i tilsynsaktivitet og trender på tvers av myndigheter.",
+      id: "statistikk",
+      title: "Statistikk",
+      subtitle: "Innsikt og bruk",
+      description: "Oppdatert statistikk om dataflyt i Tilda-tjenesten.",
       icon: BarChart3,
-      path: "/dataanalyse",
+      path: "/statistikk",
       color: "primary",
       available: true,
     },
@@ -135,9 +135,9 @@ export function LandingPage() {
                   Hva er Tilda?
                 </h2>
                 <p className="text-neutral-600 mb-3">
-                  <strong>Tilda</strong> (Tilsynsdata) er en nasjonal datadelingstjeneste som lar tilsynsmyndigheter 
-                  dele og hente tilsynsinformasjon på tvers av etater. Tjenesten er utviklet av Digitaliseringsdirektoratet 
-                  i samarbeid med Brønnøysundregistrene, og er tilgjengelig via data.altinn.no.
+                  <strong>Tilda</strong> er en nasjonal datadelingstjeneste som lar tilsynsmyndigheter 
+                  dele og hente informasjon om sine tilsyn med andre tilsynsmyndigheter. Tjenesten er utviklet på data.altinn.no av Digitaliseringsdirektoratet 
+                  og eies av Brønnøysundregistrene.
                 </p>
                 <p className="text-neutral-600 text-sm">
                   <em>Merk: Data som vises på denne demosiden er <strong>generert</strong> for demonstrasjonsformål.</em>

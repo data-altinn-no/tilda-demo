@@ -47,10 +47,11 @@ const ANALYTICS_DATA = {
     { name: "Fiskeridirektoratet", inspections: 187, growth: 5.9 }
   ],
   inspectionTypes: [
-    { type: "Planlagt tilsyn", count: 1456, percentage: 51.2 },
-    { type: "Oppfølgingstilsyn", count: 678, percentage: 23.8 },
-    { type: "Klagebehandling", count: 423, percentage: 14.9 },
-    { type: "Uanmeldt tilsyn", count: 290, percentage: 10.1 }
+    { type: "Koordinering", count: 1456, percentage: 40.0 },
+    { type: "Tilsynsrapporter", count: 678, percentage: 25.0 },
+    { type: "Storulykke", count: 423, percentage: 15.0 },
+    { type: "Metadata", count: 290, percentage: 12.0 },
+    { type: "Meldinger sendt", count: 290, percentage: 8.0 }
   ],
   complianceData: [
     { category: "Arbeidsmiljø", compliant: 234, nonCompliant: 45, rate: 83.9 },
@@ -100,9 +101,9 @@ function StatCard({ title, value, subtitle, icon: Icon, trend, color = "blue" })
 }
 
 /**
- * Data analysis page
+ * Statistics page
  */
-export function DataAnalysisPage() {
+export function StatisticsPage() {
   const [selectedPeriod, setSelectedPeriod] = useState("6m");
   
   return (
@@ -129,8 +130,8 @@ export function DataAnalysisPage() {
                 <BarChart3 className="w-6 h-6 text-primary-600" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-neutral-900">Dataanalyse</h1>
-                <p className="text-neutral-600">Innsikt og statistikk fra Tilda-tjenesten</p>
+                <h1 className="text-3xl font-bold text-neutral-900">Statistikk</h1>
+                <p className="text-neutral-600">Innsikt og bruk fra Tilda-tjenesten</p>
               </div>
             </div>
           </div>
@@ -189,10 +190,10 @@ export function DataAnalysisPage() {
               color="orange"
             />
             <StatCard
-              title="Etterlevelsesgrad"
-              value={`${ANALYTICS_DATA.overview.complianceRate}%`}
-              subtitle="Gjennomsnittlig"
-              icon={CheckCircle}
+              title="Aktive tilbydere"
+              value={ANALYTICS_DATA.overview.totalAuthorities}
+              subtitle="Deler data aktivt"
+              icon={Building2}
               color="green"
             />
           </div>
@@ -235,7 +236,7 @@ export function DataAnalysisPage() {
 
             {/* Top Authorities */}
             <div className="digdir-card p-6">
-              <h3 className="text-lg font-semibold text-neutral-900 mb-4">Mest aktive myndigheter</h3>
+              <h3 className="text-lg font-semibold text-neutral-900 mb-4">Mest aktive konsumenter</h3>
               <div className="space-y-4">
                 {ANALYTICS_DATA.topAuthorities.map((authority, index) => (
                   <div key={authority.name} className="flex items-center justify-between">
@@ -244,7 +245,7 @@ export function DataAnalysisPage() {
                       <span className="text-sm font-medium text-neutral-900">{authority.name}</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="text-sm text-neutral-600">{authority.inspections} tilsyn</span>
+                      <span className="text-sm text-neutral-600">{authority.inspections} oppslag</span>
                       <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
                         authority.growth > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                       }`}>
@@ -262,7 +263,7 @@ export function DataAnalysisPage() {
           <div className="grid lg:grid-cols-2 gap-6">
             {/* Inspection Types */}
             <div className="digdir-card p-6">
-              <h3 className="text-lg font-semibold text-neutral-900 mb-4">Tilsynstyper</h3>
+              <h3 className="text-lg font-semibold text-neutral-900 mb-4">Tilda-oppslag etter type</h3>
               <div className="space-y-4">
                 {ANALYTICS_DATA.inspectionTypes.map((type) => (
                   <div key={type.type} className="space-y-2">
@@ -283,22 +284,22 @@ export function DataAnalysisPage() {
 
             {/* Compliance Data */}
             <div className="digdir-card p-6">
-              <h3 className="text-lg font-semibold text-neutral-900 mb-4">Etterlevelse per kategori</h3>
-              <div className="space-y-4">
-                {ANALYTICS_DATA.complianceData.map((category) => (
-                  <div key={category.category} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-neutral-900">{category.category}</span>
-                      <span className="text-sm text-neutral-600">{category.rate}%</span>
+              <h3 className="text-lg font-semibold text-neutral-900 mb-4">Deler mest </h3>
+            <div className="space-y-4">
+                {ANALYTICS_DATA.topAuthorities.map((authority, index) => (
+                  <div key={authority.name} className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-medium text-neutral-500 w-4">#{index + 1}</span>
+                      <span className="text-sm font-medium text-neutral-900">{authority.name}</span>
                     </div>
-                    <div className="flex gap-1">
-                      <div className="flex-1 h-2 bg-green-200 rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-green-500 rounded-full"
-                          style={{ width: `${category.rate}%` }}
-                        ></div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm text-neutral-600">{authority.inspections} oppslag</span>
+                      <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
+                        authority.growth > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                      }`}>
+                        {authority.growth > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                        {Math.abs(authority.growth)}%
                       </div>
-                      <span className="text-xs text-neutral-500 w-16">{category.compliant + category.nonCompliant} tilsyn</span>
                     </div>
                   </div>
                 ))}
@@ -313,14 +314,12 @@ export function DataAnalysisPage() {
                 <BarChart3 className="w-5 h-5 text-blue-600" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-neutral-900 mb-2">Om dataanalysen</h3>
+                <h3 className="text-lg font-semibold text-neutral-900 mb-2">Om statistikken</h3>
                 <p className="text-neutral-600 mb-3">
-                  Denne siden viser aggregerte statistikker og trender basert på data som deles gjennom Tilda-tjenesten. 
-                  Alle data er anonymiserte og presenteres på et overordnet nivå for å gi innsikt i tilsynsaktivitet 
-                  på tvers av myndigheter.
+                  Denne siden viser aggregerte statistikker og trender basert på data som deles gjennom Tilda-tjenesten.                 
                 </p>
                 <p className="text-neutral-600 text-sm">
-                  <em>Merk: Dataene som vises her er genererte for demonstrasjonsformål og reflekterer ikke reelle tilsynsdata.</em>
+                  <em>Merk: Dataene som vises her er <strong>inntil videre</strong> genererte for demonstrasjonsformål og reflekterer ikke reelle tilsynsdata.</em>
                 </p>
               </div>
             </div>
