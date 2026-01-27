@@ -57,16 +57,6 @@ const SYNTHETIC_DATASETS = [
     downloadUrl: "/api/testdata/koordinering.json"
   },
   {
-    id: "meldinger",
-    name: "Meldinger til andre myndigheter",
-    description: "Eksempler på meldinger sendt mellom tilsynsmyndigheter",
-    format: "JSON",
-    size: "245 KB",
-    records: 67,
-    categories: ["Varsler", "Koordinering", "Fritekst"],
-    downloadUrl: "/api/testdata/meldinger.json"
-  },
-  {
     id: "npdid",
     name: "NPDID-rapporter",
     description: "Tilsynsrapporter med NPDID-referanser for petroleumsvirksomhet",
@@ -75,16 +65,6 @@ const SYNTHETIC_DATASETS = [
     records: 45,
     categories: ["Petroleumstilsyn", "Sikkerhet", "Miljø"],
     downloadUrl: "/api/testdata/npdid.json"
-  },
-  {
-    id: "storulykke",
-    name: "Storulykkevirksomheter",
-    description: "Informasjon om virksomheter omfattet av storulykkeforskriften",
-    format: "JSON",
-    size: "120 KB",
-    records: 23,
-    categories: ["§6-virksomheter", "§9-virksomheter"],
-    downloadUrl: "/api/testdata/storulykke.json"
   }
 ];
 
