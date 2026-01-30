@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Info, Database, LineChart as LineChartIcon, Building2, RefreshCcw, Download, ListChecks, Circle, Mail, Zap, Car, Users, Calendar, X, ArrowLeft } from "lucide-react";
+import { Info, Database, LineChart as LineChartIcon, Building2, RefreshCcw, Download, ListChecks, Circle, Mail, Zap, Car, Users, Calendar, X, ArrowLeft, Newspaper } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
@@ -35,7 +35,8 @@ import {
   VehiclesTab,
   PropertiesTab,
   RolesTab,
-  FinancialTab 
+  FinancialTab,
+  NewsTab
 } from '../components/tabs';
 import { ComplianceModal, InfoModal } from '../components/modals';
 
@@ -186,6 +187,7 @@ export function TildaPage() {
     { id: "general", label: "Generell informasjon", icon: Info },
     { id: "tilsyn", label: "Tilsyn", icon: ListChecks },
     { id: "meldinger", label: "Meldinger", icon: Mail },
+    { id: "nyheter", label: "Nyheter", icon: Newspaper },
     { id: "eksperiment", label: "Eksperiment", icon: Zap },
     { id: "download", label: "Eksporter data", icon: Download }
   ];
@@ -496,6 +498,13 @@ export function TildaPage() {
                 generatedFor={generatedFor}
                 fromDate={fromDate}
                 toDate={toDate}
+                organizationNumber={generatedFor}
+              />
+            )}
+
+            {activeTab === "nyheter" && (
+              <NewsTab 
+                orgDetails={orgDetails}
                 organizationNumber={generatedFor}
               />
             )}
