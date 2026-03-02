@@ -1,4 +1,3 @@
-import React from "react";
 import { Github, Bug, BookOpen, LucideIcon } from "lucide-react";
 
 interface FooterLink {

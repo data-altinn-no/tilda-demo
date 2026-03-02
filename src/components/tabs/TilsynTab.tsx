@@ -1,10 +1,9 @@
 import { useState, useMemo } from 'react';
-import { ClipboardCheck, LineChart as LineChartIcon, Calendar, CheckCircle2, ListChecks, Bell, BellOff, User, FileText, Clock, CheckCircle, AlertTriangle, HelpCircle, ArrowUpDown, Building2 } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
+import { LineChart as LineChartIcon, Calendar, CheckCircle2, Bell, BellOff, User, FileText, Clock, AlertTriangle, HelpCircle, ArrowUpDown, Building2 } from 'lucide-react';
+import { Card, CardContent } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { MiniLineChart } from '../charts/MiniLineChart';
-import { groupByMyndighet } from '../../data/aggregators';
 
 interface TilsynTabProps {
   rap: any[];
@@ -91,9 +90,6 @@ export function TilsynTab({
     });
   }, [koord, selectedAuthorities, sortField, sortOrder, showOnlyKoordinerte]);
 
-  // Group reports by authority for trends
-  const rapByMynd = useMemo(() => groupByMyndighet(rap), [rap]);
-  const koordByMynd = useMemo(() => groupByMyndighet(koord), [koord]);
 
   return (
     <div className="grid gap-6">
@@ -170,7 +166,7 @@ export function TilsynTab({
               {/* Sort field selector */}
               <select
                 value={sortField}
-                onChange={(e) => setSortField(e.target.value)}
+                onChange={(e) => setSortField(e.target.value as 'dato' | 'myndighet')}
                 className="px-3 py-2 rounded-md text-sm font-medium bg-white border border-neutral-200 text-neutral-600 hover:bg-neutral-50 transition-all cursor-pointer"
                 aria-label="Velg sorteringsfelt"
               >
@@ -210,7 +206,7 @@ export function TilsynTab({
               {/* Sort field selector */}
               <select
                 value={sortField}
-                onChange={(e) => setSortField(e.target.value)}
+                onChange={(e) => setSortField(e.target.value as 'dato' | 'myndighet')}
                 className="px-3 py-2 rounded-md text-sm font-medium bg-white border border-neutral-200 text-neutral-600 hover:bg-neutral-50 transition-all cursor-pointer"
                 aria-label="Velg sorteringsfelt"
               >

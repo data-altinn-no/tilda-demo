@@ -1,4 +1,3 @@
-import { useRef } from 'react';
 import { Zap, Info } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
 import { Button } from '../ui/Button';
@@ -16,9 +15,6 @@ interface ExperimentsTabProps {
  * Experiment Tab Component - Displays geographic heatmap and Norway map
  */
 export function ExperimentsTab({ rap, selectedAuthority, onClearSelection }: ExperimentsTabProps) {
-  const mapRef = useRef(null);
-  const mapInstanceRef = useRef(null);
-
   const cityViolations: Record<string, number> = {};
   const filteredRap = selectedAuthority ? rap.filter(r => r.tilsynsmyndighet === selectedAuthority) : rap;
   filteredRap.forEach(r => {

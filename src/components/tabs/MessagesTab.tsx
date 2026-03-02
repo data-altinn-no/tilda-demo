@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Mail, Send, Inbox, ChevronDown, Plus } from 'lucide-react';
+import { Send, Inbox, ChevronDown, Plus } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
@@ -58,7 +58,7 @@ export function MessagesTab({ meldinger, generatedFor, fromDate, toDate, organiz
       if (m.recipient) authorities.add(m.recipient);
     });
     
-    return Array.from(authorities).sort((a, b) => a.localeCompare(b, 'no'));
+    return Array.from(authorities).sort((a: any, b: any) => a.localeCompare(b, 'no'));
   }, [meldinger, sentMessages]);
   
   const [sendForm, setSendForm] = useState({
@@ -153,7 +153,6 @@ export function MessagesTab({ meldinger, generatedFor, fromDate, toDate, organiz
               {selectedMessageAuthority && (
                 <Button 
                   variant="outline" 
-                  size="sm" 
                   onClick={() => setSelectedMessageAuthority(null)}
                   className="text-xs px-2 py-1"
                 >

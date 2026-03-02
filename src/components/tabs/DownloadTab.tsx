@@ -29,7 +29,6 @@ export function DownloadTab({
   propertyData, 
   roleData, 
   meldinger, 
-  financialData, 
   mulighetsrom, 
   selectedAuthority, 
   onClearSelection 

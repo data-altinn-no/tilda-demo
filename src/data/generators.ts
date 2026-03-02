@@ -734,49 +734,6 @@ function randomDateBetween2010AndToday(): string {
   return `${randomDate.getFullYear()}-${pad(randomDate.getMonth() + 1)}-${pad(randomDate.getDate())}`;
 }
 
-// Helper function to generate Norwegian amount text (simplified)
-function generateNorwegianAmountText(_amount: number): string {
-  // This function is kept for potential future use
-  const amount = _amount;
-  const millions = Math.floor(amount / 1000000);
-  const thousands = Math.floor((amount % 1000000) / 1000);
-  const hundreds = Math.floor((amount % 1000) / 100);
-  
-  let text = '';
-  
-  if (millions > 0) {
-    const millionWords = ['', 'en', 'to', 'tre', 'fire', 'fem', 'seks', 'syv', 'åtte', 'ni'];
-    text += millionWords[millions] || millions.toString();
-    text += millions === 1 ? ' million' : ' millioner';
-  }
-  
-  if (thousands > 0) {
-    if (text) text += ' ';
-    const thousandWords = ['', '', 'to', 'tre', 'fire', 'fem', 'seks', 'syv', 'åtte', 'ni'];
-    if (thousands < 10) {
-      text += thousandWords[thousands] || thousands.toString();
-    } else {
-      text += thousands.toString();
-    }
-    text += ' tusen';
-  }
-  
-  if (hundreds > 0) {
-    if (text) text += ' ';
-    const hundredWords = ['', 'ett', 'to', 'tre', 'fire', 'fem', 'seks', 'syv', 'åtte', 'ni'];
-    text += hundredWords[hundreds] || hundreds.toString();
-    text += ' hundre';
-  }
-  
-  if (text) {
-    text += ' kroner';
-  } else {
-    text = amount.toLocaleString('no-NO') + ' kroner';
-  }
-  
-  return text.charAt(0).toUpperCase() + text.slice(1);
-}
-
 // Helper function to generate textual amount descriptions without numbers
 function generateTextualAmountDescription(_amount: number): string {
   const descriptions = [

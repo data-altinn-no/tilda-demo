@@ -447,7 +447,6 @@ export function TildaPage() {
                 rap={rap}
                 koord={koord}
                 perMynd={perMynd}
-                onAuthorityClick={handleAuthorityClick}
                 fromDate={searchFromDate}
                 toDate={searchToDate}
                 financialData={financialData}

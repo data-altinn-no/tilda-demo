@@ -1,4 +1,4 @@
-import { TrendingUp, Users, Building2, DollarSign, BarChart3, PieChart, HelpCircle } from 'lucide-react';
+import { TrendingUp, Users, DollarSign, BarChart3, PieChart, HelpCircle } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
 import { Badge } from '../ui/Badge';
 
