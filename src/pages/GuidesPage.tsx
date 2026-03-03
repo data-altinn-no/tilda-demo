@@ -61,15 +61,15 @@ const GUIDES: Guide[] = [
       },
       {
         title: "Hvordan skape verdi med Tilda?",
-        content: "Hvilke tilsynsmyndigheter samarbeider dere med? Hvilke data trenger dere fra andre? Hvilke data kan dere dele med andre?"
+        content: "Hvilke tilsynsmyndigheter samarbeider dere med? Hvilke data trenger dere fra andre? Hvilke data kan dere dele med andre? Hvordan skal dataene brukes?"
       },
       {
-        title: "",
+        title: "Hvordan integrere med Tilda?",
         content: "Alle integrasjoner krever Maskinporten-autentisering. Kontakt Digdir for å få tilgang til scopet altinn:dataaltinnno/tilda."
       },
       {
-        title: "Test i testmiljo",
-        content: "Bruk testmiljoet for a verifisere integrasjonen for du gar i produksjon. Testmiljoet har syntetiske data."
+        title: "Test i testmiljø",
+        content: "Bruk testmiljøet for a verifisere integrasjonen for du går i produksjon. Testmiljøet har syntetiske data. Se testdatasiden for mer info."
       }
     ]
   },
@@ -81,16 +81,16 @@ const GUIDES: Guide[] = [
     color: "green",
     steps: [
       {
-        title: "Opprett akkreditering",
-        content: "For a hente data ma du forst opprette en akkreditering. Dette gjores via POST til /api/v1/accreditations med informasjon om hvilke datasett du vil ha tilgang til."
+        title: "Hent maskinporten-token",
+        content: "For a hente data må man presentere et gyldig maskinporten-token. Anbefales gjort a la Altinn.Api.MaskinportenClient med caching av token i x tidsenheter."
       },
       {
         title: "Hent data",
-        content: "Bruk akkrediterings-ID-en til a hente data via GET /api/v1/evidence/{accreditationId}. Du kan filtrere pa dato, tilsynsmyndighet og andre parametere."
+        content: "Hente ønskede Tilda-data ved å bruke directharvest-endepunktet i data.altinn.no."
       },
       {
-        title: "Handter responsen",
-        content: "Responsen inneholder tilsynsrapporter, koordineringer eller andre datasett avhengig av hva du har bedt om. Se datamodellene for detaljer om strukturen."
+        title: "Bruk data",
+        content: "Presenter innhentet data i eget fagsystem eller egnet verktøy for videre bruk internt."
       }
     ]
   },
@@ -103,19 +103,19 @@ const GUIDES: Guide[] = [
     steps: [
       {
         title: "Implementer API-endepunkter",
-        content: "Som dataprodusent ma du implementere standardiserte API-endepunkter som data.altinn.no kan kalle. Se API-dokumentasjonen for spesifikasjoner."
+        content: "Som dataprodusent må du implementere standardiserte API-endepunkter som data.altinn.no kan kalle fra Tilda. Se API-dokumentasjonen for spesifikasjoner. Alle datatilbydere skal støtte et felles Tilda-scope for autentisering."
       },
       {
-        title: "Folg datamodellene",
-        content: "Alle data ma folge de definerte JSON-skjemaene. Se datamodell-dokumentasjonen for detaljer om tilsynsrapport, koordinering og andre typer."
+        title: "Følg datamodellene",
+        content: "Dataene som utveksles i Tilda har angitte formater. Se datamodell-dokumentasjonen for detaljer om tilsynsrapport, koordinering og andre typer eller ta inn Dan.Tilda.Models nuget."
       },
       {
-        title: "Registrer deg som kilde",
-        content: "Kontakt forvaltningsansvarlig for a bli registrert som datakilde i Tilda. Du vil fa tildelt et organisasjonsnummer som identifiserer deg som tilsynsmyndighet."
+        title: "Del data",
+        content: "Kontakt forvaltningsansvarlig for å aktivere kall mot dine endepunkter i Tilda. Data.altinn.no må angi hvilke datasett din tilsynsmyndighet støtter."
       },
       {
         title: "Test integrasjonen",
-        content: "Verifiser at API-et ditt returnerer korrekt formaterte data ved a teste mot testmiljoet."
+        content: "Verifiser at API-et ditt returnerer korrekt formaterte data ved a teste mot testmiljoet og bruke eget organisasjonsnummer i tilsynskilder (bare hente data fra dere selv)."
       }
     ]
   },
@@ -127,20 +127,20 @@ const GUIDES: Guide[] = [
     color: "orange",
     steps: [
       {
-        title: "Forsta meldingstyper",
+        title: "Forstå meldingstyper",
         content: "Det finnes tre meldingstyper: varsel-om-rapport (ny tilsynsrapport tilgjengelig), varsel-om-koordinering (planlagt tilsyn), og varsel-fritekst (generell melding)."
       },
       {
-        title: "Sende meldinger",
-        content: "Meldinger sendes via POST til /mtam-endepunktet. Inkluder mottaker (orgnr), meldingstype og eventuell fritekst."
+        title: "Legg ut meldinger",
+        content: "Meldinger publiseres ved at de gjøres tilgjengelig på et endepunkt angitt i Tilda-spesifikasjonen. Tilda-tjenesten vil hente dem og sende dem til riktig endepunkt hos mottaker med jevne mellomrom."
       },
       {
         title: "Motta meldinger",
-        content: "Implementer et GET-endepunkt som returnerer meldinger fra et gitt tidspunkt. data.altinn.no vil polle dette endepunktet regelmessig."
+        content: "Implementer POST-endepunktet som data.altinn.no og Tilda-tjenesten leverer meldingene til."
       },
       {
         title: "Kvitter ut meldinger",
-        content: "Nar en melding er levert, returner 200 OK for a bekrefte mottak. Meldinger som ikke kvitteres ut vil bli forsokt levert pa nytt."
+        content: "Når en melding er mottatt, returner 200 OK for a bekrefte mottak. Meldinger som ikke kvitteres ut vil bli forsokt levert på nytt."
       }
     ]
   },
@@ -152,16 +152,16 @@ const GUIDES: Guide[] = [
     color: "red",
     steps: [
       {
-        title: "Maskinporten-autentisering",
-        content: "Alle API-kall krever et gyldig Maskinporten-token med scopet altinn:dataaltinnno/tilda. Tokenet ma fornyes for det utloper."
+        title: "Konsument-autentisering",
+        content: "Alle API-kall som konsument krever et gyldig Maskinporten-token med scopet altinn:dataaltinnno/tilda. Tokenet må fornyes for det utløper."
       },
       {
-        title: "Tilgangskontroll",
-        content: "Tilgang til data styres av akkrediteringer. En akkreditering definerer hvilke datasett og organisasjoner du har tilgang til."
+        title: "Tilbyder-autentisering",
+        content: "Alle datatilbydere i Tilda skal sikre sine api med scopet brreg:tilda. Data.altinn.no vil være eneste konsument av apiene."
       },
       {
         title: "Personvern",
-        content: "Tilsynsdata kan inneholde personopplysninger. Sorge for at du har hjemmel for a behandle dataene og at de handteres i henhold til GDPR."
+        content: "Tilsynsdata kan inneholde personopplysninger (ENK). Sørg for at du har hjemmel til å behandle dataene og at de håndteres i henhold til GDPR."
       },
       {
         title: "Logging og sporing",
