@@ -1,5 +1,19 @@
-import { HashRouter, Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
+import { HashRouter, Routes, Route, useLocation } from "react-router-dom";
 import { LandingPage, DataModelsPage, TildaPage, ApiPage, GuidesPage, ContactPage, CodePage, StatisticsPage, TestDataPage } from "./pages";
+
+/**
+ * ScrollToTop component - scrolls to top on route change
+ */
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+}
 
 /**
  * Main App component with routing
@@ -8,6 +22,7 @@ import { LandingPage, DataModelsPage, TildaPage, ApiPage, GuidesPage, ContactPag
 export default function App() {
   return (
     <HashRouter>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/tilda" element={<TildaPage />} />

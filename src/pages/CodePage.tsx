@@ -54,17 +54,17 @@ interface RepoCardProps {
 const REPOSITORIES: Repository[] = [
   {
     name: "plugin-tilda",
-    description: "Tilda-plugin for data.altinn.no - inneholder datamodeller og logikk for Tilda-tjenesten",
+    description: "Tilda-plugin for data.altinn.no - koden til Tilda-tjenesten i data.altinn.no",
     url: "https://github.com/data-altinn-no/plugin-tilda",
     language: "C#",
     topics: ["tilda", "altinn", "tilsyn"],
   },
   {
     name: "core",
-    description: "Kjernekomponenter for data.altinn.no-plattformen",
-    url: "https://github.com/data-altinn-no/core",
+    description: "Eksempelimplementasjon for datatilbyders api i Tilda",
+    url: "https://github.com/data-altinn-no/tilda-reference-api",
     language: "C#",
-    topics: ["altinn", "api", "core"],
+    topics: ["datatilbyder", "api", "tilsynsmyndighet"],
   },
   {
     name: "docs",
