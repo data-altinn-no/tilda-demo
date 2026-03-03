@@ -60,11 +60,18 @@ const REPOSITORIES: Repository[] = [
     topics: ["tilda", "altinn", "tilsyn"],
   },
   {
-    name: "core",
+    name: "tilda-reference-api",
     description: "Eksempelimplementasjon for datatilbyders api i Tilda",
     url: "https://github.com/data-altinn-no/tilda-reference-api",
     language: "C#",
     topics: ["datatilbyder", "api", "tilsynsmyndighet"],
+  },
+  {
+    name: "tilda-reference-client",
+    description: "Eksempelimplementasjon for datakonsument-klient i Tilda",
+    url: "https://github.com/data-altinn-no/tilda-reference-client",
+    language: "C#",
+    topics: ["tilsynsmyndighet", "api", "konsument"],
   },
   {
     name: "docs",
@@ -100,37 +107,27 @@ var token = await client.GetAccessToken();`,
   },
   {
     id: "fetch-data",
-    title: "Hente tilsynsdata",
-    description: "Eksempel pa hvordan du henter tilsynsrapporter fra API-et",
+    title: "Hente tilsynsdata med DirectHarvest",
+    description: "Eksempel på hvordan du henter tilsynsrapporter direkte fra DirectHarvest-endepunktet",
     language: "csharp",
     code: `using var httpClient = new HttpClient();
 httpClient.DefaultRequestHeaders.Authorization = 
-    new AuthenticationHeaderValue("Bearer", accessToken);
+    new AuthenticationHeaderValue("Bearer", token); //from previous example
 httpClient.DefaultRequestHeaders.Add(
     "Ocp-Apim-Subscription-Key", subscriptionKey);
 
-// Opprett akkreditering
-var accreditationRequest = new
+// Hent tilsynsdata direkte via DirectHarvest
+var organizationNumber = "123456789";
+var response = await httpClient.GetAsync(
+    $"https://api.data.altinn.no/v1/directharvest/TildaTilsynsrapportV1?subject={organizationNumber}");
+
+if (response.IsSuccessStatusCode)
 {
-    evidenceRequests = new[]
-    {
-        new { evidenceCodeName = "TildaTilsynsrapportv1" }
-    },
-    subject = new { norwegianOrganizationNumber = "123456789" }
-};
-
-var response = await httpClient.PostAsJsonAsync(
-    "https://api.data.altinn.no/v1/accreditations",
-    accreditationRequest);
-
-var accreditation = await response.Content
-    .ReadFromJsonAsync<AccreditationResponse>();
-
-// Hent data
-var dataResponse = await httpClient.GetAsync(
-    $"https://api.data.altinn.no/v1/evidence/{accreditation.Id}");
-var tilsynsdata = await dataResponse.Content
-    .ReadFromJsonAsync<AuditReportList>();`,
+    var tilsynsdata = await response.Content
+        .ReadFromJsonAsync<TilsynsrapportResponse>();
+    
+    Console.WriteLine($"Hentet {tilsynsdata.Tilsynsrapporter.Count} rapporter");
+}`,
   },
   {
     id: "javascript",
@@ -138,42 +135,24 @@ var tilsynsdata = await dataResponse.Content
     description: "Hente data med JavaScript",
     language: "javascript",
     code: `// Forutsetter at du har hentet Maskinporten-token
-const accessToken = await getMaskinportenToken();
+const token = await getMaskinportenToken(); // from previous example
 
-// Opprett akkreditering
-const accreditationResponse = await fetch(
-  "https://api.data.altinn.no/v1/accreditations",
-  {
-    method: "POST",
-    headers: {
-      "Authorization": \`Bearer \${accessToken}\`,
-      "Ocp-Apim-Subscription-Key": subscriptionKey,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      evidenceRequests: [
-        { evidenceCodeName: "TildaTilsynsrapportv1" }
-      ],
-      subject: { norwegianOrganizationNumber: "123456789" }
-    })
-  }
-);
-
-const accreditation = await accreditationResponse.json();
-
-// Hent tilsynsdata
-const dataResponse = await fetch(
-  \`https://api.data.altinn.no/v1/evidence/\${accreditation.id}\`,
+// Hent tilsynsdata direkte via DirectHarvest
+const organizationNumber = "123456789";
+const response = await fetch(
+  \`https://api.data.altinn.no/v1/directharvest/TildaTilsynsrapportV1?subject=\${organizationNumber}\`,
   {
     headers: {
-      "Authorization": \`Bearer \${accessToken}\`,
+      "Authorization": \`Bearer \${token}\`,
       "Ocp-Apim-Subscription-Key": subscriptionKey
     }
   }
 );
 
-const tilsynsdata = await dataResponse.json();
-console.log(tilsynsdata);`,
+if (response.ok) {
+  const tilsynsdata = await response.json();
+  console.log(\`Hentet \${tilsynsdata.Tilsynsrapporter.length} rapporter\`);
+}`,
   },
   {
     id: "kotlin",
@@ -187,48 +166,28 @@ import java.net.http.HttpResponse
 import com.google.gson.Gson
 
 // Forutsetter at du har hentet Maskinporten-token
-val accessToken = getMaskinportenToken()
+val token = getMaskinportenToken() // from previous example
 val subscriptionKey = "din-subscription-key"
 
 val client = HttpClient.newHttpClient()
 val gson = Gson()
 
-// Opprett akkreditering
-val accreditationBody = mapOf(
-    "evidenceRequests" to listOf(
-        mapOf("evidenceCodeName" to "TildaTilsynsrapportv1")
-    ),
-    "subject" to mapOf("norwegianOrganizationNumber" to "123456789")
-)
-
-val accreditationRequest = HttpRequest.newBuilder()
-    .uri(URI.create("https://api.data.altinn.no/v1/accreditations"))
-    .header("Authorization", "Bearer $accessToken")
-    .header("Ocp-Apim-Subscription-Key", subscriptionKey)
-    .header("Content-Type", "application/json")
-    .POST(HttpRequest.BodyPublishers.ofString(gson.toJson(accreditationBody)))
-    .build()
-
-val accreditationResponse = client.send(
-    accreditationRequest, 
-    HttpResponse.BodyHandlers.ofString()
-)
-val accreditation = gson.fromJson(
-    accreditationResponse.body(), 
-    Map::class.java
-)
-
-// Hent tilsynsdata
-val dataRequest = HttpRequest.newBuilder()
-    .uri(URI.create("https://api.data.altinn.no/v1/evidence/\${accreditation["id"]}"))
-    .header("Authorization", "Bearer $accessToken")
+// Hent tilsynsdata direkte via DirectHarvest
+val organizationNumber = "123456789"
+val request = HttpRequest.newBuilder()
+    .uri(URI.create("https://api.data.altinn.no/v1/directharvest/TildaTilsynsrapportV1?subject=$organizationNumber"))
+    .header("Authorization", "Bearer $token")
     .header("Ocp-Apim-Subscription-Key", subscriptionKey)
     .GET()
     .build()
 
-val dataResponse = client.send(dataRequest, HttpResponse.BodyHandlers.ofString())
-val tilsynsdata = gson.fromJson(dataResponse.body(), Map::class.java)
-println(tilsynsdata)`,
+val response = client.send(request, HttpResponse.BodyHandlers.ofString())
+
+if (response.statusCode() == 200) {
+    val tilsynsdata = gson.fromJson(response.body(), Map::class.java)
+    val rapporter = tilsynsdata["Tilsynsrapporter"] as List<*>
+    println("Hentet \${rapporter.size} rapporter")
+}`,
   },
 ];
 
