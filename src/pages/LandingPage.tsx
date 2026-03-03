@@ -108,17 +108,17 @@ export function LandingPage() {
   ];
 
   const authorities: Authority[] = [
-    { name: "Justervesenet", logo: "https://www.justervesenet.no/wp-content/themes/flavor/images/logo.svg", url: "https://www.justervesenet.no" },
-    { name: "Arbeidstilsynet", logo: "https://www.arbeidstilsynet.no/Static/img/AB_logo_2.svg", url: "https://www.arbeidstilsynet.no" },
-    { name: "Mattilsynet", logo: "https://www.mattilsynet.no/themes/mattilsynet/images/mattilsynet-logo.svg", url: "https://www.mattilsynet.no" },
-    { name: "Miljødirektoratet", logo: "https://www.miljodirektoratet.no/assets/logo/new/logo-primary.svg", url: "https://www.miljodirektoratet.no" },
-    { name: "DSB", logo: null, url: "https://www.dsb.no" },
-    { name: "Fiskeridirektoratet", logo: null, url: "https://www.fiskeridir.no" },
+    { name: "Justervesenet", logo: "https://altinncdn.no/orgs/brg/brreg.png", url: "https://www.justervesenet.no" },
+    { name: "Arbeidstilsynet", logo: "https://altinncdn.no/orgs/dat/arbeidstilsynet.png", url: "https://www.arbeidstilsynet.no" },
+    { name: "Mattilsynet", logo: "https://altinncdn.no/orgs/mat/mat_logo.svg", url: "https://www.mattilsynet.no" },
+    { name: "Miljødirektoratet", logo: "https://altinncdn.no/orgs/mdir/mdir_logo.svg", url: "https://www.miljodirektoratet.no" },
+    { name: "DSB", logo: "https://altinncdn.no/orgs/dsb/dsb.png", url: "https://www.dsb.no" },
+    { name: "Fiskeridirektoratet", logo: "https://altinncdn.no/orgs/fd/fiskeridirektoratet.png", url: "https://www.fiskeridir.no" },
     { name: "Sjøfartsdirektoratet", logo: null, url: "https://www.sdir.no" },                  
-    { name: "Konkurransetilsynet", logo: null, url: "https://www.konkurransetilsynet.no" },
+    { name: "Konkurransetilsynet", logo: "https://altinncdn.no/orgs/kt/kt.jpg", url: "https://www.konkurransetilsynet.no" },
     { name: "Havindustritilsynet", logo: null, url: "https://www.havtil.no" },
     { name: "UU-tilsynet", logo: null, url: "https://www.uutilsynet.no" },
-    { name: "Direktoratet for mineralforvaltning", logo: "https://www.dirmin.no/themes/custom/dmf_hjemmeside/logo.svg", url: "https://www.dirmin.no" }
+    { name: "Direktoratet for mineralforvaltning", logo: "https://altinncdn.no/orgs/dmf/dmf.png", url: "https://www.dirmin.no" }
   ];
 
   return (
