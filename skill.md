@@ -2,7 +2,7 @@
 
 ## Project Context
 
-This is a **Norwegian government service demo application** for Tilda (Tilsynstilsynet Dashboard) - a data sharing service for supervision authorities in Norway. The application is built with React and demonstrates how supervision authorities can share and access supervision data.
+This is a **Norwegian government service demo application** for Tilda - a data sharing service for supervision authorities in Norway. The application is built with React and demonstrates how supervision authorities can share and access supervision data.
 
 **Critical**: All content, UI text, and documentation must be in **Norwegian (Bokmål)**. This is a Norwegian government service.
 
@@ -26,14 +26,14 @@ src/
 │   ├── modals/          # ComplianceModal, InfoModal
 │   ├── tabs/            # Tab content components (14 files)
 │   └── ui/              # Button, Card, Input, Badge, etc.
-├── data/
-│   ├── generators.js    # Data generation functions
-│   └── aggregators.js   # Data aggregation logic
+├── data/                # Data generation and aggregation logic (.js and .ts during migration)
 ├── dataSamples/         # Sample data files
 ├── pages/               # Route-level components (9 pages)
-├── utils/               # Helper functions (exportHelpers.js)
-└── constants.js         # Norwegian authorities, cities, etc.
+├── utils/               # Helper functions (.js and .ts during migration)
+└── constants.(js|ts)    # Norwegian authorities, cities, etc.
 ```
+
+**Note:** The repository is partially migrated from JavaScript to TypeScript. Prefer `.ts` and `.tsx` for new work, but follow the existing file type in the area you are editing unless the task explicitly includes migration.
 
 ## Coding Standards
 
@@ -63,11 +63,11 @@ src/
 - Use **functional components only** (no class components)
 - Use React hooks: `useState`, `useMemo`, `useEffect`
 - Export components as named exports: `export function ComponentName() {}`
-- Always include JSDoc comments for page-level components
+- Add JSDoc comments for page-level components when they provide useful context beyond the component name
 
 ### 3. Styling Guidelines
 - Use **Tailwind CSS utility classes** exclusively
-- Custom classes defined in `index.css`:
+- Custom classes defined in `src/index.css`:
   - `digdir-card` - standard card styling
   - `digdir-button`, `digdir-button-primary`, `digdir-button-secondary`
   - `digdir-input` - form inputs
@@ -80,8 +80,10 @@ src/
 - Responsive design: use `md:`, `lg:` breakpoints
 
 ### 4. Data Generation
-- All data is **generated/synthetic** - no real API calls
-- Data generators in `src/data/generators.js`:
+- Runtime data shown in the demo application should be **generated/synthetic**
+- Documentation pages and code examples may reference real APIs and real endpoint shapes, but should not turn the demo into a live integration
+- Avoid real runtime API calls in the UI unless the task explicitly requires it
+- Data generators primarily live in `src/data/generators.ts`:
   - `genTilsynsrapportFor(orgnr, fromDate, toDate)` - supervision reports
   - `genTilsynskoordineringFor(orgnr)` - coordination data
   - `genMeldingerFor(orgnr)` - messages
@@ -91,7 +93,7 @@ src/
   - `genRollerFor(orgnr)` - roles
   - `genOkInfoFor(orgnr, orgDetails)` - financial data
   - `genRelatedCompaniesFor(orgnr, name)` - related companies
-- Use constants from `src/constants.js` for Norwegian data (cities, authorities, etc.)
+- Shared constants exist in both `src/constants.js` and `src/constants.ts`; prefer the TypeScript version when working in TypeScript files
 
 ### 5. Routing
 - Use **HashRouter** for GitHub Pages compatibility
@@ -106,6 +108,8 @@ src/
   - `/statistikk` - StatisticsPage
   - `/testdata` - TestDataPage
 - Always use `<Link>` from `react-router-dom` for internal navigation
+- Preserve scroll-to-top behavior on route changes
+- Do not introduce full page reloads for internal navigation
 
 ### 6. State Management
 - Use local state with `useState` for component-specific state
@@ -121,7 +125,7 @@ src/
 - Use `role="tablist"`, `role="tab"`, `role="tabpanel"` for tabs
 
 ### 8. Animation
-- Use Framer Motion for page transitions:
+- Use Framer Motion for page transitions where it matches existing patterns:
   ```jsx
   <motion.div
     initial={{ opacity: 0, y: 20 }}
@@ -144,19 +148,24 @@ src/
 - Visual feedback for invalid inputs: `border-danger text-danger`
 - Disable buttons when invalid: `disabled={!isValid}`
 
+### 11. TypeScript
+- Prefer explicit TypeScript types for props, state, and helper functions
+- Keep strict TypeScript settings green; unused imports, implicit `any`, and prop mismatches should be fixed rather than ignored
+- Add local declaration files only when a dependency has no usable types
+
 ## Key Features to Maintain
 
 ### Dashboard (TildaPage)
 - Organization lookup with 9-digit validation
-- Date range filtering (default: last 3 years)
-- Simulated API delay (1-2 seconds) on search
-- Tab-based navigation (6 base tabs + 4 "mulighetsrom" tabs)
+- Date range filtering
+- Simulated loading behavior where appropriate for the demo experience
+- Tab-based navigation
 - Authority filtering with badge display
 - Status indicator (colored circle) based on violation count
 - Export functionality (CSV/JSON)
 
 ### Data Visualization
-- Interactive Norway map (`src/components/charts/NorwayMap.jsx`)
+- Interactive Norway map (`src/components/ui/NorwayMap.tsx`)
 - City coordinates from `CITY_COORDINATES` constant
 - Recharts for trend analysis and statistics
 - Violation distribution by authority
@@ -165,30 +174,30 @@ src/
 - CSV export with proper formatting
 - JSON export with indentation
 - Authority-based filtering before export
-- Functions in `src/utils/exportHelpers.js`
+- Export helpers exist in both JavaScript and TypeScript variants; prefer `src/utils/exportHelpers.ts` when working in TypeScript files
 
 ## Common Tasks
 
 ### Adding a New Page
-1. Create component in `src/pages/NewPage.jsx`
-2. Export from `src/pages/index.js`
-3. Add route in `src/App.jsx`
-4. Add navigation card in `LandingPage.jsx`
+1. Create component in `src/pages/NewPage.tsx`
+2. Export from `src/pages/index.ts`
+3. Add route in `src/App.tsx`
+4. Add navigation card in `LandingPage.tsx`
 5. Use Norwegian text for all UI elements
 
 ### Adding a New Tab
-1. Create tab component in `src/components/tabs/NewTab.jsx`
-2. Export from `src/components/tabs/index.js`
-3. Add tab definition in `TildaPage.jsx` tabs array
+1. Create tab component in `src/components/tabs/NewTab.tsx`
+2. Export from `src/components/tabs/index.ts`
+3. Add tab definition in `TildaPage.tsx` tabs array
 4. Add tab content rendering in tab panel section
 5. Pass necessary props from TildaPage state
 
 ### Adding a New Data Generator
-1. Add function to `src/data/generators.js`
-2. Use constants from `src/constants.js` for Norwegian data
+1. Add function to `src/data/generators.ts`
+2. Use constants from the shared constants module, preferably the TypeScript version when editing TypeScript files
 3. Generate realistic Norwegian data (names, addresses, dates)
 4. Return consistent data structure
-5. Call from `handleLookup` in `TildaPage.jsx`
+5. Call from the relevant page or lookup flow in `TildaPage.tsx`
 
 ### Modifying Styles
 1. Use Tailwind utilities first
@@ -201,13 +210,13 @@ src/
 
 ### DO NOT:
 - ❌ Use English text in UI (must be Norwegian)
-- ❌ Make real API calls (use generators)
+- ❌ Introduce real runtime API calls for demo data unless the task explicitly requires it
 - ❌ Use class components (functional only)
 - ❌ Add global state management libraries
 - ❌ Use CSS-in-JS libraries (Tailwind only)
 - ❌ Change HashRouter to BrowserRouter (breaks GitHub Pages)
 - ❌ Remove accessibility features
-- ❌ Hard-code data (use generators)
+- ❌ Hard-code large datasets when generators or shared constants are more appropriate
 
 ### DO:
 - ✅ Keep all UI text in Norwegian
@@ -216,7 +225,8 @@ src/
 - ✅ Maintain accessibility standards
 - ✅ Use Tailwind CSS utilities
 - ✅ Generate realistic Norwegian data
-- ✅ Add JSDoc comments for components
+- ✅ Reuse existing UI components before introducing new patterns
+- ✅ Add JSDoc comments when they improve maintainability
 - ✅ Test responsive design
 - ✅ Use Framer Motion for animations
 - ✅ Follow existing naming conventions
@@ -235,6 +245,7 @@ This project approximates **Digdir (Digitaliseringsdirektoratet)** design patter
 
 When making changes, verify:
 - [ ] All text is in Norwegian
+- [ ] TypeScript build passes
 - [ ] Responsive on mobile/tablet/desktop
 - [ ] Accessibility features work (keyboard nav, screen readers)
 - [ ] Data generation produces realistic Norwegian data
@@ -242,6 +253,7 @@ When making changes, verify:
 - [ ] Animations are smooth
 - [ ] No console errors
 - [ ] HashRouter navigation works
+- [ ] Route changes open at the top of the page
 - [ ] Loading states display correctly
 - [ ] Form validation works
 
@@ -255,7 +267,7 @@ npm run lint     # ESLint check
 ```
 
 - Deployed to GitHub Pages via GitHub Actions
-- Base path configured in `vite.config.js`
+- Base path configured in `vite.config.ts`
 - Build artifacts in `dist/` directory
 
 ## Contact & Context
