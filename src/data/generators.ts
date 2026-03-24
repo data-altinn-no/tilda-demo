@@ -355,16 +355,39 @@ export function genTilsynsrapportFor(orgnr: string, fromDate: string | null = nu
 export function genMeldingerFor(orgnr: string): any[] {
   const n = randInt(2, 30);
   
-  return Array.from({ length: n }).map((_, idx) => ({
-    identifikator: `MSG-${orgnr}-${String(idx + 1).padStart(3, '0')}`,
-    mottaker: rand(AUTHORITIES),
-    meldingOmTildaenhet: orgnr,
-    datoForMeldingTilAnnenMyndighet: new Date(Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000).toISOString(),
-    meldingsinnholdTilAnnenMyndighet: {
-      meldingsType: rand(MESSAGE_TYPES),
-      fritekst: `Automatisk generert melding vedrørende ${rand(THEMES).toLowerCase()} for organisasjon ${orgnr}. ${rand(['Vennligst følg opp innen 30 dager.', 'Krever umiddelbar oppmerksomhet.', 'Til orientering og videre koordinering.', 'Forespørsel om tilleggsopplysninger.'])}`
-    }
-  }));
+  const messageTemplates = [
+    (tema: string) => `Ved tilsyn ${new Date(Date.now() - Math.random() * 60 * 24 * 60 * 60 * 1000).toLocaleDateString('no-NO')} ble det avdekket avvik knyttet til ${tema.toLowerCase()}. Virksomheten har fått varsel om pålegg og frist for retting. Ber om at dere vurderer om dette er relevant for deres tilsynsområde.`,
+    (tema: string) => `Koordinert tilsyn gjennomført sammen med to andre myndigheter. Observerte mangler ved ${tema.toLowerCase()} som kan ha betydning for deres tilsynsområde. Vedlagt dokumentasjon fra befaring. Foreslår oppfølgingsmøte for å diskutere videre tiltak.`,
+    (tema: string) => `Virksomheten har mottatt gebyr etter gjentatte brudd på regelverket for ${tema.toLowerCase()}. Dette er tredje gangs avvik på samme område de siste 18 månedene. Anbefaler at dere vurderer skjerpet tilsyn eller koordinert oppfølging.`,
+    (tema: string) => `Uanmeldt tilsyn avdekket alvorlige forhold vedrørende ${tema.toLowerCase()}. Virksomheten har fått pålegg om umiddelbar stans av deler av virksomheten inntil forholdene er rettet. Ber om tilbakemelding dersom dere har registrert lignende funn.`,
+    (tema: string) => `Oppfølgingstilsyn viser at tidligere pålegg knyttet til ${tema.toLowerCase()} ikke er fulgt opp tilfredsstillende. Virksomheten har fått forlenget frist, men vi vurderer tvangsmulkt dersom ikke retting skjer innen ny frist. Til deres orientering.`,
+    (tema: string) => `Positiv utvikling observert ved kontroll av ${tema.toLowerCase()}. Virksomheten har implementert gode rutiner og systemer etter tidligere avvik. Dette kan være relevant som eksempel på god praksis i deres tilsynsarbeid.`,
+    (tema: string) => `Planlegger koordinert tilsyn med fokus på ${tema.toLowerCase()} i Q2. Ønsker å invitere deres myndighet til å delta, da vi ser overlappende ansvarsområder. Foreslår planleggingsmøte for å koordinere tilnærming og ressursbruk.`,
+    (tema: string) => `Mottatt klage fra ansatte vedrørende ${tema.toLowerCase()}. Saken er under utredning og vi gjennomfører tilsyn innen 14 dager. Gitt deres mandat kan dette også være relevant for deres vurdering. Holder dere orientert om funn.`,
+    (tema: string) => `Virksomheten har søkt om dispensasjon fra krav knyttet til ${tema.toLowerCase()}. Vi har behov for deres faglige vurdering av søknaden, spesielt med tanke på eventuelle konsekvenser for deres tilsynsområde. Frist for innspill er 3 uker.`,
+    (tema: string) => `Rutinemessig tilsyn viste tilfredsstillende etterlevelse av regelverket for ${tema.toLowerCase()}. Ingen avvik registrert. Virksomheten har god internkontroll og dokumentasjon. Dette er til deres orientering for eventuelle fremtidige koordinerte tilsyn.`,
+    (tema: string) => `Oppfølging av tidligere varsel om ${tema.toLowerCase()} viser at virksomheten har iverksatt korrigerende tiltak. Avviket anses som lukket. Anbefaler likevel at området følges opp ved neste ordinære tilsyn for å sikre varig forbedring.`,
+    (tema: string) => `Alvorlig hendelse relatert til ${tema.toLowerCase()} er rapportert til oss. Virksomheten har iverksatt umiddelbare tiltak og gjennomført risikovurdering. Vi følger opp med tilsyn neste uke. Ber om at dere vurderer om hendelsen har relevans for deres område.`,
+    (tema: string) => `Tematilsyn på ${tema.toLowerCase()} i bransjen viser systematiske utfordringer hos flere virksomheter. Foreslår at vi koordinerer innsats og deler erfaringer for å få bedre effekt av tilsynsarbeidet. Inviterer til fagmøte for erfaringsutveksling.`,
+    (tema: string) => `Virksomheten har varslet om planlagte endringer som kan påvirke ${tema.toLowerCase()}. De har bedt om veiledning før gjennomføring. Dette kan også ha implikasjoner for deres tilsynsområde. Foreslår felles veiledningsmøte med virksomheten.`,
+    (tema: string) => `Oppfølging av tvangsmulkt knyttet til ${tema.toLowerCase()}. Virksomheten har nå dokumentert at pålagte tiltak er gjennomført. Vi vurderer saken som avsluttet, men anbefaler fortsatt oppmerksomhet ved fremtidige tilsyn på dette området.`
+  ];
+  
+  return Array.from({ length: n }).map((_, idx) => {
+    const tema = rand(THEMES);
+    const template = rand(messageTemplates);
+    
+    return {
+      identifikator: `MSG-${orgnr}-${String(idx + 1).padStart(3, '0')}`,
+      mottaker: rand(AUTHORITIES),
+      meldingOmTildaenhet: orgnr,
+      datoForMeldingTilAnnenMyndighet: new Date(Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000).toISOString(),
+      meldingsinnholdTilAnnenMyndighet: {
+        meldingsType: rand(MESSAGE_TYPES),
+        fritekst: template(tema)
+      }
+    };
+  });
 }
 
 // Generate messages to other authorities (MTAM)
