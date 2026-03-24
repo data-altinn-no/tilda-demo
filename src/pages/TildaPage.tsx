@@ -153,8 +153,11 @@ export function TildaPage() {
     );
   };
 
-  const handleRelatedCompanyClick = (companyOrgnr: string) => {
+  const handleRelatedCompanyClick = (companyOrgnr: string, companyName?: string) => {
     setOrgnr(companyOrgnr);
+    if (companyName) {
+      setPresetCompanyName(companyName);
+    }
     setTimeout(() => {
       document.getElementById('search-button')?.click();
     }, 100);

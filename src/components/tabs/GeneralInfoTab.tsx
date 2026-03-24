@@ -21,7 +21,7 @@ interface GeneralInfoTabProps {
   toDate: string | null;
   financialData?: any;
   relatedCompanies?: any[];
-  onRelatedCompanyClick?: (orgnr: string) => void;
+  onRelatedCompanyClick?: (orgnr: string, name?: string) => void;
 }
 
 /**
@@ -485,7 +485,7 @@ export function GeneralInfoTab({
                     <div className="text-xs text-gray-500">Org.nr: {company.organisasjonsnummer} | {company.address}, {company.zipcode} {company.city}</div>
                   </div>
                   <button
-                    onClick={() => onRelatedCompanyClick?.(company.orgnr)}
+                    onClick={() => onRelatedCompanyClick?.(company.organisasjonsnummer, company.name)}
                     className="flex items-center gap-1 text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors"
                   >
                     Søk
