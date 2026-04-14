@@ -20,6 +20,9 @@ import { randomDateISOYearAround, randomFutureDateISO } from '../utils/dateHelpe
  * No cryptographic operations, authentication, or security-sensitive data is generated here.
  */
 
+// Constants
+const GAZELLE_PROBABILITY = 0.30; // 30% of AS companies are gazelle candidates
+
 // Contact person names for koordinering
 const KOORD_FIRST_NAMES = ['Erik', 'Anne', 'Lars', 'Kari', 'Ole', 'Ingrid', 'Per', 'Marit', 'Bjørn', 'Hilde', 'Tor', 'Silje', 'Geir', 'Lise', 'Arne'];
 const KOORD_LAST_NAMES = ['Hansen', 'Johansen', 'Olsen', 'Larsen', 'Andersen', 'Pedersen', 'Nilsen', 'Kristiansen', 'Jensen', 'Karlsen', 'Johnsen', 'Pettersen', 'Eriksen', 'Berg', 'Haugen'];
@@ -88,7 +91,9 @@ export function genTilsynskoordineringFor(orgnr: string): any[] {
   });
   
   // Generate individual (non-coordinated) planned tilsyn
-  const individualCount = totalPlanned - coordinatedCount * 2; // Approximate individual count
+  // Calculate how many slots are taken by coordinated tilsyn (each coordinated event creates multiple entries)
+  const coordinatedTilsynSlots = coordinatedDates.reduce((sum, cd) => sum + cd.authorities.length, 0);
+  const individualCount = Math.max(0, totalPlanned - coordinatedTilsynSlots);
   for (let i = 0; i < individualCount; i++) {
     const start = randomFutureDateISO(1, 9);
     
@@ -941,9 +946,9 @@ export function genOkInfoFor(orgnr: string, orgDetails: any = null): any {
     'Stavanger Services AS', 'Arctic Innovation AS', 'Nordic Systems AS'
   ];
   
-  // ~30% chance of being a gazelle organization (only if AS/Aksjeselskap)
+  // Chance of being a gazelle organization (only if AS/Aksjeselskap)
   const isAS = orgDetails?.organisationForm === 'Aksjeselskap' || orgDetails?.organisationForm === 'AS';
-  const isGazelleCandidate = isAS && Math.random() < 0.30;
+  const isGazelleCandidate = isAS && Math.random() < GAZELLE_PROBABILITY;
   
   // Base financial metrics (will be adjusted year by year)
   // For gazelle: start with lower revenue that will double over 5 years
@@ -1016,11 +1021,11 @@ export function genOkInfoFor(orgnr: string, orgDetails: any = null): any {
     const financingCashFlow = -Math.round(Math.abs(investingCashFlow) * (0.2 + Math.random() * 0.6));
     
     // Calculate year-over-year changes
-    const revenueChange = i === 4 ? Math.random() * 20 - 5 : 
-      regnskapsaar.length > 0 ? ((revenue - regnskapsaar[regnskapsaar.length - 1].finansielleNokkeltal.omsetning.beloep) / regnskapsaar[regnskapsaar.length - 1].finansielleNokkeltal.omsetning.beloep * 100) : 0;
+    const revenueChange = regnskapsaar.length === 0 ? Math.random() * 20 - 5 : 
+      ((revenue - regnskapsaar[regnskapsaar.length - 1].finansielleNokkeltal.omsetning.beloep) / regnskapsaar[regnskapsaar.length - 1].finansielleNokkeltal.omsetning.beloep * 100);
     
-    const operatingChange = i === 4 ? Math.random() * 30 - 10 :
-      regnskapsaar.length > 0 ? ((operatingResult - regnskapsaar[regnskapsaar.length - 1].finansielleNokkeltal.driftsresultat.beloep) / regnskapsaar[regnskapsaar.length - 1].finansielleNokkeltal.driftsresultat.beloep * 100) : 0;
+    const operatingChange = regnskapsaar.length === 0 ? Math.random() * 30 - 10 :
+      ((operatingResult - regnskapsaar[regnskapsaar.length - 1].finansielleNokkeltal.driftsresultat.beloep) / regnskapsaar[regnskapsaar.length - 1].finansielleNokkeltal.driftsresultat.beloep * 100);
     
     regnskapsaar.push({
       aar: year,
@@ -1131,7 +1136,9 @@ export function genOkInfoFor(orgnr: string, orgDetails: any = null): any {
   const revenueGrowthRates = regnskapsaar.slice(1).map((year, index) => 
     (year.finansielleNokkeltal.omsetning.beloep - regnskapsaar[index].finansielleNokkeltal.omsetning.beloep) / regnskapsaar[index].finansielleNokkeltal.omsetning.beloep * 100
   );
-  const avgRevenueGrowth = revenueGrowthRates.reduce((sum, rate) => sum + rate, 0) / revenueGrowthRates.length;
+  const avgRevenueGrowth = revenueGrowthRates.length > 0 
+    ? revenueGrowthRates.reduce((sum, rate) => sum + rate, 0) / revenueGrowthRates.length 
+    : 0;
   
   const employeeGrowthRate = ((regnskapsaar[4].ansatte.antallAnsatte - regnskapsaar[0].ansatte.antallAnsatte) / regnskapsaar[0].ansatte.antallAnsatte * 100);
   
