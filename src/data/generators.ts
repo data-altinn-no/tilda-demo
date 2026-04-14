@@ -14,6 +14,10 @@ import { randomDateISOYearAround, randomFutureDateISO } from '../utils/dateHelpe
 
 /**
  * Data generation functions for creating dummy supervision data
+ * 
+ * NOTE: Math.random() is used throughout this file for generating demo/mock data.
+ * This is NOT a security context - the data is for presentation purposes only.
+ * No cryptographic operations, authentication, or security-sensitive data is generated here.
  */
 
 // Contact person names for koordinering
