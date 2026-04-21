@@ -159,15 +159,15 @@ const DATA_MODELS: DataModel[] = [
     icon: Database,
     color: "indigo",
     fields: [
-      { name: "tildaenhet", type: "string", description: "Organisasjonsnummer" },
-      { name: "tildaenhetNavn", type: "string", description: "Navn på enheten" },
-      { name: "epostaddresser", type: "array", description: "E-postadresser" },
-      { name: "tildaenhetHovedenhet", type: "string", description: "Hovedenhet" },
-      { name: "besoeksadresse", type: "ERAddress", description: "Besøksadresse" },
-      { name: "naeringskode", type: "string", description: "Næringskode" },
-      { name: "organisasjonsform", type: "string", description: "Organisasjonsform" },
-      { name: "regnskapsInformasjon", type: "AccountsInformation", description: "Regnskapsinformasjon" },
-      { name: "driftsstatus", type: "OperationStatus", description: "Driftsstatus" },
+      { name: "tildaenhet", type: "string?", description: "Organisasjonsnummer" },
+      { name: "tildaenhetNavn", type: "string?", description: "Navn på enheten" },
+      { name: "epostaddresser", type: "string[]?", description: "Liste med e-postadresser" },
+      { name: "tildaenhetHovedenhet", type: "string?", description: "Organisasjonsnummer til hovedenhet (parent)" },
+      { name: "besoeksadresse", type: "ErAddress?", description: "Besøksadresse" },
+      { name: "naeringskode", type: "string?", description: "Næringskode" },
+      { name: "organisasjonsform", type: "string?", description: "Organisasjonsform" },
+      { name: "regnskapsInformasjon", type: "AccountsInformation?", description: "Regnskapsinformasjon" },
+      { name: "driftsstatus", type: "OperationStatus?", description: "Driftsstatus" },
     ]
   },
 ];
@@ -362,8 +362,15 @@ const COMPLEX_TYPES: Record<string, ComplexType> = {
     name: "AccountsInformation",
     description: "Regnskapsinformasjon for enheten",
     fields: [
-      { name: "regnskapsplikt", type: "boolean?", description: "Om enheten har regnskapsplikt" },
-      { name: "revisjonsplikt", type: "boolean?", description: "Om enheten har revisjonsplikt" },
+      { name: "fraDato", type: "datetime?", description: "Startdato for regnskapsperioden" },
+      { name: "tilDato", type: "datetime?", description: "Sluttdato for regnskapsperioden" },
+      { name: "aarligOmsetning", type: "string?", description: "Årlig omsetning" },
+      { name: "driftsresultat", type: "string?", description: "Driftsresultat" },
+      { name: "sumEgenkapital", type: "string?", description: "Sum egenkapital" },
+      { name: "sumGjeld", type: "string?", description: "Sum gjeld" },
+      { name: "sumKortsiktigGjeld", type: "string?", description: "Sum kortsiktig gjeld" },
+      { name: "omloepsmidler", type: "string?", description: "Omløpsmidler" },
+      { name: "opptjentEgenkapital", type: "string?", description: "Opptjent egenkapital" },
     ]
   },
   ControlState: {
