@@ -360,17 +360,17 @@ const COMPLEX_TYPES: Record<string, ComplexType> = {
   },
   AccountsInformation: {
     name: "AccountsInformation",
-    description: "Regnskapsinformasjon for enheten",
+    description: "Regnskapsinformasjon for enheten fra Regnskapsregisteret",
     fields: [
-      { name: "fraDato", type: "datetime?", description: "Startdato for regnskapsperioden" },
-      { name: "tilDato", type: "datetime?", description: "Sluttdato for regnskapsperioden" },
-      { name: "aarligOmsetning", type: "string?", description: "Årlig omsetning" },
-      { name: "driftsresultat", type: "string?", description: "Driftsresultat" },
-      { name: "sumEgenkapital", type: "string?", description: "Sum egenkapital" },
-      { name: "sumGjeld", type: "string?", description: "Sum gjeld" },
-      { name: "sumKortsiktigGjeld", type: "string?", description: "Sum kortsiktig gjeld" },
-      { name: "omloepsmidler", type: "string?", description: "Omløpsmidler" },
-      { name: "opptjentEgenkapital", type: "string?", description: "Opptjent egenkapital" },
+      { name: "fraDato", type: "datetime?", description: "Regnskapsperiodens startdato" },
+      { name: "tilDato", type: "datetime?", description: "Regnskapsperiodens sluttdato" },
+      { name: "aarligOmsetning", type: "string?", description: "Sum driftsinntekter (salgsinntekter og andre driftsinntekter)" },
+      { name: "driftsresultat", type: "string?", description: "Driftsresultat (driftsinntekter minus driftskostnader)" },
+      { name: "sumEgenkapital", type: "string?", description: "Sum egenkapital (innskutt + opptjent egenkapital)" },
+      { name: "sumGjeld", type: "string?", description: "Sum gjeld (langsiktig + kortsiktig gjeld)" },
+      { name: "sumKortsiktigGjeld", type: "string?", description: "Sum kortsiktig gjeld (gjeld som forfaller innen 12 måneder)" },
+      { name: "omloepsmidler", type: "string?", description: "Sum omløpsmidler (varer, fordringer, investeringer, kontanter)" },
+      { name: "opptjentEgenkapital", type: "string?", description: "Sum opptjent egenkapital (egenkapital fra virksomhetens drift)" },
     ]
   },
   ControlState: {
