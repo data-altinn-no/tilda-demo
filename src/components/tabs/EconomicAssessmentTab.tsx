@@ -706,6 +706,121 @@ export function EconomicAssessmentTab({ orgDetails, financialData }: EconomicAss
             </div>
           </div>
 
+          {/* Altman Z-Score */}
+          <div className="px-6 pb-4">
+            <div className={`p-4 rounded-xl border-2 ${
+              result.altmanZScore.zone === 'Trygg sone'
+                ? 'bg-green-50 border-green-300'
+                : result.altmanZScore.zone === 'Gråsone'
+                  ? 'bg-yellow-50 border-yellow-300'
+                  : 'bg-red-50 border-red-300'
+            }`}>
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h5 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                    Altman Z-Score
+                    <span className="text-[10px] font-normal text-gray-500">(modifisert modell for private selskap)</span>
+                  </h5>
+                  <p className="text-xs text-gray-600 mt-0.5">{result.altmanZScore.description}</p>
+                </div>
+                <div className="text-right">
+                  <div className={`text-2xl font-bold ${
+                    result.altmanZScore.zone === 'Trygg sone' ? 'text-green-700'
+                      : result.altmanZScore.zone === 'Gråsone' ? 'text-yellow-700'
+                        : 'text-red-700'
+                  }`}>
+                    {result.altmanZScore.score.toFixed(2)}
+                  </div>
+                  <Badge className={`text-[10px] font-bold ${
+                    result.altmanZScore.zone === 'Trygg sone' ? 'bg-green-100 text-green-800 border-green-300'
+                      : result.altmanZScore.zone === 'Gråsone' ? 'bg-yellow-100 text-yellow-800 border-yellow-300'
+                        : 'bg-red-100 text-red-800 border-red-300'
+                  }`}>
+                    {result.altmanZScore.zone}
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Z-Score scale visualization */}
+              <div className="relative h-3 bg-gradient-to-r from-red-400 via-yellow-400 to-green-400 rounded-full mb-1 overflow-visible">
+                <div
+                  className="absolute top-[-2px] w-4 h-4 bg-white border-2 border-gray-800 rounded-full shadow-md transform -translate-x-1/2"
+                  style={{ left: `${Math.min(100, Math.max(0, (result.altmanZScore.score / 5) * 100))}%` }}
+                />
+              </div>
+              <div className="flex justify-between text-[9px] text-gray-500 mb-3">
+                <span>0 (Faresone)</span>
+                <span>1.23</span>
+                <span>2.9</span>
+                <span>5.0+ (Trygg)</span>
+              </div>
+
+              {/* Z-Score components */}
+              <div className="grid grid-cols-5 gap-2 mt-2">
+                {[
+                  { key: 'X1', label: 'Arbeidskapital / Totalkapital', value: result.altmanZScore.components.x1, weight: 0.717 },
+                  { key: 'X2', label: 'Opptjent EK / Totalkapital', value: result.altmanZScore.components.x2, weight: 0.847 },
+                  { key: 'X3', label: 'Driftsresultat / Totalkapital', value: result.altmanZScore.components.x3, weight: 3.107 },
+                  { key: 'X4', label: 'Egenkapital / Gjeld', value: result.altmanZScore.components.x4, weight: 0.420 },
+                  { key: 'X5', label: 'Omsetning / Totalkapital', value: result.altmanZScore.components.x5, weight: 0.998 },
+                ].map((c) => (
+                  <div key={c.key} className="bg-white/70 rounded-lg p-2 text-center border border-white/50">
+                    <div className="text-[10px] font-bold text-gray-500">{c.key}</div>
+                    <div className="text-sm font-bold text-gray-900">{c.value.toFixed(3)}</div>
+                    <div className="text-[9px] text-gray-500">× {c.weight}</div>
+                    <div className="text-[10px] text-gray-600 mt-0.5 leading-tight">{c.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Red Flags */}
+          {result.redFlags.length > 0 && (
+            <div className="px-6 pb-4">
+              <div className="p-4 bg-red-100 rounded-xl border-2 border-red-400">
+                <h5 className="text-sm font-bold text-red-900 mb-3 flex items-center gap-2">
+                  <AlertTriangle className="w-5 h-5 text-red-600" />
+                  Røde flagg ({result.redFlags.length})
+                  {result.redFlags.some(f => f.severity === 'kritisk') && (
+                    <Badge className="bg-red-700 text-white text-[10px] font-bold border-red-800">
+                      Overstyrer totalvurdering
+                    </Badge>
+                  )}
+                </h5>
+                <div className="space-y-3">
+                  {result.redFlags.map((flag, i) => (
+                    <div key={i} className={`p-3 rounded-lg border ${
+                      flag.severity === 'kritisk'
+                        ? 'bg-red-50 border-red-300'
+                        : 'bg-orange-50 border-orange-300'
+                    }`}>
+                      <div className="flex items-center gap-2 mb-1">
+                        <Badge className={`text-[10px] font-bold uppercase ${
+                          flag.severity === 'kritisk'
+                            ? 'bg-red-700 text-white border-red-800'
+                            : 'bg-orange-600 text-white border-orange-700'
+                        }`}>
+                          {flag.severity}
+                        </Badge>
+                        <span className={`text-sm font-bold ${
+                          flag.severity === 'kritisk' ? 'text-red-900' : 'text-orange-900'
+                        }`}>
+                          {flag.rule}
+                        </span>
+                      </div>
+                      <p className={`text-xs leading-relaxed ${
+                        flag.severity === 'kritisk' ? 'text-red-800' : 'text-orange-800'
+                      }`}>
+                        {flag.description}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Risk & Positive factors */}
           {(result.riskFactors.length > 0 || result.positiveFactors.length > 0) && (
             <div className="px-6 pb-4 grid md:grid-cols-2 gap-4">

@@ -84,6 +84,25 @@ export interface AssessmentIndicator {
   description: string;
 }
 
+export interface AltmanZScore {
+  score: number;
+  zone: 'Trygg sone' | 'Gråsone' | 'Faresone';
+  components: {
+    x1: number; // Working Capital / Total Assets
+    x2: number; // Retained Earnings / Total Assets
+    x3: number; // EBIT / Total Assets
+    x4: number; // Equity / Total Liabilities
+    x5: number; // Sales / Total Assets
+  };
+  description: string;
+}
+
+export interface RedFlag {
+  rule: string;
+  description: string;
+  severity: 'kritisk' | 'alvorlig';
+}
+
 export interface AssessmentResult {
   totalScore: number;
   level: 'kritisk' | 'svak' | 'akseptabel' | 'god' | 'utmerket';
@@ -91,7 +110,9 @@ export interface AssessmentResult {
   indicators: AssessmentIndicator[];
   riskFactors: string[];
   positiveFactors: string[];
+  redFlags: RedFlag[];
   recommendation: string;
+  altmanZScore: AltmanZScore;
 }
 
 /**
@@ -150,15 +171,26 @@ export class EconomicAssessment {
       }
     }
 
+    // Red flag rules — override-level warnings
+    const redFlags = this.detectRedFlags();
+
     // Calculate total score (weighted average)
     const weights = [18, 16, 12, 10, 12, 10, 10, 7, 5]; // Must sum to 100
-    const totalScore = Math.round(
+    let totalScore = Math.round(
       indicators.reduce((sum, ind, i) => sum + ind.score * (weights[i] / 100), 0)
     );
+
+    // Red flags with severity 'kritisk' force the score down
+    const hasCriticalRedFlag = redFlags.some(f => f.severity === 'kritisk');
+    if (hasCriticalRedFlag && totalScore > 25) {
+      totalScore = 25;
+    }
 
     const level = this.scoreToLevel(totalScore);
     const summary = this.generateSummary(totalScore, level, riskFactors, positiveFactors);
     const recommendation = this.generateRecommendation(level, riskFactors, indicators);
+
+    const altmanZScore = this.computeAltmanZScore();
 
     return {
       totalScore,
@@ -167,7 +199,9 @@ export class EconomicAssessment {
       indicators,
       riskFactors,
       positiveFactors,
+      redFlags,
       recommendation,
+      altmanZScore,
     };
   }
 
@@ -483,6 +517,148 @@ export class EconomicAssessment {
       value: this.enhet.driftsstatus || 'OK',
       score,
       level: this.scoreToLevel(score),
+      description,
+    };
+  }
+
+  // --- Red Flag Detection ---
+
+  /**
+   * Detects critical patterns that override the normal score.
+   * These are strong signals of financial distress regardless of other indicators.
+   */
+  private detectRedFlags(): RedFlag[] {
+    const flags: RedFlag[] = [];
+    const latest = this.latestYear;
+    const sorted = this.accounts;
+
+    // 1. Negativ egenkapital
+    if (latest.sumEgenkapital < 0) {
+      flags.push({
+        rule: 'Negativ egenkapital',
+        description: `Egenkapitalen er negativ (${latest.sumEgenkapital.toLocaleString('no-NO')} NOK). Selskapet har mer gjeld enn eiendeler, noe som indikerer teknisk insolvens. Styret har handleplikt etter aksjeloven § 3-5.`,
+        severity: 'kritisk',
+      });
+    }
+
+    // 2. Tre sammenhengende år med underskudd
+    if (sorted.length >= 3) {
+      const lastThree = sorted.slice(-3);
+      const allLoss = lastThree.every(y => y.aarsresultat < 0);
+      if (allLoss) {
+        flags.push({
+          rule: 'Tre år med underskudd',
+          description: `Selskapet har hatt negativt årsresultat tre år på rad (${lastThree.map(y => y.fraDato.slice(0, 4)).join(', ')}). Vedvarende underskudd tærer på egenkapitalen og øker konkursrisikoen.`,
+          severity: 'kritisk',
+        });
+      }
+    }
+
+    // 3. Omsetningskollaps (>50% fall)
+    if (sorted.length >= 2) {
+      const prev = sorted[sorted.length - 2];
+      if (prev.sumDriftsinntekter > 0) {
+        const revenueChange = (latest.sumDriftsinntekter - prev.sumDriftsinntekter) / prev.sumDriftsinntekter;
+        if (revenueChange < -0.5) {
+          flags.push({
+            rule: 'Omsetningskollaps',
+            description: `Driftsinntektene har falt med ${Math.abs(Math.round(revenueChange * 100))}% fra forrige år. Et fall på over 50% er et alvorlig faresignal som kan indikere tap av nøkkelkunder eller markedssvikt.`,
+            severity: 'kritisk',
+          });
+        } else if (revenueChange < -0.3) {
+          flags.push({
+            rule: 'Betydelig omsetningsfall',
+            description: `Driftsinntektene har falt med ${Math.abs(Math.round(revenueChange * 100))}% fra forrige år. Et fall på over 30% krever nærmere vurdering.`,
+            severity: 'alvorlig',
+          });
+        }
+      }
+    }
+
+    // 4. Egenkapitalandel under lovens minstekrav (under halvparten av aksjekapitalen for AS)
+    if (latest.sumEgenkapital > 0 && latest.sumEgenkapital < latest.sumInnskuttEgenkapital * 0.5) {
+      flags.push({
+        rule: 'Lav egenkapital ift. aksjekapital',
+        description: `Egenkapitalen (${latest.sumEgenkapital.toLocaleString('no-NO')} NOK) er under halvparten av innskutt egenkapital. Dette kan utløse handleplikt etter aksjeloven § 3-5.`,
+        severity: 'alvorlig',
+      });
+    }
+
+    // 5. Negativ arbeidskapital med forverring
+    const workingCapital = latest.sumOmloepsmidler - latest.sumKortsiktigGjeld;
+    if (workingCapital < 0) {
+      flags.push({
+        rule: 'Negativ arbeidskapital',
+        description: `Arbeidskapitalen er negativ (${workingCapital.toLocaleString('no-NO')} NOK). Kortsiktig gjeld overstiger omløpsmidlene, noe som kan gi betalingsproblemer på kort sikt.`,
+        severity: 'alvorlig',
+      });
+    }
+
+    // 6. Driftsstatus indikerer avvikling/konkurs
+    const status = this.enhet.driftsstatus?.toLowerCase() || '';
+    if (status === 'konkurs' || status.includes('tvangsavvikling') || status.includes('tvangsopploesning')) {
+      flags.push({
+        rule: 'Kritisk driftsstatus',
+        description: `Virksomheten er registrert med driftsstatus «${this.enhet.driftsstatus}». Dette er et absolutt faresignal.`,
+        severity: 'kritisk',
+      });
+    }
+
+    return flags;
+  }
+
+  // --- Altman Z-Score ---
+
+  /**
+   * Altman Z-Score (privat selskap, modifisert modell)
+   * Z' = 0.717×X1 + 0.847×X2 + 3.107×X3 + 0.420×X4 + 0.998×X5
+   *
+   * X1 = Arbeidskapital / Totalkapital
+   * X2 = Opptjent egenkapital / Totalkapital
+   * X3 = EBIT (Driftsresultat) / Totalkapital
+   * X4 = Bokført egenkapital / Total gjeld
+   * X5 = Omsetning / Totalkapital
+   *
+   * Soner: >2.9 Trygg, 1.23–2.9 Gråsone, <1.23 Faresone
+   */
+  private computeAltmanZScore(): AltmanZScore {
+    const latest = this.latestYear;
+    const totalAssets = latest.sumEiendeler || 1;
+    const workingCapital = latest.sumOmloepsmidler - latest.sumKortsiktigGjeld;
+    const totalLiabilities = latest.sumGjeld || 1;
+
+    const x1 = workingCapital / totalAssets;
+    const x2 = latest.sumOpptjentEgenkapital / totalAssets;
+    const x3 = latest.driftsresultat / totalAssets;
+    const x4 = latest.sumEgenkapital / totalLiabilities;
+    const x5 = latest.sumDriftsinntekter / totalAssets;
+
+    const score = 0.717 * x1 + 0.847 * x2 + 3.107 * x3 + 0.420 * x4 + 0.998 * x5;
+    const roundedScore = Math.round(score * 100) / 100;
+
+    let zone: AltmanZScore['zone'];
+    let description: string;
+    if (roundedScore > 2.9) {
+      zone = 'Trygg sone';
+      description = 'Lav sannsynlighet for konkurs. Selskapet har solid finansiell styrke.';
+    } else if (roundedScore >= 1.23) {
+      zone = 'Gråsone';
+      description = 'Usikkert område. Selskapet bør overvåkes – moderat risiko for finansielle problemer.';
+    } else {
+      zone = 'Faresone';
+      description = 'Høy sannsynlighet for finansielle problemer. Selskapet har flere kjennetegn på konkursrisiko.';
+    }
+
+    return {
+      score: roundedScore,
+      zone,
+      components: {
+        x1: Math.round(x1 * 1000) / 1000,
+        x2: Math.round(x2 * 1000) / 1000,
+        x3: Math.round(x3 * 1000) / 1000,
+        x4: Math.round(x4 * 1000) / 1000,
+        x5: Math.round(x5 * 1000) / 1000,
+      },
       description,
     };
   }

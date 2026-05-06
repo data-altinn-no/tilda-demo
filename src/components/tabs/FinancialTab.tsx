@@ -309,39 +309,6 @@ export function FinancialTab({ financialData, orgDetails }: FinancialTabProps) {
           );
         })}
 
-        {/* Trend Analysis Summary */}
-        {financialData.trendanalyse && (
-          <Card className="border-green-300 bg-green-50">
-            <CardContent className="p-6">
-              <h4 className="font-semibold text-green-800 mb-4 flex items-center gap-2">
-                <TrendingUp className="w-5 h-5" />
-                Trendanalyse
-              </h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
-                <div>
-                  <span className="text-green-700 block font-medium">Omsetningsvekst</span>
-                  <span className="text-green-900">{financialData.trendanalyse.omsetningsvekst?.treAarsSnitt}% (3-års snitt)</span>
-                  <div className="text-green-700">{financialData.trendanalyse.omsetningsvekst?.trend}</div>
-                </div>
-                <div>
-                  <span className="text-green-700 block font-medium">Lønnsomhet</span>
-                  <span className="text-green-900">{financialData.trendanalyse.loennsomhetsutvikling?.trend}</span>
-                  <div className="text-green-700">{financialData.trendanalyse.loennsomhetsutvikling?.driftsmarginsutvikling}</div>
-                </div>
-                <div>
-                  <span className="text-green-700 block font-medium">Soliditet</span>
-                  <span className="text-green-900">{financialData.trendanalyse.soliditetsutvikling?.trend}</span>
-                  <div className="text-green-700">{financialData.trendanalyse.soliditetsutvikling?.egenkapitalandelsutvikling}</div>
-                </div>
-                <div>
-                  <span className="text-green-700 block font-medium">Ansatte</span>
-                  <span className="text-green-900">{financialData.trendanalyse.ansatteutvikling?.vekstrate}%</span>
-                  <div className="text-green-700">{financialData.trendanalyse.ansatteutvikling?.produktivitetsutvikling}</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
       </CardContent>
     </Card>
   );

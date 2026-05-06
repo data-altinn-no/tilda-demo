@@ -929,8 +929,6 @@ const RISK_LEVELS = ['Meget lav', 'Lav', 'Moderat', 'Høy', 'Meget høy'];
 const PAYMENT_ABILITY = ['Utmerket', 'God', 'Tilfredsstillende', 'Svak', 'Dårlig'];
 const FINANCIAL_STABILITY = ['Meget sterk', 'Sterk', 'God', 'Svak', 'Dårlig'];
 const QUARTILE_POSITIONS = ['Øvre kvartil', 'Median', 'Nedre kvartil'];
-const TREND_DIRECTIONS = ['Meget positiv', 'Positiv', 'Stabil', 'Negativ', 'Meget negativ'];
-
 // Generate random financial data (økonomisk informasjon)
 export function genOkInfoFor(orgnr: string, orgDetails: any = null): any {
   const currentYear = new Date().getFullYear() - 1; // Latest reported year (accounts not filed until year-end)
@@ -950,23 +948,29 @@ export function genOkInfoFor(orgnr: string, orgDetails: any = null): any {
   const isAS = orgDetails?.organisationForm === 'Aksjeselskap' || orgDetails?.organisationForm === 'AS';
   const isGazelleCandidate = isAS && Math.random() < GAZELLE_PROBABILITY;
   
+  // ~50% chance of generating a financially distressed company
+  const isBadCompany = !isGazelleCandidate && Math.random() < 0.5;
+  
   // Base financial metrics (will be adjusted year by year)
-  // For gazelle: start with lower revenue that will double over 5 years
-  const baseRevenue = isGazelleCandidate 
-    ? randInt(2000000, 20000000) // 2M - 20M starting (will double to 4M-40M+)
-    : randInt(10000000, 100000000); // 10M - 100M NOK
-  const baseEmployees = randInt(15, 200);
-  // For gazelle: ensure positive profit margin
-  const baseProfitMargin = isGazelleCandidate 
-    ? 10 + Math.random() * 15 // 10-25% for gazelle (always positive)
-    : 8 + Math.random() * 12; // 8-20% profit margin
+  let baseRevenue: number;
+  let baseProfitMargin: number;
+  if (isGazelleCandidate) {
+    baseRevenue = randInt(2000000, 20000000);
+    baseProfitMargin = 10 + Math.random() * 15; // 10-25%
+  } else if (isBadCompany) {
+    baseRevenue = randInt(2000000, 40000000);
+    baseProfitMargin = -8 + Math.random() * 10; // -8% to +2%
+  } else {
+    baseRevenue = randInt(10000000, 100000000);
+    baseProfitMargin = 8 + Math.random() * 12; // 8-20%
+  }
+  const baseEmployees = isBadCompany ? randInt(5, 80) : randInt(15, 200);
   
   // Generate 5 years of data (current year - 4 to current year)
   const regnskapsaar: any[] = [];
   
-  // For gazelle: calculate annual growth rate needed to at least double over 5 years
-  // To double in 5 years: (1 + r)^5 >= 2, so r >= 0.1487 (~15% per year)
-  const gazelleAnnualGrowth = 0.15 + Math.random() * 0.10; // 15-25% annual growth for gazelle
+  // Growth rates per profile
+  const gazelleAnnualGrowth = 0.15 + Math.random() * 0.10; // 15-25%
   
   for (let i = 4; i >= 0; i--) {
     const year = currentYear - i;
@@ -974,45 +978,64 @@ export function genOkInfoFor(orgnr: string, orgDetails: any = null): any {
     // Apply growth/decline trends
     let growthFactor;
     if (isGazelleCandidate) {
-      // Gazelle: consistent positive growth each year (compound from year 0)
       const yearsFromStart = 4 - i;
       growthFactor = Math.pow(1 + gazelleAnnualGrowth, yearsFromStart);
+    } else if (isBadCompany) {
+      // Declining revenue: -5% to -20% per year
+      growthFactor = Math.pow(1 + (Math.random() * 0.05 - 0.20), 4 - i);
     } else {
-      // Normal: random growth/decline
-      growthFactor = Math.pow(1 + (Math.random() * 0.3 - 0.1), 4 - i); // -10% to +20% annual growth
+      growthFactor = Math.pow(1 + (Math.random() * 0.3 - 0.1), 4 - i);
     }
     const revenue = Math.round(baseRevenue * growthFactor);
-    const employees = Math.round(baseEmployees * Math.pow(1 + (Math.random() * 0.2 - 0.05), 4 - i));
+    const employeeGrowth = isBadCompany
+      ? Math.pow(1 + (Math.random() * 0.05 - 0.15), 4 - i) // shrinking workforce
+      : Math.pow(1 + (Math.random() * 0.2 - 0.05), 4 - i);
+    const employees = Math.max(1, Math.round(baseEmployees * employeeGrowth));
     
     // Calculate derived metrics
-    const profitMargin = baseProfitMargin + (Math.random() * 6 - 3); // ±3% variation
+    const profitMargin = isBadCompany
+      ? baseProfitMargin + (Math.random() * 8 - 4) // wider variation, often negative
+      : baseProfitMargin + (Math.random() * 6 - 3);
     const operatingResult = Math.round(revenue * (profitMargin / 100));
     const resultBeforeTax = Math.round(operatingResult * (0.85 + Math.random() * 0.1));
-    const resultAfterTax = Math.round(resultBeforeTax * 0.78); // ~22% tax rate
+    const resultAfterTax = resultBeforeTax > 0
+      ? Math.round(resultBeforeTax * 0.78)
+      : resultBeforeTax; // no tax benefit on losses for simplicity
     
     // Balance sheet items
-    const totalCapital = Math.round(revenue * (0.4 + Math.random() * 0.6)); // 40-100% of revenue
-    const equityRatio = 30 + Math.random() * 40; // 30-70%
+    const totalCapital = Math.round(revenue * (0.4 + Math.random() * 0.6));
+    let equityRatio: number;
+    if (isBadCompany) {
+      equityRatio = -10 + Math.random() * 25; // -10% to +15% (can be negative equity)
+    } else {
+      equityRatio = 30 + Math.random() * 40; // 30-70%
+    }
     const equity = Math.round(totalCapital * (equityRatio / 100));
     const totalDebt = totalCapital - equity;
-    const shortTermDebt = Math.round(totalDebt * (0.3 + Math.random() * 0.4));
+    const shortTermDebt = isBadCompany
+      ? Math.round(totalDebt * (0.5 + Math.random() * 0.4)) // more short-term debt
+      : Math.round(totalDebt * (0.3 + Math.random() * 0.4));
     const longTermDebt = totalDebt - shortTermDebt;
     
     // Employee costs
-    const avgSalary = 450000 + Math.random() * 350000; // 450k - 800k NOK
+    const avgSalary = 450000 + Math.random() * 350000;
     const totalSalaries = Math.round(employees * avgSalary);
     const socialCosts = Math.round(totalSalaries * 0.18);
     const pensionCosts = Math.round(totalSalaries * 0.06);
     const totalPersonnelCosts = totalSalaries + socialCosts + pensionCosts;
     
     // Depreciation
-    const depreciation = Math.round(revenue * (0.03 + Math.random() * 0.04)); // 3-7% of revenue
+    const depreciation = Math.round(revenue * (0.03 + Math.random() * 0.04));
     
     // Working capital
-    const workingCapital = Math.round(revenue * (0.1 + Math.random() * 0.2));
+    const workingCapital = isBadCompany
+      ? Math.round(revenue * (-0.1 + Math.random() * 0.15)) // often negative
+      : Math.round(revenue * (0.1 + Math.random() * 0.2));
     
     // Liquidity ratios
-    const liquidityGrade1 = 1.5 + Math.random() * 2; // 1.5 - 3.5
+    const liquidityGrade1 = isBadCompany
+      ? 0.3 + Math.random() * 0.9 // 0.3 - 1.2 (poor)
+      : 1.5 + Math.random() * 2; // 1.5 - 3.5 (good)
     const liquidityGrade2 = liquidityGrade1 * (0.7 + Math.random() * 0.2);
     
     // Cash flows
@@ -1123,7 +1146,12 @@ export function genOkInfoFor(orgnr: string, orgDetails: any = null): any {
         posisjonLoennsomhet: rand(QUARTILE_POSITIONS),
         posisjonSoliditet: rand(QUARTILE_POSITIONS)
       },
-      risikovurdering: {
+      risikovurdering: isBadCompany ? {
+        kredittvurdering: rand(CREDIT_RATINGS.slice(8)), // Poor ratings (BB+, BB)
+        konkursrisiko: rand(RISK_LEVELS.slice(2)), // Moderat to Meget høy
+        betalingsevne: rand(PAYMENT_ABILITY.slice(2)), // Tilfredsstillende to Dårlig
+        finansiellStabilitet: rand(FINANCIAL_STABILITY.slice(2)) // God to Dårlig
+      } : {
         kredittvurdering: rand(CREDIT_RATINGS.slice(0, 8)), // Favor better ratings
         konkursrisiko: rand(RISK_LEVELS.slice(0, 3)), // Favor lower risk
         betalingsevne: rand(PAYMENT_ABILITY.slice(0, 3)), // Favor better ability
@@ -1131,71 +1159,10 @@ export function genOkInfoFor(orgnr: string, orgDetails: any = null): any {
       }
     });
   }
-  
-  // Calculate trend analysis based on the generated data
-  const revenueGrowthRates = regnskapsaar.slice(1).map((year, index) => 
-    (year.finansielleNokkeltal.omsetning.beloep - regnskapsaar[index].finansielleNokkeltal.omsetning.beloep) / regnskapsaar[index].finansielleNokkeltal.omsetning.beloep * 100
-  );
-  const avgRevenueGrowth = revenueGrowthRates.length > 0 
-    ? revenueGrowthRates.reduce((sum, rate) => sum + rate, 0) / revenueGrowthRates.length 
-    : 0;
-  
-  const employeeGrowthRate = ((regnskapsaar[4].ansatte.antallAnsatte - regnskapsaar[0].ansatte.antallAnsatte) / regnskapsaar[0].ansatte.antallAnsatte * 100);
-  
-  // Generate future projections
-  const latestYear = regnskapsaar[4];
-  const projectedRevenue = Math.round(latestYear.finansielleNokkeltal.omsetning.beloep * (1 + avgRevenueGrowth / 100));
-  const projectedOperatingResult = Math.round(projectedRevenue * (latestYear.loennsomhetsnoekkeltal.driftsmargin / 100));
-  const projectedEmployees = Math.round(latestYear.ansatte.antallAnsatte * (1 + employeeGrowthRate / 100 / 4));
-  
+
   return {
     organisasjonsnummer: orgnr,
     organisasjonsnavn: orgDetails?.name || rand(companyNames),
     regnskapsaar: regnskapsaar,
-    trendanalyse: {
-      omsetningsvekst: {
-        treAarsSnitt: Math.round(avgRevenueGrowth * 10) / 10,
-        trend: avgRevenueGrowth > 5 ? 'Positiv' : avgRevenueGrowth > 0 ? 'Stabil' : 'Negativ',
-        volatilitet: Math.max(...revenueGrowthRates) - Math.min(...revenueGrowthRates) > 20 ? 'Høy' : 'Lav'
-      },
-      loennsomhetsutvikling: {
-        driftsmarginsutvikling: regnskapsaar[4].loennsomhetsnoekkeltal.driftsmargin > regnskapsaar[0].loennsomhetsnoekkeltal.driftsmargin ? 'Forbedring' : 'Forverring',
-        egenkapitalrentabilitetsutvikling: regnskapsaar[4].loennsomhetsnoekkeltal.egenkapitalrentabilitet > regnskapsaar[0].loennsomhetsnoekkeltal.egenkapitalrentabilitet ? 'Stabil vekst' : 'Nedgang',
-        trend: rand(TREND_DIRECTIONS.slice(0, 3))
-      },
-      soliditetsutvikling: {
-        egenkapitalandelsutvikling: regnskapsaar[4].finansielleNokkeltal.egenkapital.egenkapitalandel > regnskapsaar[0].finansielleNokkeltal.egenkapital.egenkapitalandel ? 'Forbedring' : 'Forverring',
-        gjeldsgradutvikling: regnskapsaar[4].finansielleNokkeltal.gjeld.gjeldsgrad < regnskapsaar[0].finansielleNokkeltal.gjeld.gjeldsgrad ? 'Reduksjon' : 'Økning',
-        trend: rand(TREND_DIRECTIONS.slice(0, 3))
-      },
-      ansatteutvikling: {
-        vekstrate: Math.round(employeeGrowthRate * 10) / 10,
-        produktivitetsutvikling: rand(['Forbedring', 'Stabil', 'Forverring']),
-        loennskostnadskontroll: rand(['Utmerket', 'God', 'Tilfredsstillende'])
-      }
-    },
-    prognoser: {
-      aar: currentYear + 1,
-      forventetOmsetning: {
-        beloep: projectedRevenue,
-        vekstrate: Math.round(avgRevenueGrowth * 10) / 10,
-        konfidensintervall: {
-          nedre: Math.round(projectedRevenue * 0.9),
-          ovre: Math.round(projectedRevenue * 1.1)
-        }
-      },
-      forventetDriftsresultat: {
-        beloep: projectedOperatingResult,
-        margin: Math.round(latestYear.loennsomhetsnoekkeltal.driftsmargin * 10) / 10,
-        konfidensintervall: {
-          nedre: Math.round(projectedOperatingResult * 0.85),
-          ovre: Math.round(projectedOperatingResult * 1.15)
-        }
-      },
-      forventetAntallAnsatte: {
-        antall: projectedEmployees,
-        vekstrate: Math.round((employeeGrowthRate / 4) * 10) / 10
-      }
-    }
   };
 }
