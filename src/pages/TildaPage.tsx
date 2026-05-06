@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Info, Database, Building2, RefreshCcw, Download, ListChecks, Circle, Mail, Zap, Car, Users, Calendar, X, ArrowLeft, Newspaper, LucideIcon } from "lucide-react";
+import { Info, Database, Building2, RefreshCcw, Download, ListChecks, Circle, Mail, Zap, Car, Users, Calendar, X, ArrowLeft, Newspaper, LucideIcon, Calculator } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
@@ -31,7 +31,8 @@ import {
   PropertiesTab,
   RolesTab,
   FinancialTab,
-  NewsTab
+  NewsTab,
+  EconomicAssessmentTab
 } from '../components/tabs';
 import { ComplianceModal, InfoModal } from '../components/modals';
 
@@ -184,6 +185,7 @@ export function TildaPage() {
   
   const mulighetsromTabs: TabConfig[] = [
     { id: "okonomi", label: "Økonomisk informasjon", icon: Building2 },
+    { id: "okvurdering", label: "Økonomisk vurdering", icon: Calculator },
     { id: "eiendommer", label: "Eiendommer", icon: Building2 },
     { id: "kjoretoy", label: "Kjøretøy", icon: Car },
     { id: "roller", label: "Roller", icon: Users }
@@ -537,6 +539,13 @@ export function TildaPage() {
                 roleData={roleData}
                 selectedAuthority={selectedAuthorities.length > 0 ? selectedAuthorities[0] : null}
                 onClearSelection={() => setSelectedAuthorities([])}
+              />
+            )}
+
+            {activeTab === "okvurdering" && (
+              <EconomicAssessmentTab 
+                orgDetails={orgDetails}
+                financialData={financialData}
               />
             )}
           </motion.div>

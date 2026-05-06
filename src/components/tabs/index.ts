@@ -15,3 +15,4 @@ export { MessagesTab } from './MessagesTab';
 export { FinancialTab } from './FinancialTab';
 export { TilsynTab } from './TilsynTab';
 export { GeneralInfoTab } from './GeneralInfoTab';
+export { EconomicAssessmentTab } from './EconomicAssessmentTab';
