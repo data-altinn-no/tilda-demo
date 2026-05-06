@@ -933,7 +933,7 @@ const TREND_DIRECTIONS = ['Meget positiv', 'Positiv', 'Stabil', 'Negativ', 'Mege
 
 // Generate random financial data (økonomisk informasjon)
 export function genOkInfoFor(orgnr: string, orgDetails: any = null): any {
-  const currentYear = new Date().getFullYear();
+  const currentYear = new Date().getFullYear() - 1; // Latest reported year (accounts not filed until year-end)
   
   // Use orgDetails if provided, otherwise use random sector
   const sector = orgDetails ? 

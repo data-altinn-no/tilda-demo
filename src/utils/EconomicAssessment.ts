@@ -123,19 +123,22 @@ export class EconomicAssessment {
     // 3. Likviditet - Likviditetsgrad 1 (proff.no formel)
     indicators.push(this.assessLikviditet());
 
-    // 4. Totalrentabilitet (proff.no formel)
+    // 4. Likviditetsgrad 2 (proff.no formel)
+    indicators.push(this.assessLikviditetsgrad2());
+
+    // 5. Totalrentabilitet (proff.no formel)
     indicators.push(this.assessTotalrentabilitet());
 
-    // 5. Gjeldsgrad
+    // 6. Gjeldsgrad
     indicators.push(this.assessGjeldsgrad());
 
-    // 6. Omsetningsvekst
+    // 7. Omsetningsvekst
     indicators.push(this.assessOmsetningsvekst());
 
-    // 7. Ansatteutvikling
+    // 8. Ansatteutvikling
     indicators.push(this.assessAnsatteutvikling());
 
-    // 8. Driftsstatus
+    // 9. Driftsstatus
     indicators.push(this.assessDriftsstatus());
 
     // Collect risk/positive factors
@@ -148,7 +151,7 @@ export class EconomicAssessment {
     }
 
     // Calculate total score (weighted average)
-    const weights = [20, 18, 15, 12, 12, 10, 8, 5]; // Must sum to 100
+    const weights = [18, 16, 12, 10, 12, 10, 10, 7, 5]; // Must sum to 100
     const totalScore = Math.round(
       indicators.reduce((sum, ind, i) => sum + ind.score * (weights[i] / 100), 0)
     );
@@ -313,6 +316,35 @@ export class EconomicAssessment {
       score,
       level: this.scoreToLevel(score),
       description: `${proffLevel} – Likviditetsgrad 1 på ${likviditetsgrad.toFixed(2)} (omløpsmidler i forhold til kortsiktig gjeld)`,
+    };
+  }
+
+  /**
+   * Likviditetsgrad 2 (proff.no)
+   * Formel: (Omløpsmidler - Varelager) / Kortsiktig gjeld
+   * Skala: >1.5 Meget god, 1-1.5 God, 0.7-1 Tilfredsstillende, 0.4-0.7 Svak, <0.4 Ikke tilfredsstillende
+   */
+  private assessLikviditetsgrad2(): AssessmentIndicator {
+    const latest = this.latestYear;
+    const lg2 = latest.sumKortsiktigGjeld > 0
+      ? (latest.sumOmloepsmidler - latest.sumVarer) / latest.sumKortsiktigGjeld
+      : 0;
+
+    let score: number;
+    if (lg2 > 1.5) score = 100;
+    else if (lg2 > 1.0) score = 80;
+    else if (lg2 > 0.7) score = 60;
+    else if (lg2 > 0.4) score = 40;
+    else score = 10;
+
+    const proffLevel = lg2 > 1.5 ? 'Meget god' : lg2 > 1 ? 'God' : lg2 > 0.7 ? 'Tilfredsstillende' : lg2 > 0.4 ? 'Svak' : 'Ikke tilfredsstillende';
+
+    return {
+      name: 'Likviditetsgrad 2',
+      value: lg2.toFixed(2),
+      score,
+      level: this.scoreToLevel(score),
+      description: `${proffLevel} \u2013 Likviditetsgrad 2 p\u00e5 ${lg2.toFixed(2)} (oml\u00f8psmidler minus varelager i forhold til kortsiktig gjeld)`,
     };
   }
 

@@ -9,7 +9,6 @@ import {
   AssessmentResult,
   AssessmentIndicator,
 } from '../../utils/EconomicAssessment';
-import { randInt } from '../../utils/randomHelpers';
 
 interface EconomicAssessmentTabProps {
   orgDetails?: any;
@@ -17,88 +16,113 @@ interface EconomicAssessmentTabProps {
 }
 
 /**
- * Generate initial 3-year accounting data with all fields from Regnskapsregisteret API
+ * Generate accounting data from the shared financialData (genOkInfoFor output).
+ * Uses the last 3 reported years so both "Økonomisk informasjon" and "Økonomisk vurdering" show the same numbers.
  */
 function generateInitialAccounts(financialData: any): AccountsInformationYear[] {
-  const lastReportedYear = new Date().getFullYear() - 1;
-  const years: AccountsInformationYear[] = [];
+  if (!financialData?.regnskapsaar || financialData.regnskapsaar.length === 0) {
+    // Fallback: generate minimal placeholder data if no financialData exists
+    const lastReportedYear = new Date().getFullYear() - 1;
+    return [lastReportedYear - 2, lastReportedYear - 1, lastReportedYear].map(year => ({
+      fraDato: `${year}-01-01`, tilDato: `${year}-12-31`,
+      salgsinntekter: 0, sumDriftsinntekter: 0, loennskostnad: 0, sumDriftskostnad: 0, driftsresultat: 0,
+      sumFinansinntekter: 0, rentekostnadSammeKonsern: 0, annenRentekostnad: 0, sumFinanskostnad: 0, nettoFinans: 0,
+      ordinaertResultatFoerSkattekostnad: 0, ordinaertResultatSkattekostnad: 0, ekstraordinaerePoster: 0,
+      skattekostnadEkstraordinaertResultat: 0, aarsresultat: 0, totalresultat: 0,
+      goodwill: 0, sumAnleggsmidler: 0, sumVarer: 0, sumFordringer: 0, sumInvesteringer: 0,
+      sumBankinnskuddOgKontanter: 0, sumOmloepsmidler: 0, sumEiendeler: 0,
+      sumInnskuttEgenkapital: 0, sumOpptjentEgenkapital: 0, sumEgenkapital: 0,
+      sumLangsiktigGjeld: 0, sumKortsiktigGjeld: 0, sumGjeld: 0, sumEgenkapitalGjeld: 0, antallAnsatte: 0,
+    }));
+  }
 
-  for (let i = 2; i >= 0; i--) {
-    const year = lastReportedYear - i;
-    const existingYear = financialData?.regnskapsaar?.find((y: any) => y.aar === year);
+  // Sort ascending by year, take the last 3
+  const sorted = [...financialData.regnskapsaar].sort((a: any, b: any) => a.aar - b.aar);
+  const lastThree = sorted.slice(-3);
 
-    // Base figures (grow slightly per year)
-    const growthFactor = 1 + (2 - i) * (Math.random() * 0.1 - 0.02);
-    const baseRevenue = existingYear?.finansielleNokkeltal?.omsetning?.beloep || randInt(5000000, 50000000);
-    const salgsinntekter = Math.round(baseRevenue * growthFactor * (0.85 + Math.random() * 0.15));
-    const sumDriftsinntekter = Math.round(salgsinntekter * (1.0 + Math.random() * 0.1));
-    const loennskostnad = Math.round(sumDriftsinntekter * (0.3 + Math.random() * 0.25));
-    const sumDriftskostnad = Math.round(sumDriftsinntekter * (0.7 + Math.random() * 0.2));
-    const driftsresultat = existingYear?.finansielleNokkeltal?.driftsresultat?.beloep || (sumDriftsinntekter - sumDriftskostnad);
+  return lastThree.map((yd: any) => {
+    const fin = yd.finansielleNokkeltal || {};
+    const revenue = fin.omsetning?.beloep || 0;
+    const driftsresultat = fin.driftsresultat?.beloep || 0;
+    const driftsmargin = fin.driftsresultat?.margin || 0;
+    const totalCapital = fin.totalkapital?.beloep || 0;
+    const equity = fin.egenkapital?.beloep || 0;
+    const shortTermDebt = fin.gjeld?.kortsiktigGjeld || 0;
+    const longTermDebt = fin.gjeld?.langsiktigGjeld || 0;
+    const totalDebt = fin.gjeld?.totalGjeld || (shortTermDebt + longTermDebt);
+    const resultBeforeTax = fin.resultatForSkatt?.beloep || 0;
+    const resultAfterTax = fin.resultatEtterSkatt?.beloep || 0;
+    const employees = yd.ansatte?.antallAnsatte || 0;
+    const personnelCosts = yd.ansatte?.loennskostnader?.totalPersonalkostnader || 0;
 
-    // Finansposter
-    const sumFinansinntekter = randInt(10000, Math.round(sumDriftsinntekter * 0.02));
-    const rentekostnadSammeKonsern = randInt(0, Math.round(sumDriftsinntekter * 0.005));
-    const annenRentekostnad = randInt(50000, Math.round(sumDriftsinntekter * 0.03));
-    const sumFinanskostnad = rentekostnadSammeKonsern + annenRentekostnad;
-    const nettoFinans = sumFinansinntekter - sumFinanskostnad;
+    // Derive detailed fields from the summary data
+    const sumDriftsinntekter = revenue;
+    const salgsinntekter = Math.round(revenue * 0.92); // Sales typically ~92% of total revenue
+    const loennskostnad = personnelCosts || Math.round(revenue * (driftsmargin > 0 ? (1 - driftsmargin / 100) * 0.5 : 0.45));
+    const sumDriftskostnad = sumDriftsinntekter - driftsresultat;
+
+    // Finansposter - derive from the difference between driftsresultat and resultat før skatt
+    const nettoFinans = resultBeforeTax - driftsresultat;
+    const sumFinanskostnad = Math.round(Math.abs(Math.min(0, nettoFinans)) + totalDebt * 0.03);
+    const sumFinansinntekter = sumFinanskostnad + nettoFinans;
+    const annenRentekostnad = Math.round(sumFinanskostnad * 0.85);
+    const rentekostnadSammeKonsern = sumFinanskostnad - annenRentekostnad;
 
     // Resultat
-    const ordinaertResultatFoerSkattekostnad = driftsresultat + nettoFinans;
-    const ordinaertResultatSkattekostnad = Math.round(Math.max(0, ordinaertResultatFoerSkattekostnad) * 0.22);
-    const ekstraordinaerePoster = 0;
-    const skattekostnadEkstraordinaertResultat = 0;
-    const aarsresultat = ordinaertResultatFoerSkattekostnad - ordinaertResultatSkattekostnad + ekstraordinaerePoster - skattekostnadEkstraordinaertResultat;
-    const totalresultat = aarsresultat;
+    const ordinaertResultatFoerSkattekostnad = resultBeforeTax;
+    const skattekostnad = resultBeforeTax - resultAfterTax;
+    const aarsresultat = resultAfterTax;
 
-    // Balanse - Eiendeler
-    const goodwill = Math.random() < 0.3 ? randInt(100000, 5000000) : 0;
-    const sumAnleggsmidler = randInt(Math.round(sumDriftsinntekter * 0.2), Math.round(sumDriftsinntekter * 0.6)) + goodwill;
-    const sumVarer = randInt(0, Math.round(sumDriftsinntekter * 0.1));
-    const sumFordringer = randInt(Math.round(sumDriftsinntekter * 0.05), Math.round(sumDriftsinntekter * 0.2));
-    const sumInvesteringer = randInt(0, Math.round(sumDriftsinntekter * 0.05));
-    const sumBankinnskuddOgKontanter = randInt(Math.round(sumDriftsinntekter * 0.05), Math.round(sumDriftsinntekter * 0.15));
-    const sumOmloepsmidler = sumVarer + sumFordringer + sumInvesteringer + sumBankinnskuddOgKontanter;
-    const sumEiendeler = sumAnleggsmidler + sumOmloepsmidler;
+    // Balanse - derive from totalCapital, equity, and debt
+    const sumEiendeler = totalCapital;
+    const sumEgenkapital = equity;
+    const sumGjeld = totalDebt;
+    const sumKortsiktigGjeld = shortTermDebt;
+    const sumLangsiktigGjeld = longTermDebt;
 
-    // Balanse - Egenkapital og gjeld
-    const egenkapitalAndel = 0.2 + Math.random() * 0.4;
-    const sumEgenkapital = existingYear?.finansielleNokkeltal?.egenkapital?.beloep || Math.round(sumEiendeler * egenkapitalAndel);
-    const sumInnskuttEgenkapital = Math.round(sumEgenkapital * (0.3 + Math.random() * 0.3));
+    // Derive balance sheet detail from liquidity ratios
+    const lg1 = yd.likviditetsnoekkeltal?.likviditetsgrad1 || 1.5;
+    const sumOmloepsmidler = Math.round(sumKortsiktigGjeld * lg1);
+    const sumAnleggsmidler = sumEiendeler - sumOmloepsmidler;
+
+    // Breakdown of omløpsmidler
+    const sumVarer = Math.round(sumOmloepsmidler * 0.15);
+    const sumFordringer = Math.round(sumOmloepsmidler * 0.45);
+    const sumInvesteringer = Math.round(sumOmloepsmidler * 0.05);
+    const sumBankinnskuddOgKontanter = sumOmloepsmidler - sumVarer - sumFordringer - sumInvesteringer;
+
+    // Egenkapital breakdown
+    const sumInnskuttEgenkapital = Math.round(sumEgenkapital * 0.4);
     const sumOpptjentEgenkapital = sumEgenkapital - sumInnskuttEgenkapital;
-    const sumGjeld = existingYear?.finansielleNokkeltal?.gjeld?.totalGjeld || (sumEiendeler - sumEgenkapital);
-    const sumKortsiktigGjeld = existingYear?.finansielleNokkeltal?.gjeld?.kortsiktigGjeld || Math.round(sumGjeld * (0.4 + Math.random() * 0.3));
-    const sumLangsiktigGjeld = sumGjeld - sumKortsiktigGjeld;
-    const sumEgenkapitalGjeld = sumEgenkapital + sumGjeld;
 
-    const antallAnsatte = existingYear?.ansatte?.antallAnsatte || randInt(10, 200);
+    const goodwill = Math.round(sumAnleggsmidler * 0.05);
 
-    years.push({
-      fraDato: `${year}-01-01`,
-      tilDato: `${year}-12-31`,
+    return {
+      fraDato: yd.regnskapsperiode?.fraOgMed || `${yd.aar}-01-01`,
+      tilDato: yd.regnskapsperiode?.tilOgMed || `${yd.aar}-12-31`,
       salgsinntekter,
       sumDriftsinntekter,
       loennskostnad,
       sumDriftskostnad,
       driftsresultat,
-      sumFinansinntekter,
-      rentekostnadSammeKonsern,
-      annenRentekostnad,
-      sumFinanskostnad,
+      sumFinansinntekter: Math.max(0, sumFinansinntekter),
+      rentekostnadSammeKonsern: Math.max(0, rentekostnadSammeKonsern),
+      annenRentekostnad: Math.max(0, annenRentekostnad),
+      sumFinanskostnad: Math.max(0, sumFinanskostnad),
       nettoFinans,
       ordinaertResultatFoerSkattekostnad,
-      ordinaertResultatSkattekostnad,
-      ekstraordinaerePoster,
-      skattekostnadEkstraordinaertResultat,
+      ordinaertResultatSkattekostnad: Math.max(0, skattekostnad),
+      ekstraordinaerePoster: 0,
+      skattekostnadEkstraordinaertResultat: 0,
       aarsresultat,
-      totalresultat,
-      goodwill,
-      sumAnleggsmidler,
-      sumVarer,
-      sumFordringer,
-      sumInvesteringer,
-      sumBankinnskuddOgKontanter,
-      sumOmloepsmidler,
+      totalresultat: aarsresultat,
+      goodwill: Math.max(0, goodwill),
+      sumAnleggsmidler: Math.max(0, sumAnleggsmidler),
+      sumVarer: Math.max(0, sumVarer),
+      sumFordringer: Math.max(0, sumFordringer),
+      sumInvesteringer: Math.max(0, sumInvesteringer),
+      sumBankinnskuddOgKontanter: Math.max(0, sumBankinnskuddOgKontanter),
+      sumOmloepsmidler: Math.max(0, sumOmloepsmidler),
       sumEiendeler,
       sumInnskuttEgenkapital,
       sumOpptjentEgenkapital,
@@ -106,12 +130,10 @@ function generateInitialAccounts(financialData: any): AccountsInformationYear[] 
       sumLangsiktigGjeld,
       sumKortsiktigGjeld,
       sumGjeld,
-      sumEgenkapitalGjeld,
-      antallAnsatte,
-    });
-  }
-
-  return years;
+      sumEgenkapitalGjeld: sumEgenkapital + sumGjeld,
+      antallAnsatte: employees,
+    };
+  });
 }
 
 function buildEnhetsinformasjon(orgDetails: any): EnhetsinformasjonInput {
@@ -215,6 +237,14 @@ export function EconomicAssessmentTab({ orgDetails, financialData }: EconomicAss
       ? prev.sumOmloepsmidler / prev.sumKortsiktigGjeld
       : null;
 
+    // 2b. Likviditetsgrad 2 = (Omløpsmidler - Varelager) / Kortsiktig gjeld
+    const likviditetsgrad2 = latest.sumKortsiktigGjeld > 0
+      ? (latest.sumOmloepsmidler - latest.sumVarer) / latest.sumKortsiktigGjeld
+      : 0;
+    const prevLikviditetsgrad2 = prev && prev.sumKortsiktigGjeld > 0
+      ? (prev.sumOmloepsmidler - prev.sumVarer) / prev.sumKortsiktigGjeld
+      : null;
+
     // 3. Soliditet (Egenkapitalandel) = Egenkapital / Totalkapital × 100
     const totalKapital = latest.sumEiendeler > 0 ? latest.sumEiendeler : (latest.sumEgenkapital + latest.sumGjeld);
     const egenkapitalandel = totalKapital > 0
@@ -245,6 +275,9 @@ export function EconomicAssessmentTab({ orgDetails, financialData }: EconomicAss
         sublabel: 'Likviditetsgrad 1',
         icon: Droplets,
         getLevel: (v: number): ProffLevel => v > 2 ? 'Meget god' : v > 1.5 ? 'God' : v > 1 ? 'Tilfredsstillende' : v > 0.5 ? 'Svak' : 'Ikke tilfredsstillende',
+        lg2: likviditetsgrad2,
+        lg2Prev: prevLikviditetsgrad2,
+        lg2Level: (likviditetsgrad2 > 1.5 ? 'Meget god' : likviditetsgrad2 > 1 ? 'God' : likviditetsgrad2 > 0.7 ? 'Tilfredsstillende' : likviditetsgrad2 > 0.4 ? 'Svak' : 'Ikke tilfredsstillende') as ProffLevel,
       },
       soliditet: {
         value: egenkapitalandel,
@@ -445,6 +478,24 @@ export function EconomicAssessmentTab({ orgDetails, financialData }: EconomicAss
                   ))}%` }}
                 />
               </div>
+
+              {/* Likviditetsgrad 2 sub-indicator */}
+              {indicator.label === 'Likviditet' && 'lg2' in indicator && (
+                <div className="mt-3 pt-3 border-t border-white/50">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-600">Likviditetsgrad 2</span>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-sm font-bold ${getIndicatorColors((indicator as any).lg2Level).text}`}>
+                        {((indicator as any).lg2 as number).toFixed(2)}
+                      </span>
+                      <Badge className={`text-[9px] font-bold ${getIndicatorColors((indicator as any).lg2Level).bg} ${getIndicatorColors((indicator as any).lg2Level).text} border ${getIndicatorColors((indicator as any).lg2Level).border}`}>
+                        {(indicator as any).lg2Level}
+                      </Badge>
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-gray-500 mt-0.5">(Omløpsmidler − Varelager) / Kortsiktig gjeld</p>
+                </div>
+              )}
             </div>
           );
         })}
