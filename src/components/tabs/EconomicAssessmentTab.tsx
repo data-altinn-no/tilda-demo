@@ -143,6 +143,7 @@ function buildEnhetsinformasjon(orgDetails: any): EnhetsinformasjonInput {
     naeringskode: orgDetails?.naceCode || '',
     organisasjonsform: orgDetails?.organisationForm || '',
     driftsstatus: 'ok',
+    kommune: orgDetails?.city || '',
   };
 }
 
@@ -166,6 +167,152 @@ function getScoreBarColor(score: number): string {
 }
 
 /**
+ * Cascading update: when a field changes, recalculate derived/related fields
+ * to maintain accounting consistency.
+ *
+ * Accounting identities:
+ *   driftsresultat = sumDriftsinntekter - sumDriftskostnad
+ *   nettoFinans = sumFinansinntekter - sumFinanskostnad
+ *   sumFinanskostnad = rentekostnadSammeKonsern + annenRentekostnad
+ *   ordinaertResultatFoerSkattekostnad = driftsresultat + nettoFinans
+ *   aarsresultat = ordinaertResultatFoerSkattekostnad - ordinaertResultatSkattekostnad + ekstraordinaerePoster - skattekostnadEkstraordinaertResultat
+ *   totalresultat = aarsresultat
+ *   sumOmloepsmidler = sumVarer + sumFordringer + sumInvesteringer + sumBankinnskuddOgKontanter
+ *   sumEiendeler = sumAnleggsmidler + sumOmloepsmidler
+ *   sumEgenkapital = sumInnskuttEgenkapital + sumOpptjentEgenkapital
+ *   sumGjeld = sumLangsiktigGjeld + sumKortsiktigGjeld
+ *   sumEgenkapitalGjeld = sumEgenkapital + sumGjeld (= sumEiendeler)
+ */
+function cascadeUpdate(
+  accounts: AccountsInformationYear[],
+  yearIndex: number,
+  changedField: keyof AccountsInformationYear,
+): AccountsInformationYear[] {
+  const y = { ...accounts[yearIndex] };
+
+  // --- Income statement cascades ---
+
+  // If a revenue component changes → recalc driftsresultat
+  if (['sumDriftsinntekter', 'sumDriftskostnad'].includes(changedField)) {
+    y.driftsresultat = y.sumDriftsinntekter - y.sumDriftskostnad;
+  }
+  // If driftsresultat is edited directly → adjust sumDriftskostnad to match
+  if (changedField === 'driftsresultat') {
+    y.sumDriftskostnad = y.sumDriftsinntekter - y.driftsresultat;
+  }
+  // salgsinntekter change → update sumDriftsinntekter
+  if (changedField === 'salgsinntekter') {
+    y.sumDriftsinntekter = y.salgsinntekter + (y.sumDriftsinntekter - y.salgsinntekter > 0 ? y.sumDriftsinntekter - y.salgsinntekter : Math.round(y.salgsinntekter * 0.08));
+    y.driftsresultat = y.sumDriftsinntekter - y.sumDriftskostnad;
+  }
+
+  // Finance items
+  if (['rentekostnadSammeKonsern', 'annenRentekostnad'].includes(changedField)) {
+    y.sumFinanskostnad = y.rentekostnadSammeKonsern + y.annenRentekostnad;
+  }
+  if (['sumFinansinntekter', 'sumFinanskostnad', 'rentekostnadSammeKonsern', 'annenRentekostnad'].includes(changedField)) {
+    y.nettoFinans = y.sumFinansinntekter - y.sumFinanskostnad;
+  }
+  if (changedField === 'nettoFinans') {
+    // Adjust sumFinanskostnad to match new nettoFinans
+    y.sumFinanskostnad = y.sumFinansinntekter - y.nettoFinans;
+    y.annenRentekostnad = Math.max(0, y.sumFinanskostnad - y.rentekostnadSammeKonsern);
+  }
+
+  // Resultat før skatt always follows from driftsresultat + netto finans
+  if (['sumDriftsinntekter', 'sumDriftskostnad', 'driftsresultat', 'salgsinntekter',
+       'sumFinansinntekter', 'sumFinanskostnad', 'rentekostnadSammeKonsern', 'annenRentekostnad', 'nettoFinans'].includes(changedField)) {
+    y.ordinaertResultatFoerSkattekostnad = y.driftsresultat + y.nettoFinans;
+  }
+
+  // Årsresultat
+  if (['sumDriftsinntekter', 'sumDriftskostnad', 'driftsresultat', 'salgsinntekter',
+       'sumFinansinntekter', 'sumFinanskostnad', 'rentekostnadSammeKonsern', 'annenRentekostnad', 'nettoFinans',
+       'ordinaertResultatFoerSkattekostnad', 'ordinaertResultatSkattekostnad',
+       'ekstraordinaerePoster', 'skattekostnadEkstraordinaertResultat'].includes(changedField)) {
+    // Recalc skattekostnad as ~22% of positive result if resultat was changed upstream
+    if (['sumDriftsinntekter', 'sumDriftskostnad', 'driftsresultat', 'salgsinntekter',
+         'sumFinansinntekter', 'sumFinanskostnad', 'nettoFinans'].includes(changedField)) {
+      y.ordinaertResultatSkattekostnad = y.ordinaertResultatFoerSkattekostnad > 0
+        ? Math.round(y.ordinaertResultatFoerSkattekostnad * 0.22)
+        : 0;
+    }
+    y.aarsresultat = y.ordinaertResultatFoerSkattekostnad - y.ordinaertResultatSkattekostnad
+      + y.ekstraordinaerePoster - y.skattekostnadEkstraordinaertResultat;
+    y.totalresultat = y.aarsresultat;
+  }
+
+  // Direct edit of ordinaertResultatFoerSkattekostnad → adjust driftsresultat
+  if (changedField === 'ordinaertResultatFoerSkattekostnad') {
+    y.driftsresultat = y.ordinaertResultatFoerSkattekostnad - y.nettoFinans;
+    y.sumDriftskostnad = y.sumDriftsinntekter - y.driftsresultat;
+    y.ordinaertResultatSkattekostnad = y.ordinaertResultatFoerSkattekostnad > 0
+      ? Math.round(y.ordinaertResultatFoerSkattekostnad * 0.22) : 0;
+    y.aarsresultat = y.ordinaertResultatFoerSkattekostnad - y.ordinaertResultatSkattekostnad
+      + y.ekstraordinaerePoster - y.skattekostnadEkstraordinaertResultat;
+    y.totalresultat = y.aarsresultat;
+  }
+
+  // --- Balance sheet cascades ---
+
+  // Omløpsmidler components → sum
+  if (['sumVarer', 'sumFordringer', 'sumInvesteringer', 'sumBankinnskuddOgKontanter'].includes(changedField)) {
+    y.sumOmloepsmidler = y.sumVarer + y.sumFordringer + y.sumInvesteringer + y.sumBankinnskuddOgKontanter;
+  }
+  // sumOmloepsmidler edited directly → adjust sumBankinnskuddOgKontanter as residual
+  if (changedField === 'sumOmloepsmidler') {
+    y.sumBankinnskuddOgKontanter = y.sumOmloepsmidler - y.sumVarer - y.sumFordringer - y.sumInvesteringer;
+  }
+
+  // Total assets
+  if (['sumAnleggsmidler', 'sumOmloepsmidler', 'sumVarer', 'sumFordringer', 'sumInvesteringer', 'sumBankinnskuddOgKontanter'].includes(changedField)) {
+    y.sumEiendeler = y.sumAnleggsmidler + y.sumOmloepsmidler;
+  }
+  // sumEiendeler edited directly → adjust sumAnleggsmidler as residual
+  if (changedField === 'sumEiendeler') {
+    y.sumAnleggsmidler = y.sumEiendeler - y.sumOmloepsmidler;
+  }
+
+  // Egenkapital
+  if (['sumInnskuttEgenkapital', 'sumOpptjentEgenkapital'].includes(changedField)) {
+    y.sumEgenkapital = y.sumInnskuttEgenkapital + y.sumOpptjentEgenkapital;
+  }
+  if (changedField === 'sumEgenkapital') {
+    y.sumOpptjentEgenkapital = y.sumEgenkapital - y.sumInnskuttEgenkapital;
+  }
+
+  // Gjeld
+  if (['sumLangsiktigGjeld', 'sumKortsiktigGjeld'].includes(changedField)) {
+    y.sumGjeld = y.sumLangsiktigGjeld + y.sumKortsiktigGjeld;
+  }
+  if (changedField === 'sumGjeld') {
+    y.sumKortsiktigGjeld = y.sumGjeld - y.sumLangsiktigGjeld;
+  }
+
+  // EK + Gjeld = Eiendeler identity
+  if (['sumEgenkapital', 'sumInnskuttEgenkapital', 'sumOpptjentEgenkapital',
+       'sumGjeld', 'sumLangsiktigGjeld', 'sumKortsiktigGjeld'].includes(changedField)) {
+    y.sumEgenkapitalGjeld = y.sumEgenkapital + y.sumGjeld;
+    // Keep balance: if EK+Gjeld changes, update sumEiendeler to match
+    y.sumEiendeler = y.sumEgenkapitalGjeld;
+    y.sumAnleggsmidler = y.sumEiendeler - y.sumOmloepsmidler;
+  }
+  if (['sumAnleggsmidler', 'sumOmloepsmidler', 'sumVarer', 'sumFordringer',
+       'sumInvesteringer', 'sumBankinnskuddOgKontanter', 'sumEiendeler'].includes(changedField)) {
+    y.sumEgenkapitalGjeld = y.sumEiendeler;
+    // Adjust gjeld to maintain balance (EK stays, gjeld absorbs)
+    const newGjeld = y.sumEgenkapitalGjeld - y.sumEgenkapital;
+    if (newGjeld !== y.sumGjeld) {
+      y.sumGjeld = newGjeld;
+      y.sumKortsiktigGjeld = y.sumGjeld - y.sumLangsiktigGjeld;
+    }
+  }
+
+  accounts[yearIndex] = y;
+  return [...accounts];
+}
+
+/**
  * Economic Assessment Tab - Presents accounting data for 3 years with editable fields
  * and runs an assessment algorithm.
  */
@@ -184,7 +331,7 @@ export function EconomicAssessmentTab({ orgDetails, financialData }: EconomicAss
       setAccounts(prev => {
         const updated = [...prev];
         updated[yearIndex] = { ...updated[yearIndex], [field]: value === '-' ? -0 : 0 };
-        return updated;
+        return cascadeUpdate(updated, yearIndex, field);
       });
       setResult(null);
       return;
@@ -194,7 +341,7 @@ export function EconomicAssessmentTab({ orgDetails, financialData }: EconomicAss
       setAccounts(prev => {
         const updated = [...prev];
         updated[yearIndex] = { ...updated[yearIndex], [field]: numVal };
-        return updated;
+        return cascadeUpdate(updated, yearIndex, field);
       });
       setResult(null);
     }
@@ -771,6 +918,99 @@ export function EconomicAssessmentTab({ orgDetails, financialData }: EconomicAss
                     <div className="text-[10px] text-gray-600 mt-0.5 leading-tight">{c.label}</div>
                   </div>
                 ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Industry Comparison */}
+          <div className="px-6 pb-4">
+            <div className={`p-4 rounded-xl border-2 ${
+              result.industryComparison.overallVerdict === 'mistenkelig'
+                ? 'bg-purple-50 border-purple-400'
+                : result.industryComparison.overallVerdict === 'avvikende'
+                  ? 'bg-amber-50 border-amber-300'
+                  : 'bg-slate-50 border-slate-200'
+            }`}>
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h5 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                    <BarChart3 className="w-4 h-4" />
+                    Bransjesammenligning
+                    <span className="text-[10px] font-normal text-gray-500">
+                      ({result.industryComparison.naceName} · {result.industryComparison.region} · {result.industryComparison.sampleSize} selskaper)
+                    </span>
+                  </h5>
+                  <p className="text-xs text-gray-600 mt-0.5">{result.industryComparison.summary}</p>
+                </div>
+                <Badge className={`text-[10px] font-bold ${
+                  result.industryComparison.overallVerdict === 'mistenkelig'
+                    ? 'bg-purple-200 text-purple-900 border-purple-400'
+                    : result.industryComparison.overallVerdict === 'avvikende'
+                      ? 'bg-amber-200 text-amber-900 border-amber-400'
+                      : 'bg-slate-200 text-slate-700 border-slate-300'
+                }`}>
+                  {result.industryComparison.overallVerdict === 'mistenkelig' ? '⚠ Mistenkelig avvik'
+                    : result.industryComparison.overallVerdict === 'avvikende' ? 'Avvikende'
+                      : 'Normal'}
+                </Badge>
+              </div>
+
+              <div className="space-y-2">
+                {result.industryComparison.metrics.map((m) => {
+                  const isAnomalous = m.verdict === 'mistenkelighøy' || m.verdict === 'mistenkeliglav';
+                  const isMild = m.verdict === 'svakhøy' || m.verdict === 'svaklav';
+                  const barPosition = Math.min(100, Math.max(0, ((m.companyValue - m.industryAvg) / (m.industryStdDev * 4) + 0.5) * 100));
+
+                  return (
+                    <div key={m.metric} className={`p-3 rounded-lg border ${
+                      isAnomalous ? 'bg-purple-50 border-purple-300' : isMild ? 'bg-amber-50 border-amber-200' : 'bg-white border-gray-100'
+                    }`}>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className={`text-xs font-semibold ${isAnomalous ? 'text-purple-900' : 'text-gray-700'}`}>
+                          {m.metric}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] text-gray-500">
+                            Snitt: {m.metric.includes('NOK') ? m.industryAvg.toLocaleString('no-NO') : m.industryAvg.toFixed(1)}
+                          </span>
+                          <span className={`text-xs font-bold ${isAnomalous ? 'text-purple-800' : isMild ? 'text-amber-700' : 'text-gray-900'}`}>
+                            {m.metric.includes('NOK') ? m.companyValue.toLocaleString('no-NO') : m.companyValue.toFixed(1)}
+                          </span>
+                          {isAnomalous && (
+                            <Badge className="text-[9px] font-bold bg-purple-700 text-white border-purple-800">
+                              {m.verdict === 'mistenkelighøy' ? '↑ Mistenkelig høy' : '↓ Mistenkelig lav'}
+                            </Badge>
+                          )}
+                          {isMild && (
+                            <Badge className="text-[9px] bg-amber-100 text-amber-800 border-amber-300">
+                              {m.verdict === 'svakhøy' ? '↑ Noe høy' : '↓ Noe lav'}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                      {/* Distribution bar */}
+                      <div className="relative h-2 bg-gray-200 rounded-full overflow-visible">
+                        <div className="absolute inset-0 bg-gradient-to-r from-gray-200 via-green-200 to-gray-200 rounded-full" />
+                        <div
+                          className={`absolute top-[-1px] w-3 h-3 rounded-full border-2 shadow-sm transform -translate-x-1/2 ${
+                            isAnomalous ? 'bg-purple-600 border-purple-800' : isMild ? 'bg-amber-500 border-amber-700' : 'bg-blue-500 border-blue-700'
+                          }`}
+                          style={{ left: `${barPosition}%` }}
+                        />
+                      </div>
+                      <div className="flex justify-between text-[8px] text-gray-400 mt-0.5">
+                        <span>−2σ</span>
+                        <span>Snitt</span>
+                        <span>+2σ</span>
+                      </div>
+                      {(isAnomalous || isMild) && (
+                        <p className={`text-[10px] mt-1 ${isAnomalous ? 'text-purple-700' : 'text-amber-700'}`}>
+                          {m.description}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
