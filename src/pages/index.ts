@@ -11,3 +11,4 @@ export { ContactPage } from './ContactPage';
 export { CodePage } from './CodePage';
 export { StatisticsPage } from './StatisticsPage';
 export { TestDataPage } from './TestDataPage';
+export { EconomicDataPage } from './EconomicDataPage';

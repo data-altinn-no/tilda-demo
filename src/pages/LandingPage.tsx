@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Share2, FileText, Building2, ClipboardList, Database, Mail, AlertTriangle, Code, Plug, BarChart3, TestTube, LucideIcon } from "lucide-react";
+import { Share2, FileText, Building2, ClipboardList, Database, Mail, AlertTriangle, Code, Plug, BarChart3, TestTube, Calculator, Layers, LucideIcon } from "lucide-react";
 import { Footer } from "../components/layout";
 
 interface App {
@@ -104,6 +104,26 @@ export function LandingPage() {
       path: "/testdata",
       color: "primary",
       available: true,
+    },
+    {
+      id: "okdata",
+      title: "Økonomiske data",
+      subtitle: "Algoritmebeskrivelse",
+      description: "Dokumentasjon av vurderingsalgoritmen for økonomisk helhetsvurdering. Indikatorer, Altman Z-score, røde flagg og bransjesammenligning.",
+      icon: Calculator,
+      path: "/okdata",
+      color: "primary",
+      available: true,
+    },
+    {
+      id: "kommende",
+      title: "Kommende tjeneste",
+      subtitle: "Under planlegging",
+      description: "Denne tjenesten er under planlegging og vil bli tilgjengelig i en fremtidig versjon.",
+      icon: Layers,
+      path: "/kommende",
+      color: "primary",
+      available: false,
     },
   ];
 

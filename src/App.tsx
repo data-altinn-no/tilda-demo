@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { HashRouter, Routes, Route, useLocation } from "react-router-dom";
-import { LandingPage, DataModelsPage, TildaPage, ApiPage, GuidesPage, ContactPage, CodePage, StatisticsPage, TestDataPage } from "./pages";
+import { LandingPage, DataModelsPage, TildaPage, ApiPage, GuidesPage, ContactPage, CodePage, StatisticsPage, TestDataPage, EconomicDataPage } from "./pages";
 
 /**
  * ScrollToTop component - scrolls to top on route change
@@ -33,6 +33,7 @@ export default function App() {
         <Route path="/kode" element={<CodePage />} />
         <Route path="/statistikk" element={<StatisticsPage />} />
         <Route path="/testdata" element={<TestDataPage />} />
+        <Route path="/okdata" element={<EconomicDataPage />} />
         <Route path="/kommende" element={<PlaceholderPage />} />
       </Routes>
     </HashRouter>
