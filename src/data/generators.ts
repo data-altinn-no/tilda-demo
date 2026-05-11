@@ -9,15 +9,16 @@ import {
   ORGANIZATION_FORMS, 
   MESSAGE_TYPES 
 } from '../constants';
-import { rand, randInt, pad } from '../utils/randomHelpers';
+import { rand, randInt, pad, randFloat, randBool, shuffle } from '../utils/randomHelpers';
 import { randomDateISOYearAround, randomFutureDateISO } from '../utils/dateHelpers';
 
 /**
  * Data generation functions for creating dummy supervision data
  * 
- * NOTE: Math.random() is used throughout this file for generating demo/mock data.
- * This is NOT a security context - the data is for presentation purposes only.
- * No cryptographic operations, authentication, or security-sensitive data is generated here.
+ * NOTE: This file uses non-cryptographic random number generation (via helper functions
+ * that wrap Math.random()) for generating demo/mock data only. This is NOT a security
+ * context - the data is for presentation purposes only. No cryptographic operations,
+ * authentication, or security-sensitive data is generated here.
  */
 
 // Constants
@@ -43,10 +44,10 @@ export function genTilsynskoordineringFor(orgnr: string): any[] {
     const startD = new Date(start);
     const endD = new Date(startD);
     endD.setDate(startD.getDate() + randInt(0, 3)); // Shorter duration for coordinated
-    const slutt = Math.random() > 0.5 ? `${endD.getFullYear()}-${pad(endD.getMonth() + 1)}-${pad(endD.getDate())}` : undefined;
+    const slutt = randBool() ? `${endD.getFullYear()}-${pad(endD.getMonth() + 1)}-${pad(endD.getDate())}` : undefined;
     
     // Select 2-3 authorities for coordination
-    const shuffledAuthorities = [...AUTHORITIES].sort(() => Math.random() - 0.5);
+    const shuffledAuthorities = shuffle(AUTHORITIES);
     const coordAuthorities = shuffledAuthorities.slice(0, randInt(2, 3));
     
     coordinatedDates.push({ start, slutt, authorities: coordAuthorities });
@@ -57,12 +58,12 @@ export function genTilsynskoordineringFor(orgnr: string): any[] {
     const city = rand(CITIES);
     const address = `${rand(STREET_NAMES)} ${randInt(1, 99)}, ${randInt(1000, 9999)} ${city}`;
     const tema = rand(THEMES); // Same theme for coordinated tilsyn
-    const aktivitet = Math.random() > 0.5 ? "Tilsyn" : "Kampanje";
+    const aktivitet = randBool() ? "Tilsyn" : "Kampanje";
     
     authorities.forEach(authority => {
       const firstName = rand(KOORD_FIRST_NAMES);
       const lastName = rand(KOORD_LAST_NAMES);
-      const useEmail = Math.random() > 0.3;
+      const useEmail = randBool(0.7);
       const contactInfo = useEmail 
         ? `${firstName.toLowerCase()}.${lastName.toLowerCase()}@${rand(KOORD_EMAIL_DOMAINS)}`
         : `+47 ${randInt(400, 499)} ${randInt(10, 99)} ${randInt(100, 999)}`;
@@ -103,11 +104,11 @@ export function genTilsynskoordineringFor(orgnr: string): any[] {
     const startD = new Date(start);
     const endD = new Date(startD);
     endD.setDate(startD.getDate() + randInt(0, 10));
-    const slutt = Math.random() > 0.5 ? `${endD.getFullYear()}-${pad(endD.getMonth() + 1)}-${pad(endD.getDate())}` : undefined;
+    const slutt = randBool() ? `${endD.getFullYear()}-${pad(endD.getMonth() + 1)}-${pad(endD.getDate())}` : undefined;
     const city = rand(CITIES);
     const firstName = rand(KOORD_FIRST_NAMES);
     const lastName = rand(KOORD_LAST_NAMES);
-    const useEmail = Math.random() > 0.3;
+    const useEmail = randBool(0.7);
     const contactInfo = useEmail 
       ? `${firstName.toLowerCase()}.${lastName.toLowerCase()}@${rand(KOORD_EMAIL_DOMAINS)}`
       : `+47 ${randInt(400, 499)} ${randInt(10, 99)} ${randInt(100, 999)}`;
@@ -119,7 +120,7 @@ export function genTilsynskoordineringFor(orgnr: string): any[] {
       startdato: start,
       sluttdato: slutt,
       kontrolladresse: `${rand(STREET_NAMES)} ${randInt(1, 99)}, ${randInt(1000, 9999)} ${city}`,
-      tilsynsaktivitet: Math.random() > 0.5 ? "Tilsyn" : "Kampanje",
+      tilsynsaktivitet: randBool() ? "Tilsyn" : "Kampanje",
       varighet_timer: randInt(1, 8),
       samtidigeKontroller: [], // No coordination for individual tilsyn
       kontaktperson: {
@@ -151,7 +152,7 @@ export function genTilsynsrapportFor(orgnr: string, fromDate: string | null = nu
   
   // Select 1-5 authorities for the ENTIRE time interval
   const numAuthorities = randInt(1, 5);
-  const shuffledAuthorities = [...AUTHORITIES].sort(() => Math.random() - 0.5);
+  const shuffledAuthorities = shuffle(AUTHORITIES);
   const selectedAuthorities = shuffledAuthorities.slice(0, numAuthorities);
   
   // Generate coordinated tilsyn dates (ensure at least 1-2 coordinated events)
@@ -165,7 +166,7 @@ export function genTilsynsrapportFor(orgnr: string, fromDate: string | null = nu
     const yearEnd = new Date(Math.min(new Date(`${year}-12-31`).getTime(), endDate.getTime()));
     
     if (yearStart <= yearEnd) {
-      const randomTime = yearStart.getTime() + Math.random() * (yearEnd.getTime() - yearStart.getTime());
+      const randomTime = yearStart.getTime() + randFloat() * (yearEnd.getTime() - yearStart.getTime());
       const tilsynDate = new Date(randomTime);
       const dato = `${tilsynDate.getFullYear()}-${pad(tilsynDate.getMonth() + 1)}-${pad(tilsynDate.getDate())}`;
       
@@ -173,7 +174,7 @@ export function genTilsynsrapportFor(orgnr: string, fromDate: string | null = nu
       const minAuthorities = Math.min(2, selectedAuthorities.length);
       const maxAuthorities = Math.min(3, selectedAuthorities.length);
       const numCoordAuthorities = randInt(minAuthorities, maxAuthorities);
-      const coordAuthorities = [...selectedAuthorities].sort(() => Math.random() - 0.5).slice(0, numCoordAuthorities);
+      const coordAuthorities = shuffle(selectedAuthorities).slice(0, numCoordAuthorities);
       
       if (coordAuthorities.length >= 2) {
         coordinatedDates.push({ dato, authorities: coordAuthorities });
@@ -190,13 +191,13 @@ export function genTilsynsrapportFor(orgnr: string, fromDate: string | null = nu
     authorities.forEach((authority) => {
       const firstName = rand(FIRST_NAMES);
       const lastName = rand(LAST_NAMES);
-      const useEmail = Math.random() > 0.3;
+      const useEmail = randBool(0.7);
       const contactInfo = useEmail 
         ? `${firstName.toLowerCase()}.${lastName.toLowerCase()}@${rand(EMAIL_DOMAINS)}`
         : `+47 ${randInt(400, 499)} ${randInt(10, 99)} ${randInt(100, 999)}`;
       
       // Generate brudd for this authority
-      const bruddCountRoll = Math.random();
+      const bruddCountRoll = randFloat();
       let bruddCount;
       if (bruddCountRoll < 0.60) {
         bruddCount = 0;
@@ -210,7 +211,7 @@ export function genTilsynsrapportFor(orgnr: string, fromDate: string | null = nu
       
       const funn = [];
       for (let j = 0; j < bruddCount; j++) {
-        const severityRoll = Math.random();
+        const severityRoll = randFloat();
         let alvorlighetsgrad;
         if (severityRoll < 0.50) {
           alvorlighetsgrad = "Lav";
@@ -268,7 +269,7 @@ export function genTilsynsrapportFor(orgnr: string, fromDate: string | null = nu
   // Generate individual (non-coordinated) tilsyn
   for (let year = startYear; year <= endYear; year++) {
     selectedAuthorities.forEach(authority => {
-      const tilsynCount = Math.random() < 0.4 ? 1 : 0; // 40% chance of individual tilsyn
+      const tilsynCount = randBool(0.4) ? 1 : 0; // 40% chance of individual tilsyn
       
       for (let i = 0; i < tilsynCount; i++) {
         const yearStart = new Date(Math.max(new Date(`${year}-01-01`).getTime(), startDate.getTime()));
@@ -276,7 +277,7 @@ export function genTilsynsrapportFor(orgnr: string, fromDate: string | null = nu
         
         if (yearStart > yearEnd) continue;
         
-        const randomTime = yearStart.getTime() + Math.random() * (yearEnd.getTime() - yearStart.getTime());
+        const randomTime = yearStart.getTime() + randFloat() * (yearEnd.getTime() - yearStart.getTime());
         const tilsynDate = new Date(randomTime);
         const dato = `${tilsynDate.getFullYear()}-${pad(tilsynDate.getMonth() + 1)}-${pad(tilsynDate.getDate())}`;
         
@@ -286,12 +287,12 @@ export function genTilsynsrapportFor(orgnr: string, fromDate: string | null = nu
         const city = rand(CITIES);
         const firstName = rand(FIRST_NAMES);
         const lastName = rand(LAST_NAMES);
-        const useEmail = Math.random() > 0.3;
+        const useEmail = randBool(0.7);
         const contactInfo = useEmail 
           ? `${firstName.toLowerCase()}.${lastName.toLowerCase()}@${rand(EMAIL_DOMAINS)}`
           : `+47 ${randInt(400, 499)} ${randInt(10, 99)} ${randInt(100, 999)}`;
         
-        const bruddCountRoll = Math.random();
+        const bruddCountRoll = randFloat();
         let bruddCount;
         if (bruddCountRoll < 0.60) {
           bruddCount = 0;
@@ -305,7 +306,7 @@ export function genTilsynsrapportFor(orgnr: string, fromDate: string | null = nu
         
         const funn = [];
         for (let j = 0; j < bruddCount; j++) {
-          const severityRoll = Math.random();
+          const severityRoll = randFloat();
           let alvorlighetsgrad;
           if (severityRoll < 0.50) {
             alvorlighetsgrad = "Lav";
@@ -365,7 +366,7 @@ export function genMeldingerFor(orgnr: string): any[] {
   const n = randInt(2, 30);
   
   const messageTemplates = [
-    (tema: string) => `Ved tilsyn ${new Date(Date.now() - Math.random() * 60 * 24 * 60 * 60 * 1000).toLocaleDateString('no-NO')} ble det avdekket avvik knyttet til ${tema.toLowerCase()}. Virksomheten har fått varsel om pålegg og frist for retting. Ber om at dere vurderer om dette er relevant for deres tilsynsområde.`,
+    (tema: string) => `Ved tilsyn ${new Date(Date.now() - randFloat() * 60 * 24 * 60 * 60 * 1000).toLocaleDateString('no-NO')} ble det avdekket avvik knyttet til ${tema.toLowerCase()}. Virksomheten har fått varsel om pålegg og frist for retting. Ber om at dere vurderer om dette er relevant for deres tilsynsområde.`,
     (tema: string) => `Koordinert tilsyn gjennomført sammen med to andre myndigheter. Observerte mangler ved ${tema.toLowerCase()} som kan ha betydning for deres tilsynsområde. Vedlagt dokumentasjon fra befaring. Foreslår oppfølgingsmøte for å diskutere videre tiltak.`,
     (tema: string) => `Virksomheten har mottatt gebyr etter gjentatte brudd på regelverket for ${tema.toLowerCase()}. Dette er tredje gangs avvik på samme område de siste 18 månedene. Anbefaler at dere vurderer skjerpet tilsyn eller koordinert oppfølging.`,
     (tema: string) => `Uanmeldt tilsyn avdekket alvorlige forhold vedrørende ${tema.toLowerCase()}. Virksomheten har fått pålegg om umiddelbar stans av deler av virksomheten inntil forholdene er rettet. Ber om tilbakemelding dersom dere har registrert lignende funn.`,
@@ -390,7 +391,7 @@ export function genMeldingerFor(orgnr: string): any[] {
       identifikator: `MSG-${orgnr}-${String(idx + 1).padStart(3, '0')}`,
       mottaker: rand(AUTHORITIES),
       meldingOmTildaenhet: orgnr,
-      datoForMeldingTilAnnenMyndighet: new Date(Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000).toISOString(),
+      datoForMeldingTilAnnenMyndighet: new Date(Date.now() - randFloat() * 90 * 24 * 60 * 60 * 1000).toISOString(),
       meldingsinnholdTilAnnenMyndighet: {
         meldingsType: rand(MESSAGE_TYPES),
         fritekst: template(tema)
@@ -407,7 +408,7 @@ export function genMeldingerTilAndreMyndighetFor(orgnr: string): any[] {
     identifikator: `MSG-${orgnr}-${String(idx + 1).padStart(3, '0')}`,
     mottaker: rand(AUTHORITIES),
     meldingOmTildaenhet: orgnr,
-    datoForMeldingTilAnnenMyndighet: new Date(Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000).toISOString(),
+    datoForMeldingTilAnnenMyndighet: new Date(Date.now() - randFloat() * 90 * 24 * 60 * 60 * 1000).toISOString(),
     meldingsinnholdTilAnnenMyndighet: {
       meldingsType: rand(MESSAGE_TYPES),
       fritekst: `Automatisk generert melding vedrørende ${rand(THEMES).toLowerCase()} for organisasjon ${orgnr}. ${rand(['Vennligst følg opp innen 30 dager.', 'Krever umiddelbar oppmerksomhet.', 'Til orientering og videre koordinering.', 'Forespørsel om tilleggsopplysninger.'])}`
@@ -442,7 +443,7 @@ export function genSendteMeldingerFor(orgnr: string, fromDate: string | null = n
     type: rand(MESSAGE_TYPES),
     recipient: rand(AUTHORITIES),
     message: rand(sentMessages),
-    timestamp: new Date(startDate.getTime() + Math.random() * dateRange),
+    timestamp: new Date(startDate.getTime() + randFloat() * dateRange),
     status: 'sent'
   }));
 }
@@ -470,7 +471,7 @@ const SUBSIDIARY_SUFFIXES = ['Holding', 'Invest', 'Eiendom', 'Drift', 'Produksjo
 // Generate related companies (either parent or subsidiaries)
 export function genRelatedCompaniesFor(orgnr: string, orgName: string): any {
   // 50% chance of having a parent company, 50% chance of having subsidiaries
-  const hasParent = Math.random() < 0.5;
+  const hasParent = randBool();
   
   if (hasParent) {
     // Generate one parent company - always starts with 9
@@ -575,7 +576,7 @@ function generateLicensePlate(): string {
 function randomDateBetween1990AndToday(): string {
   const start = new Date('1990-01-01');
   const end = new Date();
-  const randomTime = start.getTime() + Math.random() * (end.getTime() - start.getTime());
+  const randomTime = start.getTime() + randFloat() * (end.getTime() - start.getTime());
   const randomDate = new Date(randomTime);
   return `${randomDate.getFullYear()}-${pad(randomDate.getMonth() + 1)}-${pad(randomDate.getDate())}`;
 }
@@ -585,7 +586,7 @@ export function genKjoretoyFor(orgnr: string): any[] {
   const vehicleCount = randInt(0, 15);
   
   return Array.from({ length: vehicleCount }).map((_: any, index: number) => {
-    const isOwner = Math.random() > 0.3;
+    const isOwner = randBool(0.7);
     const vehicleGroup = rand(VEHICLE_GROUPS);
     const isTrailer = vehicleGroup === 'Tilhenger';
     const fuelType = isTrailer ? null : rand(FUEL_TYPES);
@@ -606,8 +607,8 @@ export function genKjoretoyFor(orgnr: string): any[] {
     // ~20% chance of overdue EU control on average, with some statistical variance
     // Use a random threshold that varies slightly to allow for anomalies
     let nextEUControl;
-    const overdueChance = 0.15 + Math.random() * 0.1; // 15-25% chance, averaging ~20%
-    if (Math.random() < overdueChance) {
+    const overdueChance = 0.15 + randFloat() * 0.1; // 15-25% chance, averaging ~20%
+    if (randFloat() < overdueChance) {
       // Make this vehicle overdue by setting next control to past date
       const overdueDate = new Date();
       overdueDate.setMonth(overdueDate.getMonth() - randInt(1, 24)); // 1-24 months overdue
@@ -671,8 +672,8 @@ export function genKjoretoyFor(orgnr: string): any[] {
       kjoretoymerke: rand(VEHICLE_BRANDS),
       egenvekt: getVehicleWeight(vehicleGroup),
       miljoklasse: fuelType ? getEnvironmentClass(fuelType) : null,
-      noxutslipp: isZeroEmission ? 0 : Math.round(Math.random() * 0.1 * 1000) / 1000,
-      co2utslipp: isZeroEmission ? 0 : Math.round((80 + Math.random() * 120) * 10) / 10,
+      noxutslipp: isZeroEmission ? 0 : Math.round(randFloat() * 0.1 * 1000) / 1000,
+      co2utslipp: isZeroEmission ? 0 : Math.round((80 + randFloat() * 120) * 10) / 10,
       drivstoff: fuelType,
       girkassetype: gearboxType,
       kilometerstand: randInt(5000, 250000),
@@ -704,17 +705,17 @@ export function genEiendommerFor(_orgnr: string): any[] {
     const municipality = rand(NORWEGIAN_MUNICIPALITIES);
     const gaardsnummer = randInt(1, 999).toString();
     const bruksnummer = randInt(1, 99).toString();
-    const buildingArea = Math.round((30 + Math.random() * 300) * 10) / 10; // 30-330 m²
+    const buildingArea = Math.round((30 + randFloat() * 300) * 10) / 10; // 30-330 m²
     
     // Generate 1-5 teig areas
     const teigCount = randInt(1, 5);
     const teigarealer = Array.from({ length: teigCount }).map(() => 
-      Math.round((200 + Math.random() * 2000) * 100) / 100 // 200-2200 m²
+      Math.round((200 + randFloat() * 2000) * 100) / 100 // 200-2200 m²
     );
     
     // Property value based on building area and location
     const baseValue = buildingArea * (municipality === 'Oslo' ? 80000 : municipality === 'Bergen' ? 60000 : 40000);
-    const propertyValue = Math.round(baseValue + (Math.random() * baseValue * 0.5));
+    const propertyValue = Math.round(baseValue + (randFloat() * baseValue * 0.5));
     
     // Establishment date between 2010 and 2024
     const establishedDate = randomDateBetween2010AndToday();
@@ -722,7 +723,7 @@ export function genEiendommerFor(_orgnr: string): any[] {
     // Generate 1-3 mortgage documents
     const mortgageCount = randInt(1, 3);
     const pantedokumenter = Array.from({ length: mortgageCount }).map(() => {
-      const mortgageAmount = Math.round(propertyValue * (0.3 + Math.random() * 0.5)); // 30-80% of property value
+      const mortgageAmount = Math.round(propertyValue * (0.3 + randFloat() * 0.5)); // 30-80% of property value
       const bank = rand(NORWEGIAN_BANKS);
       
       // Always generate textual description without numbers
@@ -752,7 +753,7 @@ export function genEiendommerFor(_orgnr: string): any[] {
         eierandel: rand(OWNERSHIP_SHARES)
       },
       pantedokumenter: pantedokumenter,
-      harKulturminne: Math.random() < 0.15 // 15% chance of cultural heritage
+      harKulturminne: randBool(0.15) // 15% chance of cultural heritage
     };
   });
 }
@@ -761,7 +762,7 @@ export function genEiendommerFor(_orgnr: string): any[] {
 function randomDateBetween2010AndToday(): string {
   const start = new Date('2010-01-01');
   const end = new Date();
-  const randomTime = start.getTime() + Math.random() * (end.getTime() - start.getTime());
+  const randomTime = start.getTime() + randFloat() * (end.getTime() - start.getTime());
   const randomDate = new Date(randomTime);
   return `${randomDate.getFullYear()}-${pad(randomDate.getMonth() + 1)}-${pad(randomDate.getDate())}`;
 }
@@ -842,7 +843,7 @@ export function genRollerFor(_orgnr: string): any[] {
     if (roleType === 'Revisor') hasRevisor = true;
     if (roleType === 'Regnskapsfører') hasRegnskapsforer = true;
     
-    const isActive = Math.random() > 0.2; // 80% chance of being active
+    const isActive = randBool(0.8); // 80% chance of being active
     
     // Get unique name (use company name for revisor/regnskapsfører, person name for others)
     let name;
@@ -865,7 +866,7 @@ export function genRollerFor(_orgnr: string): any[] {
     if (!isActive) {
       const start = new Date(startDate);
       const end = new Date();
-      const randomEndTime = start.getTime() + Math.random() * (end.getTime() - start.getTime());
+      const randomEndTime = start.getTime() + randFloat() * (end.getTime() - start.getTime());
       const randomEndDate = new Date(randomEndTime);
       endDate = `${randomEndDate.getFullYear()}-${pad(randomEndDate.getMonth() + 1)}-${pad(randomEndDate.getDate())}`;
     }
@@ -909,7 +910,7 @@ export function genRollerFor(_orgnr: string): any[] {
 function randomDateBetween2015AndToday(): string {
   const start = new Date('2015-01-01');
   const end = new Date();
-  const randomTime = start.getTime() + Math.random() * (end.getTime() - start.getTime());
+  const randomTime = start.getTime() + randFloat() * (end.getTime() - start.getTime());
   const randomDate = new Date(randomTime);
   return `${randomDate.getFullYear()}-${pad(randomDate.getMonth() + 1)}-${pad(randomDate.getDate())}`;
 }
@@ -946,23 +947,23 @@ export function genOkInfoFor(orgnr: string, orgDetails: any = null): any {
   
   // Chance of being a gazelle organization (only if AS/Aksjeselskap)
   const isAS = orgDetails?.organisationForm === 'Aksjeselskap' || orgDetails?.organisationForm === 'AS';
-  const isGazelleCandidate = isAS && Math.random() < GAZELLE_PROBABILITY;
+  const isGazelleCandidate = isAS && randFloat() < GAZELLE_PROBABILITY;
   
   // ~50% chance of generating a financially distressed company
-  const isBadCompany = !isGazelleCandidate && Math.random() < 0.5;
+  const isBadCompany = !isGazelleCandidate && randBool();
   
   // Base financial metrics (will be adjusted year by year)
   let baseRevenue: number;
   let baseProfitMargin: number;
   if (isGazelleCandidate) {
     baseRevenue = randInt(2000000, 20000000);
-    baseProfitMargin = 10 + Math.random() * 15; // 10-25%
+    baseProfitMargin = 10 + randFloat() * 15; // 10-25%
   } else if (isBadCompany) {
     baseRevenue = randInt(2000000, 40000000);
-    baseProfitMargin = -8 + Math.random() * 10; // -8% to +2%
+    baseProfitMargin = -8 + randFloat() * 10; // -8% to +2%
   } else {
     baseRevenue = randInt(10000000, 100000000);
-    baseProfitMargin = 8 + Math.random() * 12; // 8-20%
+    baseProfitMargin = 8 + randFloat() * 12; // 8-20%
   }
   const baseEmployees = isBadCompany ? randInt(5, 80) : randInt(15, 200);
   
@@ -970,7 +971,7 @@ export function genOkInfoFor(orgnr: string, orgDetails: any = null): any {
   const regnskapsaar: any[] = [];
   
   // Growth rates per profile
-  const gazelleAnnualGrowth = 0.15 + Math.random() * 0.10; // 15-25%
+  const gazelleAnnualGrowth = 0.15 + randFloat() * 0.10; // 15-25%
   
   for (let i = 4; i >= 0; i--) {
     const year = currentYear - i;
@@ -982,72 +983,72 @@ export function genOkInfoFor(orgnr: string, orgDetails: any = null): any {
       growthFactor = Math.pow(1 + gazelleAnnualGrowth, yearsFromStart);
     } else if (isBadCompany) {
       // Declining revenue: -5% to -20% per year
-      growthFactor = Math.pow(1 + (Math.random() * 0.05 - 0.20), 4 - i);
+      growthFactor = Math.pow(1 + (randFloat() * 0.05 - 0.20), 4 - i);
     } else {
-      growthFactor = Math.pow(1 + (Math.random() * 0.3 - 0.1), 4 - i);
+      growthFactor = Math.pow(1 + (randFloat() * 0.3 - 0.1), 4 - i);
     }
     const revenue = Math.round(baseRevenue * growthFactor);
     const employeeGrowth = isBadCompany
-      ? Math.pow(1 + (Math.random() * 0.05 - 0.15), 4 - i) // shrinking workforce
-      : Math.pow(1 + (Math.random() * 0.2 - 0.05), 4 - i);
+      ? Math.pow(1 + (randFloat() * 0.05 - 0.15), 4 - i) // shrinking workforce
+      : Math.pow(1 + (randFloat() * 0.2 - 0.05), 4 - i);
     const employees = Math.max(1, Math.round(baseEmployees * employeeGrowth));
     
     // Calculate derived metrics
     const profitMargin = isBadCompany
-      ? baseProfitMargin + (Math.random() * 8 - 4) // wider variation, often negative
-      : baseProfitMargin + (Math.random() * 6 - 3);
+      ? baseProfitMargin + (randFloat() * 8 - 4) // wider variation, often negative
+      : baseProfitMargin + (randFloat() * 6 - 3);
     const operatingResult = Math.round(revenue * (profitMargin / 100));
-    const resultBeforeTax = Math.round(operatingResult * (0.85 + Math.random() * 0.1));
+    const resultBeforeTax = Math.round(operatingResult * (0.85 + randFloat() * 0.1));
     const resultAfterTax = resultBeforeTax > 0
       ? Math.round(resultBeforeTax * 0.78)
       : resultBeforeTax; // no tax benefit on losses for simplicity
     
     // Balance sheet items
-    const totalCapital = Math.round(revenue * (0.4 + Math.random() * 0.6));
+    const totalCapital = Math.round(revenue * (0.4 + randFloat() * 0.6));
     let equityRatio: number;
     if (isBadCompany) {
-      equityRatio = -10 + Math.random() * 25; // -10% to +15% (can be negative equity)
+      equityRatio = -10 + randFloat() * 25; // -10% to +15% (can be negative equity)
     } else {
-      equityRatio = 30 + Math.random() * 40; // 30-70%
+      equityRatio = 30 + randFloat() * 40; // 30-70%
     }
     const equity = Math.round(totalCapital * (equityRatio / 100));
     const totalDebt = totalCapital - equity;
     const shortTermDebt = isBadCompany
-      ? Math.round(totalDebt * (0.5 + Math.random() * 0.4)) // more short-term debt
-      : Math.round(totalDebt * (0.3 + Math.random() * 0.4));
+      ? Math.round(totalDebt * (0.5 + randFloat() * 0.4)) // more short-term debt
+      : Math.round(totalDebt * (0.3 + randFloat() * 0.4));
     const longTermDebt = totalDebt - shortTermDebt;
     
     // Employee costs
-    const avgSalary = 450000 + Math.random() * 350000;
+    const avgSalary = 450000 + randFloat() * 350000;
     const totalSalaries = Math.round(employees * avgSalary);
     const socialCosts = Math.round(totalSalaries * 0.18);
     const pensionCosts = Math.round(totalSalaries * 0.06);
     const totalPersonnelCosts = totalSalaries + socialCosts + pensionCosts;
     
     // Depreciation
-    const depreciation = Math.round(revenue * (0.03 + Math.random() * 0.04));
+    const depreciation = Math.round(revenue * (0.03 + randFloat() * 0.04));
     
     // Working capital
     const workingCapital = isBadCompany
-      ? Math.round(revenue * (-0.1 + Math.random() * 0.15)) // often negative
-      : Math.round(revenue * (0.1 + Math.random() * 0.2));
+      ? Math.round(revenue * (-0.1 + randFloat() * 0.15)) // often negative
+      : Math.round(revenue * (0.1 + randFloat() * 0.2));
     
     // Liquidity ratios
     const liquidityGrade1 = isBadCompany
-      ? 0.3 + Math.random() * 0.9 // 0.3 - 1.2 (poor)
-      : 1.5 + Math.random() * 2; // 1.5 - 3.5 (good)
-    const liquidityGrade2 = liquidityGrade1 * (0.7 + Math.random() * 0.2);
+      ? 0.3 + randFloat() * 0.9 // 0.3 - 1.2 (poor)
+      : 1.5 + randFloat() * 2; // 1.5 - 3.5 (good)
+    const liquidityGrade2 = liquidityGrade1 * (0.7 + randFloat() * 0.2);
     
     // Cash flows
-    const operatingCashFlow = Math.round(operatingResult + depreciation + (Math.random() * revenue * 0.05));
-    const investingCashFlow = -Math.round(depreciation * (0.8 + Math.random() * 1.5));
-    const financingCashFlow = -Math.round(Math.abs(investingCashFlow) * (0.2 + Math.random() * 0.6));
+    const operatingCashFlow = Math.round(operatingResult + depreciation + (randFloat() * revenue * 0.05));
+    const investingCashFlow = -Math.round(depreciation * (0.8 + randFloat() * 1.5));
+    const financingCashFlow = -Math.round(Math.abs(investingCashFlow) * (0.2 + randFloat() * 0.6));
     
     // Calculate year-over-year changes
-    const revenueChange = regnskapsaar.length === 0 ? Math.random() * 20 - 5 : 
+    const revenueChange = regnskapsaar.length === 0 ? randFloat() * 20 - 5 : 
       ((revenue - regnskapsaar[regnskapsaar.length - 1].finansielleNokkeltal.omsetning.beloep) / regnskapsaar[regnskapsaar.length - 1].finansielleNokkeltal.omsetning.beloep * 100);
     
-    const operatingChange = regnskapsaar.length === 0 ? Math.random() * 30 - 10 :
+    const operatingChange = regnskapsaar.length === 0 ? randFloat() * 30 - 10 :
       ((operatingResult - regnskapsaar[regnskapsaar.length - 1].finansielleNokkeltal.driftsresultat.beloep) / regnskapsaar[regnskapsaar.length - 1].finansielleNokkeltal.driftsresultat.beloep * 100);
     
     regnskapsaar.push({
@@ -1081,13 +1082,13 @@ export function genOkInfoFor(orgnr: string, orgDetails: any = null): any {
         totalkapital: {
           beloep: totalCapital,
           valuta: 'NOK',
-          endringFraForrigeAar: Math.round((Math.random() * 20 - 5) * 10) / 10
+          endringFraForrigeAar: Math.round((randFloat() * 20 - 5) * 10) / 10
         },
         egenkapital: {
           beloep: equity,
           valuta: 'NOK',
           egenkapitalandel: Math.round(equityRatio * 10) / 10,
-          endringFraForrigeAar: Math.round((Math.random() * 25 - 5) * 10) / 10
+          endringFraForrigeAar: Math.round((randFloat() * 25 - 5) * 10) / 10
         },
         gjeld: {
           kortsiktigGjeld: shortTermDebt,
@@ -1106,7 +1107,7 @@ export function genOkInfoFor(orgnr: string, orgDetails: any = null): any {
         }
       },
       loennsomhetsnoekkeltal: {
-        bruttomargin: Math.round((profitMargin + 40 + Math.random() * 20) * 10) / 10,
+        bruttomargin: Math.round((profitMargin + 40 + randFloat() * 20) * 10) / 10,
         driftsmargin: Math.round(profitMargin * 10) / 10,
         nettemargin: Math.round((profitMargin * 0.78) * 10) / 10,
         egenkapitalrentabilitet: Math.round((resultAfterTax / equity * 100) * 10) / 10,
@@ -1122,10 +1123,10 @@ export function genOkInfoFor(orgnr: string, orgDetails: any = null): any {
       },
       ansatte: {
         antallAnsatte: employees,
-        heltidsansatte: Math.round(employees * (0.85 + Math.random() * 0.1)),
-        deltidsansatte: Math.round(employees * (0.05 + Math.random() * 0.1)),
-        midlertidigAnsatte: Math.round(employees * (0.02 + Math.random() * 0.08)),
-        gjennomsnittligAntallAnsatte: Math.round(employees * (0.95 + Math.random() * 0.1)),
+        heltidsansatte: Math.round(employees * (0.85 + randFloat() * 0.1)),
+        deltidsansatte: Math.round(employees * (0.05 + randFloat() * 0.1)),
+        midlertidigAnsatte: Math.round(employees * (0.02 + randFloat() * 0.08)),
+        gjennomsnittligAntallAnsatte: Math.round(employees * (0.95 + randFloat() * 0.1)),
         loennskostnader: {
           totalLoenn: totalSalaries,
           sosialeutgifter: socialCosts,
