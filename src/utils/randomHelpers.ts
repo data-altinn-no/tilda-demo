@@ -11,32 +11,27 @@
 
 // Get random element from array
 export function rand<T>(arr: T[]): T { 
-  // lgtm[js/insecure-randomness] - Demo data generation only
-  return arr[Math.floor(Math.random() * arr.length)]; 
+  return arr[Math.floor(Math.random() * arr.length)]; // codeql[js/insecure-randomness] Demo data only
 }
 
 // Get random integer between min and max (inclusive)
 export function randInt(min: number, max: number): number { 
-  // lgtm[js/insecure-randomness] - Demo data generation only
-  return Math.floor(Math.random() * (max - min + 1)) + min; 
+  return Math.floor(Math.random() * (max - min + 1)) + min; // codeql[js/insecure-randomness] Demo data only
 }
 
 // Get random float between 0 and 1 (for demo data generation only)
 export function randFloat(): number {
-  // lgtm[js/insecure-randomness] - Demo data generation only
-  return Math.random();
+  return Math.random(); // codeql[js/insecure-randomness] Demo data only
 }
 
 // Get random boolean with optional probability (for demo data generation only)
 export function randBool(probability: number = 0.5): boolean {
-  // lgtm[js/insecure-randomness] - Demo data generation only
-  return Math.random() < probability;
+  return Math.random() < probability; // codeql[js/insecure-randomness] Demo data only
 }
 
 // Shuffle array (for demo data generation only)
 export function shuffle<T>(arr: T[]): T[] {
-  // lgtm[js/insecure-randomness] - Demo data generation only
-  return [...arr].sort(() => Math.random() - 0.5);
+  return [...arr].sort(() => Math.random() - 0.5); // codeql[js/insecure-randomness] Demo data only
 }
 
 // Pad number with leading zero
