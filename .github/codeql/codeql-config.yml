@@ -1,10 +1,15 @@
 name: "CodeQL Config"
 
-# Suppress insecure randomness warnings for demo data generation
-query-filters:
-  - exclude:
-      id: js/insecure-randomness
-      # Only suppress in files that are clearly for demo/mock data generation
-      paths:
-        - src/utils/randomHelpers.ts
-        - src/data/generators.ts
+# Suppress insecure randomness warnings for demo data generation files
+# These files only generate mock/demo data and do not handle security-sensitive operations
+paths-ignore:
+  - src/utils/randomHelpers.ts
+  - src/data/generators.ts
+
+queries:
+  - uses: security-and-quality
+  
+# Alternative: Use query filters to exclude specific alerts
+# query-filters:
+#   - exclude:
+#       id: js/insecure-randomness
