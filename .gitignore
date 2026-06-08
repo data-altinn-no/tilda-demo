@@ -112,3 +112,4 @@ vite.config.ts.timestamp-*
 
 # Chrome debug profile
 .vscode/chrome-debug-profile/
+src/utils/EconomicAssessment.cs
