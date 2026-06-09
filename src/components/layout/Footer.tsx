@@ -1,4 +1,4 @@
-import { Github, Bug, BookOpen, LucideIcon } from "lucide-react";
+import { GitBranch, Bug, BookOpen, LucideIcon } from "lucide-react";
 
 interface FooterLink {
   href: string;
@@ -13,7 +13,7 @@ export function Footer() {
   const links: FooterLink[] = [
     {
       href: "https://github.com/data-altinn-no/tilda-demo",
-      icon: Github,
+      icon: GitBranch,
       label: "Kildekoden på GitHub",
     },
     {

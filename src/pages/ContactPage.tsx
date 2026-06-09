@@ -7,7 +7,7 @@ import {
   MessageSquare,
   Users,
   FileText,
-  Github,
+  GitBranch,
   Building2,
   LucideIcon
 } from "lucide-react";
@@ -69,7 +69,7 @@ const RESOURCES: Resource[] = [
     title: "GitHub",
     description: "Kildekode og issues",
     url: "https://github.com/data-altinn-no",
-    icon: Github,
+    icon: GitBranch,
   },
   {
     title: "Dokumentasjon",

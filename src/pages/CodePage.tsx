@@ -5,7 +5,7 @@ import {
   ArrowLeft, 
   Code, 
   ExternalLink,
-  Github,
+  GitBranch,
   FileText,
   Copy,
   Check,
@@ -268,7 +268,7 @@ function RepoCard({ repo }: RepoCardProps) {
       className="digdir-card p-5 hover:shadow-md hover:border-primary-300 transition-all"
     >
       <div className="flex items-start gap-3">
-        <Github className="w-6 h-6 text-neutral-700 flex-shrink-0 mt-0.5" />
+        <GitBranch className="w-6 h-6 text-neutral-700 flex-shrink-0 mt-0.5" />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <h3 className="font-semibold text-neutral-900">{repo.name}</h3>
@@ -335,7 +335,7 @@ export function CodePage() {
           {/* GitHub Repositories */}
           <div>
             <h2 className="text-xl font-bold text-neutral-900 mb-4 flex items-center gap-2">
-              <Github className="w-5 h-5" />
+              <GitBranch className="w-5 h-5" />
               GitHub-repositorier
             </h2>
             <div className="grid gap-3">
