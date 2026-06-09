@@ -757,8 +757,8 @@ export class EconomicAssessment {
       const z = stdDev > 0 ? (companyVal - avg) / stdDev : 0;
       const absZ = Math.abs(z);
 
-      let verdict: IndustryMetricComparison['verdict'] = 'normal';
-      let description = '';
+      let verdict: IndustryMetricComparison['verdict'];
+      let description: string;
 
       if (absZ > 2.5) {
         if (z > 0 && highIsSuspicious) {

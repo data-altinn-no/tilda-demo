@@ -422,7 +422,7 @@ const COMPLEX_TYPES: Record<string, ComplexType> = {
  * Helper to extract base type name from type string (e.g., "AuditAddress[]?" -> "AuditAddress")
  */
 function getBaseTypeName(type: string): string {
-  return type.replace(/[\[\]\?]/g, '');
+  return type.replace(/[[\]?]/g, '');
 }
 
 /**
@@ -430,7 +430,7 @@ function getBaseTypeName(type: string): string {
  */
 function isComplexType(type: string): boolean {
   const baseType = getBaseTypeName(type);
-  return COMPLEX_TYPES.hasOwnProperty(baseType);
+  return Object.prototype.hasOwnProperty.call(COMPLEX_TYPES, baseType);
 }
 
 /**
