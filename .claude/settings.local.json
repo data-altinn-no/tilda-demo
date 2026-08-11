@@ -2,7 +2,18 @@
   "permissions": {
     "allow": [
       "Bash(npm outdated *)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(npm ls *)",
+      "Bash(npm view *)",
+      "Bash(node -e ' *)",
+      "Bash(xargs -P 16 -I '{}' sh -c ' *)",
+      "Bash(cd *)",
+      "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\(p.eslintConfig ? JSON.stringify\\(p.eslintConfig,null,2\\) : 'none'\\)\")",
+      "Bash(node --input-type=module -e ' *)",
+      "Bash(npm install *)",
+      "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\('eslint-plugin-react' in {...p.dependencies,...p.devDependencies} ? 'YES' : 'no'\\)\")",
+      "Bash(npx eslint *)",
+      "WebSearch"
     ]
   }
 }
