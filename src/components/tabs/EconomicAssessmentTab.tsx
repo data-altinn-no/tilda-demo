@@ -734,7 +734,7 @@ export function EconomicAssessmentTab({ orgDetails, financialData }: EconomicAss
                                   inputMode="numeric"
                                   value={acc[field.key]}
                                   onChange={(e) => handleFieldChange(yearIdx, field.key, e.target.value)}
-                                  className={`w-36 text-right border border-gray-200 rounded px-2 py-1 text-sm font-mono focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 transition-all ${
+                                  className={`w-36 text-right border border-gray-200 rounded-sm px-2 py-1 text-sm font-mono focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 transition-all ${
                                     field.isSummary ? 'font-semibold bg-gray-50' : ''
                                   }`}
                                   aria-label={`${field.label} ${acc.fraDato.slice(0, 4)}`}
@@ -778,7 +778,7 @@ export function EconomicAssessmentTab({ orgDetails, financialData }: EconomicAss
             className={`flex items-center gap-2 px-6 py-2.5 rounded-lg font-medium text-sm transition-all ${
               isAssessing
                 ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm hover:shadow'
+                : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-xs hover:shadow-sm'
             }`}
           >
             {isAssessing ? (
@@ -837,7 +837,7 @@ export function EconomicAssessmentTab({ orgDetails, financialData }: EconomicAss
                     </div>
                     <p className="text-xs text-gray-500 truncate">{indicator.description}</p>
                   </div>
-                  <div className="w-32 flex-shrink-0">
+                  <div className="w-32 shrink-0">
                     <div className="flex items-center gap-2">
                       <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
                         <div
@@ -889,7 +889,7 @@ export function EconomicAssessmentTab({ orgDetails, financialData }: EconomicAss
               </div>
 
               {/* Z-Score scale visualization */}
-              <div className="relative h-3 bg-gradient-to-r from-red-400 via-yellow-400 to-green-400 rounded-full mb-1 overflow-visible">
+              <div className="relative h-3 bg-linear-to-r from-red-400 via-yellow-400 to-green-400 rounded-full mb-1 overflow-visible">
                 <div
                   className="absolute top-[-2px] w-4 h-4 bg-white border-2 border-gray-800 rounded-full shadow-md transform -translate-x-1/2"
                   style={{ left: `${Math.min(100, Math.max(0, (result.altmanZScore.score / 5) * 100))}%` }}
@@ -990,9 +990,9 @@ export function EconomicAssessmentTab({ orgDetails, financialData }: EconomicAss
                       </div>
                       {/* Distribution bar */}
                       <div className="relative h-2 bg-gray-200 rounded-full overflow-visible">
-                        <div className="absolute inset-0 bg-gradient-to-r from-gray-200 via-green-200 to-gray-200 rounded-full" />
+                        <div className="absolute inset-0 bg-linear-to-r from-gray-200 via-green-200 to-gray-200 rounded-full" />
                         <div
-                          className={`absolute top-[-1px] w-3 h-3 rounded-full border-2 shadow-sm transform -translate-x-1/2 ${
+                          className={`absolute -top-px w-3 h-3 rounded-full border-2 shadow-xs transform -translate-x-1/2 ${
                             isAnomalous ? 'bg-purple-600 border-purple-800' : isMild ? 'bg-amber-500 border-amber-700' : 'bg-blue-500 border-blue-700'
                           }`}
                           style={{ left: `${barPosition}%` }}

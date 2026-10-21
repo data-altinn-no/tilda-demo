@@ -38,7 +38,7 @@ export function EconomicDataPage() {
           </div>
 
           {/* Overview */}
-          <div className="digdir-card p-6 bg-gradient-to-r from-primary-50 to-blue-50 border-primary-200">
+          <div className="digdir-card p-6 bg-linear-to-r from-primary-50 to-blue-50 border-primary-200">
             <h2 className="text-lg font-semibold text-neutral-900 mb-3">Oversikt</h2>
             <p className="text-neutral-700 mb-3">
               Den økonomiske vurderingsalgoritmen analyserer en virksomhets finansielle helsetilstand basert på offentlig tilgjengelige regnskapstall. 
@@ -67,27 +67,27 @@ export function EconomicDataPage() {
                 </thead>
                 <tbody>
                   <tr className="border-b border-neutral-100">
-                    <td className="py-2 pr-4"><span className="px-2 py-0.5 bg-green-100 text-green-800 rounded text-xs font-medium">Utmerket</span></td>
+                    <td className="py-2 pr-4"><span className="px-2 py-0.5 bg-green-100 text-green-800 rounded-sm text-xs font-medium">Utmerket</span></td>
                     <td className="py-2 pr-4 font-mono">80–100</td>
                     <td className="py-2 text-neutral-600">Solid finansiell helsetilstand. Ingen tiltak nødvendig.</td>
                   </tr>
                   <tr className="border-b border-neutral-100">
-                    <td className="py-2 pr-4"><span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-xs font-medium">God</span></td>
+                    <td className="py-2 pr-4"><span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded-sm text-xs font-medium">God</span></td>
                     <td className="py-2 pr-4 font-mono">60–79</td>
                     <td className="py-2 text-neutral-600">God økonomisk situasjon. Normal tilsynsfrekvens.</td>
                   </tr>
                   <tr className="border-b border-neutral-100">
-                    <td className="py-2 pr-4"><span className="px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded text-xs font-medium">Akseptabel</span></td>
+                    <td className="py-2 pr-4"><span className="px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded-sm text-xs font-medium">Akseptabel</span></td>
                     <td className="py-2 pr-4 font-mono">40–59</td>
                     <td className="py-2 text-neutral-600">Akseptabel, men noen enkeltområder kan være svake.</td>
                   </tr>
                   <tr className="border-b border-neutral-100">
-                    <td className="py-2 pr-4"><span className="px-2 py-0.5 bg-orange-100 text-orange-800 rounded text-xs font-medium">Svak</span></td>
+                    <td className="py-2 pr-4"><span className="px-2 py-0.5 bg-orange-100 text-orange-800 rounded-sm text-xs font-medium">Svak</span></td>
                     <td className="py-2 pr-4 font-mono">20–39</td>
                     <td className="py-2 text-neutral-600">Svak økonomi. Anbefaler økt oppmerksomhet.</td>
                   </tr>
                   <tr>
-                    <td className="py-2 pr-4"><span className="px-2 py-0.5 bg-red-100 text-red-800 rounded text-xs font-medium">Kritisk</span></td>
+                    <td className="py-2 pr-4"><span className="px-2 py-0.5 bg-red-100 text-red-800 rounded-sm text-xs font-medium">Kritisk</span></td>
                     <td className="py-2 pr-4 font-mono">0–19</td>
                     <td className="py-2 text-neutral-600">Kritisk svak økonomi. Skjerpet tilsynsfrekvens anbefales.</td>
                   </tr>
@@ -130,7 +130,7 @@ export function EconomicDataPage() {
                     <tr key={ind.n} className="border-b border-neutral-100">
                       <td className="py-2 pr-4 text-neutral-400">{ind.n}</td>
                       <td className="py-2 pr-4 font-medium text-neutral-900">{ind.name}</td>
-                      <td className="py-2 pr-4"><span className="px-2 py-0.5 bg-primary-50 text-primary-700 rounded text-xs font-mono">{ind.weight}</span></td>
+                      <td className="py-2 pr-4"><span className="px-2 py-0.5 bg-primary-50 text-primary-700 rounded-sm text-xs font-mono">{ind.weight}</span></td>
                       <td className="py-2 font-mono text-xs text-neutral-600">{ind.formula}</td>
                     </tr>
                   ))}
@@ -201,7 +201,7 @@ export function EconomicDataPage() {
                   { rule: "Svært lav likviditet", desc: "Likviditetsgrad 1 under 0.5", severity: "alvorlig" },
                 ].map((flag) => (
                   <div key={flag.rule} className="flex items-start gap-2 bg-red-50 rounded-lg p-3 border border-red-100">
-                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-sm ${
                       flag.severity === 'kritisk' ? 'bg-red-200 text-red-800' : 'bg-orange-200 text-orange-800'
                     }`}>
                       {flag.severity}

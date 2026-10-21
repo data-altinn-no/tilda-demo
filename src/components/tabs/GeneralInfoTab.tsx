@@ -136,7 +136,7 @@ function InfoTooltip({ text, position = 'top' }: InfoTooltipProps) {
   return (
     <div className="relative inline-block ml-1 group z-10">
       <HelpCircle className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-help" />
-      <div className={`absolute ${isBottom ? 'top-full mt-2' : 'bottom-full mb-2'} left-1/2 -translate-x-1/2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 w-48 text-center z-[100]`}>
+      <div className={`absolute ${isBottom ? 'top-full mt-2' : 'bottom-full mb-2'} left-1/2 -translate-x-1/2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 w-48 text-center z-100`}>
         {text}
         <div className={`absolute ${isBottom ? 'bottom-full border-b-gray-800' : 'top-full border-t-gray-800'} left-1/2 -translate-x-1/2 border-4 border-transparent`}></div>
       </div>
@@ -328,7 +328,7 @@ export function GeneralInfoTab({
 
         {/* Gazelle Indicator */}
         {isGazelle && (
-          <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 p-4 rounded-lg flex items-center gap-3">
+          <div className="bg-linear-to-r from-amber-50 to-orange-50 border border-amber-200 p-4 rounded-lg flex items-center gap-3">
             <div className="bg-amber-100 p-2 rounded-full">
               <TrendingUp className="w-6 h-6 text-amber-600" />
             </div>
@@ -479,7 +479,7 @@ export function GeneralInfoTab({
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {(relatedCompanies as any).companies.map((company: any) => (
-                <div key={company.organisasjonsnummer} className="flex items-center justify-between bg-white p-3 rounded border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors">
+                <div key={company.organisasjonsnummer} className="flex items-center justify-between bg-white p-3 rounded-sm border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors">
                   <div>
                     <div className="font-medium text-gray-900">{company.name}</div>
                     <div className="text-xs text-gray-500">Org.nr: {company.organisasjonsnummer} | {company.address}, {company.zipcode} {company.city}</div>

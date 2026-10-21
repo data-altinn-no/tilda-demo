@@ -220,7 +220,7 @@ function EndpointCard({ endpoint, isExpanded, onToggle }: EndpointCardProps) {
                       <tr key={param.name} className="border-b border-neutral-100">
                         <td className="py-2 pr-4 font-mono text-primary-600">{param.name}</td>
                         <td className="py-2 pr-4">
-                          <span className="px-2 py-0.5 bg-neutral-100 rounded text-xs font-mono">
+                          <span className="px-2 py-0.5 bg-neutral-100 rounded-sm text-xs font-mono">
                             {param.type}
                           </span>
                         </td>
@@ -347,13 +347,13 @@ export function ApiPage() {
             </div>
             <p className="text-neutral-600 mt-4 max-w-3xl">
               Tilda-data er tilgjengelig via data.altinn.no sitt REST API. 
-              For a fa tilgang ma du ha en Maskinporten-integrasjon med scopet <code className="bg-neutral-100 px-2 py-0.5 rounded text-sm">altinn:dataaltinnno/tilda</code>.
+              For a fa tilgang ma du ha en Maskinporten-integrasjon med scopet <code className="bg-neutral-100 px-2 py-0.5 rounded-sm text-sm">altinn:dataaltinnno/tilda</code>.
             </p>
           </div>
 
-          <div className="digdir-card p-6 bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200">
+          <div className="digdir-card p-6 bg-linear-to-r from-amber-50 to-orange-50 border-amber-200">
             <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center shrink-0">
                 <Key className="w-5 h-5 text-amber-600" />
               </div>
               <div>
@@ -362,7 +362,7 @@ export function ApiPage() {
                   API-et krever autentisering via Maskinporten. Du trenger:
                 </p>
                 <ul className="list-disc list-inside text-neutral-600 space-y-1">
-                  <li>Maskinporten-token med scope <code className="bg-white/50 px-1.5 py-0.5 rounded text-sm">altinn:dataaltinnno/tilda</code></li>
+                  <li>Maskinporten-token med scope <code className="bg-white/50 px-1.5 py-0.5 rounded-sm text-sm">altinn:dataaltinnno/tilda</code></li>
                   <li>API-nokkel (Subscription Key) fra data.altinn.no</li>
                 </ul>
                 <a 
@@ -381,7 +381,7 @@ export function ApiPage() {
           {/* Environment Selector */}
           <div className="digdir-card p-6">
             <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center shrink-0">
                 <Server className="w-5 h-5 text-primary-600" />
               </div>
               <div className="flex-1">
@@ -394,7 +394,7 @@ export function ApiPage() {
                         onClick={() => setEnvironment(key)}
                         className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
                           environment === key
-                            ? "bg-white text-primary-700 shadow-sm"
+                            ? "bg-white text-primary-700 shadow-xs"
                             : "text-neutral-600 hover:text-neutral-900"
                         }`}
                       >
@@ -413,7 +413,7 @@ export function ApiPage() {
 
           <div className="digdir-card p-6">
             <div className="flex items-start gap-4 mb-4">
-              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center shrink-0">
                 <FileJson className="w-5 h-5 text-purple-600" />
               </div>
               <div>
@@ -483,7 +483,7 @@ export function ApiPage() {
                 href="https://data.altinn.no/api-details" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 p-4 bg-white rounded-lg border border-neutral-200 hover:border-primary-300 hover:shadow-sm transition-all"
+                className="flex items-center gap-3 p-4 bg-white rounded-lg border border-neutral-200 hover:border-primary-300 hover:shadow-xs transition-all"
               >
                 <Server className="w-5 h-5 text-primary-600" />
                 <div>
@@ -496,7 +496,7 @@ export function ApiPage() {
                 href="https://docs.data.altinn.no/tjenester/tilsynsdata/" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 p-4 bg-white rounded-lg border border-neutral-200 hover:border-primary-300 hover:shadow-sm transition-all"
+                className="flex items-center gap-3 p-4 bg-white rounded-lg border border-neutral-200 hover:border-primary-300 hover:shadow-xs transition-all"
               >
                 <FileJson className="w-5 h-5 text-primary-600" />
                 <div>
@@ -507,7 +507,7 @@ export function ApiPage() {
               </a>
               <Link 
                 to="/datamodeller"
-                className="flex items-center gap-3 p-4 bg-white rounded-lg border border-neutral-200 hover:border-primary-300 hover:shadow-sm transition-all"
+                className="flex items-center gap-3 p-4 bg-white rounded-lg border border-neutral-200 hover:border-primary-300 hover:shadow-xs transition-all"
               >
                 <FileJson className="w-5 h-5 text-primary-600" />
                 <div>
@@ -520,7 +520,7 @@ export function ApiPage() {
                 href="https://samarbeid.digdir.no/maskinporten/maskinporten/25" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 p-4 bg-white rounded-lg border border-neutral-200 hover:border-primary-300 hover:shadow-sm transition-all"
+                className="flex items-center gap-3 p-4 bg-white rounded-lg border border-neutral-200 hover:border-primary-300 hover:shadow-xs transition-all"
               >
                 <Key className="w-5 h-5 text-primary-600" />
                 <div>

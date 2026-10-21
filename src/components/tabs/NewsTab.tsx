@@ -151,7 +151,7 @@ export function NewsTab({ orgDetails, organizationNumber }: NewsTabProps) {
 
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+            <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
             <div>
               <h4 className="font-semibold text-red-900 mb-1">Kunne ikke hente nyheter</h4>
               <p className="text-sm text-red-700">{error}</p>
@@ -211,7 +211,7 @@ export function NewsTab({ orgDetails, organizationNumber }: NewsTabProps) {
                     <img
                       src={article.urlToImage}
                       alt=""
-                      className="w-24 h-24 object-cover rounded-lg flex-shrink-0"
+                      className="w-24 h-24 object-cover rounded-lg shrink-0"
                       onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                     />
                   )}

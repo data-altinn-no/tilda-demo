@@ -165,7 +165,7 @@ export function LandingPage() {
 
           {/* Under Development Notice */}
           <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-4 flex items-center gap-3 -mt-6">
-            <AlertTriangle className="w-6 h-6 text-amber-600 flex-shrink-0" />
+            <AlertTriangle className="w-6 h-6 text-amber-600 shrink-0" />
             <div>
               <span className="font-semibold text-amber-800">Under utvikling</span>
               <span className="text-amber-700 ml-2">
@@ -175,9 +175,9 @@ export function LandingPage() {
           </div>
 
           {/* Info Section */}
-          <div className="digdir-card p-6 bg-gradient-to-r from-primary-50 to-blue-50 border-primary-200">
+          <div className="digdir-card p-6 bg-linear-to-r from-primary-50 to-blue-50 border-primary-200">
             <div className="flex items-start gap-4 mb-6">
-              <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center shrink-0">
                 <ClipboardList className="w-5 h-5 text-primary-600" />
               </div>
               <div>
@@ -205,7 +205,7 @@ export function LandingPage() {
                     href={authority.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="bg-white rounded-lg p-3 border border-neutral-200 flex flex-col items-center justify-center min-h-[72px] gap-2 hover:border-primary-300 hover:shadow-sm transition-all"
+                    className="bg-white rounded-lg p-3 border border-neutral-200 flex flex-col items-center justify-center min-h-[72px] gap-2 hover:border-primary-300 hover:shadow-xs transition-all"
                     title={authority.name || ""}
                   >
                     {authority.logo && (

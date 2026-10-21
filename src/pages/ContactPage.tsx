@@ -167,9 +167,9 @@ export function ContactPage() {
             </div>
           </div>
 
-          <div className="digdir-card p-6 bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200">
+          <div className="digdir-card p-6 bg-linear-to-r from-purple-50 to-indigo-50 border-purple-200">
             <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center shrink-0">
                 <MessageSquare className="w-5 h-5 text-purple-600" />
               </div>
               <div>
@@ -191,9 +191,9 @@ export function ContactPage() {
             </div>
           </div>
 
-          <div className="digdir-card p-6 bg-gradient-to-r from-pink-50 to-rose-50 border-pink-200">
+          <div className="digdir-card p-6 bg-linear-to-r from-pink-50 to-rose-50 border-pink-200">
             <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center shrink-0">
                 <MessageSquare className="w-5 h-5 text-pink-600" />
               </div>
               <div>
@@ -226,7 +226,7 @@ export function ContactPage() {
                     href={resource.url}
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-4 bg-white rounded-lg border border-neutral-200 hover:border-primary-300 hover:shadow-sm transition-all digdir-card"
+                    className="flex items-center gap-3 p-4 bg-white rounded-lg border border-neutral-200 hover:border-primary-300 hover:shadow-xs transition-all digdir-card"
                   >
                     <Icon className="w-5 h-5 text-primary-600" />
                     <div className="flex-1">

@@ -1,47 +1,118 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: Inter, system-ui, sans-serif;
+
+  --color-primary-50: #e6eff8;
+  --color-primary-100: #cddff1;
+  --color-primary-200: #9bc0e3;
+  --color-primary-300: #68a0d5;
+  --color-primary-400: #3681c8;
+  --color-primary-500: #0062ba;
+  --color-primary-600: #004e95;
+  --color-primary-700: #003a70;
+  --color-primary-800: #00264a;
+  --color-primary-900: #001225;
+
+  --color-neutral-50: #f4f5f6;
+  --color-neutral-100: #e9eaec;
+  --color-neutral-200: #d3d6d9;
+  --color-neutral-300: #bcc1c6;
+  --color-neutral-400: #a6acb3;
+  --color-neutral-500: #8f979f;
+  --color-neutral-600: #79828c;
+  --color-neutral-700: #626d78;
+  --color-neutral-800: #4b5865;
+  --color-neutral-900: #1e2b3c;
+
+  --color-success-light: #d1fae5;
+  --color-success: #10b981;
+  --color-success-dark: #065f46;
+
+  --color-warning-light: #fef3c7;
+  --color-warning: #f59e0b;
+  --color-warning-dark: #b45309;
+
+  --color-danger-light: #fee2e2;
+  --color-danger: #ef4444;
+  --color-danger-dark: #991b1b;
+
+  --shadow-digdir: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-digdir-hover:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+
+  --radius-digdir: 4px;
+
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-pulse-slow: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
+
+@utility digdir-card {
+  @apply bg-white border border-neutral-200 rounded-digdir shadow-digdir;
+}
+
+@utility digdir-input {
+  @apply bg-white border border-neutral-400 text-neutral-900 rounded-digdir 
+           focus:outline-hidden focus:ring-2 focus:ring-primary-500 focus:border-primary-500 
+           hover:border-neutral-600 transition-colors duration-200;
+}
+
+@utility digdir-button {
+  @apply inline-flex items-center justify-center rounded-digdir font-medium transition-colors duration-200
+           focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-primary-500;
+}
+
+@utility digdir-button-primary {
+  @apply bg-primary-500 text-white hover:bg-primary-600 active:bg-primary-700 shadow-xs;
+}
+
+@utility digdir-button-secondary {
+  @apply bg-white border-2 border-primary-500 text-primary-500 hover:bg-primary-50 active:bg-primary-100;
+}
+
+@utility digdir-button-ghost {
+  @apply bg-transparent text-primary-500 hover:bg-primary-50 hover:text-primary-700;
+}
+
+@utility digdir-tab-active {
+  @apply bg-primary-700 text-white border-primary-700 shadow-xs;
+}
+
+@utility digdir-tab-inactive {
+  @apply bg-white border border-neutral-300 text-neutral-700 hover:border-primary-500 hover:text-primary-500;
+}
 
 @layer base {
   body {
     @apply bg-neutral-50 text-neutral-900 font-sans antialiased overflow-x-hidden;
-  }
-}
-
-@layer components {
-  .digdir-card {
-    @apply bg-white border border-neutral-200 rounded-digdir shadow-digdir;
-  }
-  
-  .digdir-input {
-    @apply bg-white border border-neutral-400 text-neutral-900 rounded-digdir 
-           focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 
-           hover:border-neutral-600 transition-colors duration-200;
-  }
-
-  .digdir-button {
-    @apply inline-flex items-center justify-center rounded-digdir font-medium transition-colors duration-200
-           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500;
-  }
-
-  .digdir-button-primary {
-    @apply bg-primary-500 text-white hover:bg-primary-600 active:bg-primary-700 shadow-sm;
-  }
-
-  .digdir-button-secondary {
-    @apply bg-white border-2 border-primary-500 text-primary-500 hover:bg-primary-50 active:bg-primary-100;
-  }
-  
-  .digdir-button-ghost {
-    @apply bg-transparent text-primary-500 hover:bg-primary-50 hover:text-primary-700;
-  }
-
-  .digdir-tab-active {
-    @apply bg-primary-700 text-white border-primary-700 shadow-sm;
-  }
-
-  .digdir-tab-inactive {
-    @apply bg-white border border-neutral-300 text-neutral-700 hover:border-primary-500 hover:text-primary-500;
   }
 }
 
@@ -60,11 +131,17 @@
 }
 
 /* Animation Utilities */
+/*
+  No `forwards` fill: a lingering transform would make the animated page root
+  the containing block for position: fixed children such as modals. Sliding in
+  from above (negative Y) keeps the animation from extending the document
+  height, which otherwise shows a scrollbar for 0.5s and shifts the layout.
+*/
 .animate-in {
-  animation: fadeIn 0.5s ease-out forwards;
+  animation: fadeIn 0.5s ease-out;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(-10px); }
   to { opacity: 1; transform: translateY(0); }
 }

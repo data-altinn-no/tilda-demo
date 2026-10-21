@@ -286,7 +286,7 @@ export function NorwayMap({ cityViolations, maxViolations }: NorwayMapProps) {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-900/50 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-4 sm:p-6">
+    <div className="bg-white dark:bg-gray-900/50 rounded-xl shadow-xs border border-gray-200 dark:border-gray-800 p-4 sm:p-6">
       <h2 className="text-xl sm:text-[22px] font-bold leading-tight tracking-[-0.015em] pb-4 text-[#0c131d] dark:text-white">
         Norge – Tilsynskart
       </h2>

@@ -449,7 +449,7 @@ const COLOR_MAP: Record<string, ColorScheme> = {
  * Type badge component
  */
 function TypeBadge({ type, isClickable = false }: TypeBadgeProps) {
-  const baseClasses = "px-2 py-0.5 rounded text-xs font-mono";
+  const baseClasses = "px-2 py-0.5 rounded-sm text-xs font-mono";
   const clickableClasses = isClickable ? "cursor-pointer hover:ring-2 hover:ring-offset-1" : "";
   
   if (type.includes("string")) return <span className={`${baseClasses} ${clickableClasses} bg-blue-100 text-blue-700 ${isClickable ? 'hover:ring-blue-300' : ''}`}>{type}</span>;
@@ -488,7 +488,7 @@ function FieldRow({ field, depth = 0, expandedFields, toggleField }: FieldRowPro
       >
         <td className={`py-2.5 pr-4 ${indentClass}`}>
           <div className="flex items-center gap-2">
-            <code className="font-mono text-neutral-900 bg-neutral-100 px-1.5 py-0.5 rounded">
+            <code className="font-mono text-neutral-900 bg-neutral-100 px-1.5 py-0.5 rounded-sm">
               {field.name}
             </code>
           </div>
@@ -514,7 +514,7 @@ function FieldRow({ field, depth = 0, expandedFields, toggleField }: FieldRowPro
           <tr className="bg-violet-50/50">
             <td colSpan={3} className={`py-1.5 px-4 ${depth > 0 ? 'pl-8' : 'pl-4'}`}>
               <div className="text-xs text-violet-700 font-medium flex items-center gap-2">
-                <span className="bg-violet-200 px-1.5 py-0.5 rounded">{complexType.name}</span>
+                <span className="bg-violet-200 px-1.5 py-0.5 rounded-sm">{complexType.name}</span>
                 <span className="text-violet-600">{complexType.description}</span>
               </div>
             </td>
@@ -670,9 +670,9 @@ export function DataModelsPage() {
           </div>
 
           {/* Info box */}
-          <div className="digdir-card p-5 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+          <div className="digdir-card p-5 bg-linear-to-r from-blue-50 to-indigo-50 border-blue-200">
             <div className="flex items-start gap-3">
-              <FileText className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+              <FileText className="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
               <div>
                 <p className="text-neutral-700">
                   Denne siden viser datamodellene som er i bruk i Tilda-tjenesten. 
@@ -716,9 +716,9 @@ export function DataModelsPage() {
           </div>
 
           {/* NuGet Package Reference */}
-          <div className="digdir-card p-5 bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
+          <div className="digdir-card p-5 bg-linear-to-r from-green-50 to-emerald-50 border-green-200">
             <div className="flex items-start gap-3">
-              <Database className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+              <Database className="w-5 h-5 text-green-600 mt-0.5 shrink-0" />
               <div className="flex-1">
                 <p className="text-neutral-700 mb-3">
                   Alle modellene i Tilda ligger i en nuget-pakke som kan tas i bruk av konsumenter og tilbydere.

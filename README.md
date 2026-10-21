@@ -14,8 +14,8 @@ A modern React-based dashboard application for supervision authorities (Tilsynst
 
 ## 🛠️ Technology Stack
 
-- **Frontend**: React 18 with Vite
-- **Styling**: Tailwind CSS
+- **Frontend**: React 19 with Vite 8
+- **Styling**: Tailwind CSS 4
 - **Charts**: Recharts for data visualization
 - **Maps**: Custom SVG-based Norway map with TopoJSON
 - **Icons**: Lucide React
@@ -24,6 +24,8 @@ A modern React-based dashboard application for supervision authorities (Tilsynst
 - **Deployment**: GitHub Pages
 
 ## 📦 Installation
+
+Requires Node.js 20.19 or newer (24 LTS recommended), as needed by Vite 8 and Tailwind CSS 4.
 
 1. Clone the repository:
    ```bash
