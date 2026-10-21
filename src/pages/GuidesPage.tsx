@@ -216,7 +216,7 @@ function GuideCard({ guide, isExpanded, onToggle }: GuideCardProps) {
           <div className="space-y-4">
             {guide.steps.map((step, index) => (
               <div key={index} className="flex gap-4">
-                <div className="flex-shrink-0">
+                <div className="shrink-0">
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center ${colors.bg} ${colors.icon} font-semibold text-sm`}>
                     {index + 1}
                   </div>
@@ -292,9 +292,9 @@ export function GuidesPage() {
             </p>
           </div>
 
-          <div className="digdir-card p-6 bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
+          <div className="digdir-card p-6 bg-linear-to-r from-green-50 to-emerald-50 border-green-200">
             <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center shrink-0">
                 <CheckCircle className="w-5 h-5 text-green-600" />
               </div>
               <div>
@@ -349,7 +349,7 @@ export function GuidesPage() {
             <div className="grid md:grid-cols-2 gap-4">
               <Link 
                 to="/api"
-                className="flex items-center gap-3 p-4 bg-white rounded-lg border border-neutral-200 hover:border-primary-300 hover:shadow-sm transition-all"
+                className="flex items-center gap-3 p-4 bg-white rounded-lg border border-neutral-200 hover:border-primary-300 hover:shadow-xs transition-all"
               >
                 <Settings className="w-5 h-5 text-primary-600" />
                 <div>
@@ -360,7 +360,7 @@ export function GuidesPage() {
               </Link>
               <Link 
                 to="/datamodeller"
-                className="flex items-center gap-3 p-4 bg-white rounded-lg border border-neutral-200 hover:border-primary-300 hover:shadow-sm transition-all"
+                className="flex items-center gap-3 p-4 bg-white rounded-lg border border-neutral-200 hover:border-primary-300 hover:shadow-xs transition-all"
               >
                 <FileText className="w-5 h-5 text-primary-600" />
                 <div>
@@ -373,7 +373,7 @@ export function GuidesPage() {
                 href="https://docs.data.altinn.no/tjenester/tilsynsdata/" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 p-4 bg-white rounded-lg border border-neutral-200 hover:border-primary-300 hover:shadow-sm transition-all"
+                className="flex items-center gap-3 p-4 bg-white rounded-lg border border-neutral-200 hover:border-primary-300 hover:shadow-xs transition-all"
               >
                 <BookOpen className="w-5 h-5 text-primary-600" />
                 <div>
@@ -386,7 +386,7 @@ export function GuidesPage() {
                 href="https://samarbeid.digdir.no/maskinporten/maskinporten/25" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 p-4 bg-white rounded-lg border border-neutral-200 hover:border-primary-300 hover:shadow-sm transition-all"
+                className="flex items-center gap-3 p-4 bg-white rounded-lg border border-neutral-200 hover:border-primary-300 hover:shadow-xs transition-all"
               >
                 <Shield className="w-5 h-5 text-primary-600" />
                 <div>

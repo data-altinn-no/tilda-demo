@@ -193,7 +193,7 @@ export function StatisticsPage() {
                 <select 
                   value={selectedPeriod}
                   onChange={(e) => setSelectedPeriod(e.target.value)}
-                  className="px-3 py-1.5 border border-neutral-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="px-3 py-1.5 border border-neutral-300 rounded-lg text-sm focus:outline-hidden focus:ring-2 focus:ring-primary-500"
                 >
                   <option value="1m">Siste måned</option>
                   <option value="3m">Siste 3 måneder</option>
@@ -357,9 +357,9 @@ export function StatisticsPage() {
           </div>
 
           {/* Info Box */}
-          <div className="digdir-card p-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+          <div className="digdir-card p-6 bg-linear-to-r from-blue-50 to-indigo-50 border-blue-200">
             <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center shrink-0">
                 <BarChart3 className="w-5 h-5 text-blue-600" />
               </div>
               <div>

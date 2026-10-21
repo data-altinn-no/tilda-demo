@@ -285,7 +285,7 @@ export function TilsynTab({
                         {/* Uanmeldt badge with tooltip */}
                         <button 
                           type="button"
-                          className="relative group focus:outline-none focus:ring-2 focus:ring-primary-500 rounded"
+                          className="relative group focus:outline-hidden focus:ring-2 focus:ring-primary-500 rounded-sm"
                           aria-describedby={`uanmeldt-tooltip-${idx}`}
                         >
                           <span className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full ${
@@ -302,7 +302,7 @@ export function TilsynTab({
                           <div 
                             id={`uanmeldt-tooltip-${idx}`}
                             role="tooltip"
-                            className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus:opacity-100 group-focus:visible transition-all duration-200 whitespace-nowrap z-10"
+                            className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded-sm opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus:opacity-100 group-focus:visible transition-all duration-200 whitespace-nowrap z-10"
                           >
                             Var tilsynsobjektet varslet på forhånd
                             <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800" aria-hidden="true"></div>
@@ -358,7 +358,7 @@ export function TilsynTab({
                                     <span className="text-xs text-neutral-600">
                                       Funn: {f.beskrivelse || 'Ikke spesifisert'}
                                     </span>
-                                    <span className={`text-xs px-1.5 py-0.5 rounded ${
+                                    <span className={`text-xs px-1.5 py-0.5 rounded-sm ${
                                       f.alvorlighetsgrad === 'Høy' 
                                         ? 'bg-red-100 text-red-700' 
                                         : f.alvorlighetsgrad === 'Medium'
@@ -370,7 +370,7 @@ export function TilsynTab({
                                   </div>
                                   <div className="flex items-center gap-2">
                                     <span className="text-xs text-neutral-500">Reaksjon:</span>
-                                    <span className={`text-xs px-1.5 py-0.5 rounded ${
+                                    <span className={`text-xs px-1.5 py-0.5 rounded-sm ${
                                       f.reaksjonstype === 'Pålegg' || f.reaksjonstype === 'Tvangsmulkt' 
                                         ? 'bg-red-100 text-red-700' 
                                         : 'bg-neutral-100 text-neutral-600'
@@ -384,7 +384,7 @@ export function TilsynTab({
                           ) : (
                             <div className="flex items-center gap-2">
                               <span className="text-neutral-500 min-w-[80px]">Reaksjoner:</span>
-                              <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-sm">
+                              <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-sm text-sm">
                                 Ingen
                               </span>
                             </div>

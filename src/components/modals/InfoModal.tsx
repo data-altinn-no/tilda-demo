@@ -13,10 +13,10 @@ export function InfoModal({ isOpen, onClose }: InfoModalProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 overflow-y-auto">
+    <div className="fixed inset-0 bg-black/50 z-50 overflow-y-auto">
       <div className="flex min-h-full items-center justify-center p-4">
         <div className="bg-white rounded-2xl max-w-2xl w-full overflow-hidden shadow-xl">
-          <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white">
+          <div className="bg-linear-to-r from-blue-600 to-blue-700 p-6 text-white">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
@@ -82,7 +82,7 @@ export function InfoModal({ isOpen, onClose }: InfoModalProps) {
 
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
               <div className="flex items-start gap-3">
-                <AlertTriangle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                <AlertTriangle className="w-5 h-5 text-amber-600 mt-0.5 shrink-0" />
                 <div>
                   <h4 className="font-medium text-amber-800">Viktig informasjon</h4>
                   <p className="text-sm text-amber-700 mt-1">

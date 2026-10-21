@@ -56,10 +56,10 @@ export function ComplianceModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 overflow-y-auto">
+    <div className="fixed inset-0 bg-black/50 z-50 overflow-y-auto">
       <div className="flex min-h-full items-start justify-center pt-4 p-4">
         <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-xl flex flex-col">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 shrink-0">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">Risiko-vurdering</h2>
             <p className="text-gray-600 mt-1">{orgDetails?.name || 'Organisasjon'}</p>
@@ -217,7 +217,7 @@ export function ComplianceModal({
           </div>
         </div>
 
-        <div className="p-6 border-t border-gray-200 bg-gray-50 flex-shrink-0">
+        <div className="p-6 border-t border-gray-200 bg-gray-50 shrink-0">
           <div className="flex justify-end">
             <Button onClick={onClose} className="px-6">
               Lukk vurdering

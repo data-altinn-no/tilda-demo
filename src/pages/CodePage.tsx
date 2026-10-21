@@ -268,11 +268,11 @@ function RepoCard({ repo }: RepoCardProps) {
       className="digdir-card p-5 hover:shadow-md hover:border-primary-300 transition-all"
     >
       <div className="flex items-start gap-3">
-        <GitBranch className="w-6 h-6 text-neutral-700 flex-shrink-0 mt-0.5" />
+        <GitBranch className="w-6 h-6 text-neutral-700 shrink-0 mt-0.5" />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <h3 className="font-semibold text-neutral-900">{repo.name}</h3>
-            <span className="px-2 py-0.5 bg-neutral-100 rounded text-xs font-mono text-neutral-600">
+            <span className="px-2 py-0.5 bg-neutral-100 rounded-sm text-xs font-mono text-neutral-600">
               {repo.language}
             </span>
           </div>
@@ -288,7 +288,7 @@ function RepoCard({ repo }: RepoCardProps) {
             ))}
           </div>
         </div>
-        <ExternalLink className="w-4 h-4 text-neutral-400 flex-shrink-0" />
+        <ExternalLink className="w-4 h-4 text-neutral-400 shrink-0" />
       </div>
     </a>
   );
@@ -390,7 +390,7 @@ export function CodePage() {
                     href={link.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-4 bg-white rounded-lg border border-neutral-200 hover:border-primary-300 hover:shadow-sm transition-all digdir-card"
+                    className="flex items-center gap-3 p-4 bg-white rounded-lg border border-neutral-200 hover:border-primary-300 hover:shadow-xs transition-all digdir-card"
                   >
                     <Icon className="w-5 h-5 text-primary-600" />
                     <div className="flex-1">
@@ -410,7 +410,7 @@ export function CodePage() {
             <div className="grid md:grid-cols-3 gap-4">
               <Link
                 to="/api"
-                className="flex items-center gap-3 p-4 bg-white rounded-lg border border-neutral-200 hover:border-primary-300 hover:shadow-sm transition-all"
+                className="flex items-center gap-3 p-4 bg-white rounded-lg border border-neutral-200 hover:border-primary-300 hover:shadow-xs transition-all"
               >
                 <FileText className="w-5 h-5 text-primary-600" />
                 <div>
@@ -420,7 +420,7 @@ export function CodePage() {
               </Link>
               <Link
                 to="/datamodeller"
-                className="flex items-center gap-3 p-4 bg-white rounded-lg border border-neutral-200 hover:border-primary-300 hover:shadow-sm transition-all"
+                className="flex items-center gap-3 p-4 bg-white rounded-lg border border-neutral-200 hover:border-primary-300 hover:shadow-xs transition-all"
               >
                 <Code className="w-5 h-5 text-primary-600" />
                 <div>
@@ -430,7 +430,7 @@ export function CodePage() {
               </Link>
               <Link
                 to="/veiledninger"
-                className="flex items-center gap-3 p-4 bg-white rounded-lg border border-neutral-200 hover:border-primary-300 hover:shadow-sm transition-all"
+                className="flex items-center gap-3 p-4 bg-white rounded-lg border border-neutral-200 hover:border-primary-300 hover:shadow-xs transition-all"
               >
                 <BookOpen className="w-5 h-5 text-primary-600" />
                 <div>

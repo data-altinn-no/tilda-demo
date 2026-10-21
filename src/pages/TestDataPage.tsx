@@ -195,7 +195,7 @@ function DatasetCard({ dataset }: DatasetCardProps) {
       </div>
       
       <div className="flex items-center justify-between">
-        <code className="text-xs bg-neutral-100 px-2 py-1 rounded font-mono text-neutral-700">
+        <code className="text-xs bg-neutral-100 px-2 py-1 rounded-sm font-mono text-neutral-700">
           {dataset.downloadUrl}
         </code>
         <button className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium">
@@ -299,9 +299,9 @@ export function TestDataPage() {
           </div>
 
           {/* Info Box */}
-          <div className="digdir-card p-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+          <div className="digdir-card p-6 bg-linear-to-r from-blue-50 to-indigo-50 border-blue-200">
             <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center shrink-0">
                 <Info className="w-5 h-5 text-blue-600" />
               </div>
               <div>
@@ -383,16 +383,16 @@ export function TestDataPage() {
               </div>
 
               {/* Access Info */}
-              <div className="digdir-card p-6 bg-gradient-to-r from-orange-50 to-amber-50 border-orange-200">
+              <div className="digdir-card p-6 bg-linear-to-r from-orange-50 to-amber-50 border-orange-200">
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center shrink-0">
                     <Lock className="w-5 h-5 text-orange-600" />
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold text-neutral-900 mb-2">Tilgang til testmiljøer</h3>
                     <p className="text-neutral-600 mb-3">
                       For å få tilgang til testmiljøene trenger du Maskinporten-tilgang med scopet 
-                      <code className="bg-orange-100 px-1 py-0.5 rounded text-orange-800 font-mono text-sm mx-1">
+                      <code className="bg-orange-100 px-1 py-0.5 rounded-sm text-orange-800 font-mono text-sm mx-1">
                         altinn:dataaltinnno/tilda
                       </code>
                     </p>
@@ -418,7 +418,7 @@ export function TestDataPage() {
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-lg font-semibold text-neutral-900">{example.title}</h3>
                       <div className="flex items-center gap-2">
-                        <span className="px-2 py-1 bg-neutral-100 text-neutral-700 text-xs font-mono rounded">
+                        <span className="px-2 py-1 bg-neutral-100 text-neutral-700 text-xs font-mono rounded-sm">
                           {example.language}
                         </span>
                         <button className="p-2 text-neutral-500 hover:text-neutral-700 hover:bg-neutral-100 rounded-lg transition-colors">
@@ -434,9 +434,9 @@ export function TestDataPage() {
               </div>
 
               {/* Testing Guidelines */}
-              <div className="digdir-card p-6 bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
+              <div className="digdir-card p-6 bg-linear-to-r from-green-50 to-emerald-50 border-green-200">
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center shrink-0">
                     <CheckCircle className="w-5 h-5 text-green-600" />
                   </div>
                   <div>

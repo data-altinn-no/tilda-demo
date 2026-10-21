@@ -192,7 +192,7 @@ export function TildaPage() {
   ];
 
   return (
-    <div className="min-h-screen p-4 lg:p-8 max-w-[95rem] mx-auto animate-in">
+    <div className="min-h-screen p-4 lg:p-8 max-w-380 mx-auto animate-in">
       <motion.div 
         initial={{ opacity: 0, y: 20 }} 
         animate={{ opacity: 1, y: 0 }} 
@@ -200,7 +200,7 @@ export function TildaPage() {
       >
         <a 
           href="#main-content" 
-          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary-600 focus:text-white focus:rounded-lg focus:outline-none"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary-600 focus:text-white focus:rounded-lg focus:outline-hidden"
         >
           Hopp til hovedinnhold
         </a>
@@ -274,14 +274,14 @@ export function TildaPage() {
                     type="checkbox" 
                     checked={mulighetsrom} 
                     onChange={(e) => setMulighetsrom(e.target.checked)}
-                    className="w-5 h-5 text-primary-600 border-neutral-300 rounded focus:ring-primary-500"
+                    className="w-5 h-5 text-primary-600 border-neutral-300 rounded-sm focus:ring-primary-500"
                   />
                   <span className="text-base font-medium text-neutral-700">Vis mulighetsrom</span>
                 </label>
               </div>
             </div>
 
-            <div className="flex items-center gap-4 w-full md:w-auto mt-4 md:mt-0 flex-shrink-0">
+            <div className="flex items-center gap-4 w-full md:w-auto mt-4 md:mt-0 shrink-0">
               <Button 
                 id="search-button"
                 onClick={handleLookup} 
@@ -337,7 +337,7 @@ export function TildaPage() {
                       aria-controls={`${tab.id}-panel`}
                       className={`flex items-center gap-3 py-3 px-5 rounded-lg font-medium text-base transition-all duration-200 whitespace-nowrap ${
                         isActive
-                          ? 'bg-white text-primary-700 shadow-sm ring-1 ring-black/5'
+                          ? 'bg-white text-primary-700 shadow-xs ring-1 ring-black/5'
                           : 'text-slate-600 hover:text-slate-900 hover:bg-white/40'
                       }`}
                     >
@@ -368,7 +368,7 @@ export function TildaPage() {
                         aria-controls={`${tab.id}-panel`}
                         className={`flex items-center gap-3 py-2.5 px-4 rounded-lg font-medium text-base transition-all duration-200 whitespace-nowrap ${
                           isActive
-                            ? 'bg-white text-indigo-700 shadow-sm ring-1 ring-indigo-100'
+                            ? 'bg-white text-indigo-700 shadow-xs ring-1 ring-indigo-100'
                             : 'text-indigo-600/70 hover:text-indigo-800 hover:bg-white/40'
                         }`}
                       >
@@ -395,7 +395,7 @@ export function TildaPage() {
                     onClick={() => handleAuthorityClick(authority)}
                     className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
                       isActive
-                        ? 'bg-blue-600 text-white shadow-sm'
+                        ? 'bg-blue-600 text-white shadow-xs'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
