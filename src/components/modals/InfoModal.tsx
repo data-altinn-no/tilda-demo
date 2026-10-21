@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { X, Info, AlertTriangle, Database, Search, BarChart3 } from 'lucide-react';
 import { Button } from '../ui/Button';
 
@@ -12,7 +13,9 @@ interface InfoModalProps {
 export function InfoModal({ isOpen, onClose }: InfoModalProps) {
   if (!isOpen) return null;
 
-  return (
+  // Rendered into document.body so a transformed/animated page ancestor can
+  // never become the containing block for this fixed overlay.
+  return createPortal(
     <div className="fixed inset-0 bg-black/50 z-50 overflow-y-auto">
       <div className="flex min-h-full items-center justify-center p-4">
         <div className="bg-white rounded-2xl max-w-2xl w-full overflow-hidden shadow-xl">
@@ -104,6 +107,7 @@ export function InfoModal({ isOpen, onClose }: InfoModalProps) {
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

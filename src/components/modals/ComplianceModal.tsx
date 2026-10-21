@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { X, AlertTriangle, CheckCircle, XCircle, Info } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
 import { Button } from '../ui/Button';
@@ -55,7 +56,9 @@ export function ComplianceModal({
     }
   };
 
-  return (
+  // Rendered into document.body so a transformed/animated page ancestor can
+  // never become the containing block for this fixed overlay.
+  return createPortal(
     <div className="fixed inset-0 bg-black/50 z-50 overflow-y-auto">
       <div className="flex min-h-full items-start justify-center pt-4 p-4">
         <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-xl flex flex-col">
@@ -226,6 +229,7 @@ export function ComplianceModal({
         </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
