@@ -8,6 +8,12 @@ updates:
       time: "06:00"
       timezone: "Europe/Oslo"
     open-pull-requests-limit: 10
+    ignore:
+      # TypeScript 7 (native Go port) no longer ships the JS compiler API that
+      # typescript-eslint needs; its peer range is <6.1.0. Remove once
+      # https://github.com/typescript-eslint/typescript-eslint/issues/10940 lands.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
     groups:
       minor-and-patch:
         update-types:
